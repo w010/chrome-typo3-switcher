@@ -3,10 +3,10 @@
   "author": "wolo.pl '.' studio",
   "homepage_url": "http://wolo.pl/",
 
-  "name": "A TYPO3 Backend Switcher",
-  "short_name": "TYPO3 BE Switch",
-  "description": "Opens TYPO3 backend of current site in new tab",
-  "version": "0.1",
+  "name": "TYPO3 Backend-Frontend Handy Switcher",
+  "short_name": "TYPO3 BE-FE Switch",
+  "description": "Opens TYPO3 backend of current site in new tab, or frontend if already in backend. Works well even when running in subdirectory (based on base href tag)",
+  "version": "0.9",
 
   "browser_action": {
     "default_icon": "Icons/icon-48.png",
