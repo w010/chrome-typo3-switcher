@@ -1,0 +1,13 @@
+
+TYPO3 Backend-Frontend Handy Switcher
+wolo.pl '.' studio
+2017
+
+
+This extension add button to the Chrome's toolbar that opens a tab with TYPO3 Backend of current site, or a Frontend, if detects it is in Backend.
+
+Some time ago there was a similar extension, but it simply opened current domain + /typo3/ segment - I've used it for a long time though. Thanks to the author of original ext, Patrick Lischka, for inspirations to improve this idea.
+
+My ext goes further and it can open back the Frontend from Backend, also it can not only add a path to a domain, but tries to extract the <base> tag from a page source, then uses it for a backend url (or just a domain, if not found).
+So it works as expected when running TYPO3 project in subdirectory, ie. on your dev environment.
+(For this, it needs that you set <base href="[url]"> in <head>)

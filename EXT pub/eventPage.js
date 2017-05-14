@@ -71,7 +71,12 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
     console.info('baseHref: ' + baseHref);
     //console.log('tab object: ' + _currentTab);
 
-    // if base tag cannot be read
+	// prevent wrong url if someone sets base to other value than site's address
+    if (baseHref == '/' || baseHref == 'auto')	{
+		baseHref = '';
+    }
+
+    // if base tag cannot be read / no url found, try only a domain
     if (!baseHref  &&  _currentTab  &&  _currentTab.url) {
       // thanks to Patrick Lischka for inspirations and his "Fast TYPO3 CMS Backend switch" that I've used for a long time
       // especially for this regexp :)

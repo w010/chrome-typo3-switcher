@@ -5,8 +5,8 @@
 
   "name": "TYPO3 Backend-Frontend Handy Switcher",
   "short_name": "TYPO3 BE-FE Switch",
-  "description": "Opens TYPO3 backend of current site in new tab, or frontend if already in backend. Works well even when running in subdirectory (based on base href tag)",
-  "version": "0.9",
+  "description": "Switches between Frontend and Backend on TYPO3 sites. Works well even when running in subdirectory (looks for base href)",
+  "version": "0.9.1",
 
   "browser_action": {
     "default_icon": "Icons/icon-48.png",
