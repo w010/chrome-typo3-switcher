@@ -3,14 +3,14 @@
   "author": "wolo.pl '.' studio",
   "homepage_url": "http://wolo.pl/",
 
-  "name": "TYPO3 Backend-Frontend Handy Switcher",
-  "short_name": "TYPO3 BE-FE Switch",
+  "name": "TYPO3 - Backend-Frontend Handy Switcher",
+  "short_name": "TYPO3 - BE-FE Switch",
   "description": "Switches between Frontend and Backend on TYPO3 sites. Works well even when running in subdirectory (looks for base href)",
   "version": "0.9.1",
 
   "browser_action": {
     "default_icon": "Icons/icon-48.png",
-    "default_title": " [Switch to backend] "
+    "default_title": "Switch Backend-Frontend"
   },
 
   "icons": {
