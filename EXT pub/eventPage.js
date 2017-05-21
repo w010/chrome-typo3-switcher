@@ -135,14 +135,3 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
 
 
 
-
-
-chrome.contextMenus.create({
-    "type":"checkbox",
-    "checked":true,
-    "title":"TEST",
-    "contexts":["browser_action"],
-    "onclick":function(info, tab) {
-        console.log(info);
-    }
-});
