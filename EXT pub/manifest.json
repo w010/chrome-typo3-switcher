@@ -6,11 +6,11 @@
   "name": "TYPO3 - Backend-Frontend Handy Switcher",
   "short_name": "TYPO3 - BE-FE Switch",
   "description": "Switches between Frontend and Backend on TYPO3 sites. Works well even when running in subdirectory (looks for base href)",
-  "version": "0.9.1",
+  "version": "0.9.1.999",
 
   "browser_action": {
     "default_icon": "Icons/icon-48.png",
-    "default_title": "Switch Backend-Frontend"
+    "default_title": "TYPO3 - Switch Backend-Frontend"
   },
 
   "icons": {

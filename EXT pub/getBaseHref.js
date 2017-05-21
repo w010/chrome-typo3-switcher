@@ -6,7 +6,7 @@
 function getBaseHref() {
 
   var base = document.querySelector('base');
-  var baseHref = base && base.href || '';
+  var baseHref = base  &&  base.href || '';
 
   // quick visual test
   /*if (baseHref) {
@@ -21,8 +21,9 @@ function getBaseHref() {
 }
 
 
+
 chrome.runtime.sendMessage({
-  action: "getBaseHref",
+  action: "baseHref",
   source: getBaseHref()
 });
 

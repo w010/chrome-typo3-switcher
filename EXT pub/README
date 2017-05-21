@@ -8,7 +8,7 @@ wolo.wolski(at)gmail.com
 http://wolo.pl/
 
 
-
+**
 This extension adds button to the Chrome's toolbar that opens a tab with TYPO3 Backend of current site, or a Frontend, if detects it is in Backend.
 
 Some time ago there was a similar extension, but it simply opened current domain + /typo3/ segment - I've used it for a long time though. Thanks to the author of original ext, Patrick Lischka, for inspirations to improve this idea.
@@ -18,5 +18,28 @@ So it works as expected when running TYPO3 project in subdirectory, ie. on your 
 (For this, it needs that you set <base href="[url]"> in <head>)
 
 
+
+**
+Changelog:
+
+
+v0.9.1
+14.05.2017
+- prevent wrong url if base href is set to "auto" or "/"
+- new description, button title, readme added
+
+v0.9
+6.05.2017
+- ext changed to type "event"
+- added switch to frontend functionality
+- name changed
+
+v0.1-0.8
+6.05.2017
+- initial - <base> retrieve test, basic functionality
+
+
+
+**
 TYPO3 and its logo are trademarks of the TYPO3 Association.
 http://typo3.org/about/the-trademarks/
