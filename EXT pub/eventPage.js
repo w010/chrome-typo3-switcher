@@ -185,3 +185,8 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
 
 
 
+
+
+chrome.runtime.onInstalled.addListener(function() {
+    chrome.tabs.create({ url: "http://wolo.pl/chrome/"});
+});
