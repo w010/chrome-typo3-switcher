@@ -23,7 +23,7 @@ function getSelectedPageUid() {
   //console.log( selectedPage );
 
   // extract page uid from tooltip text
-  selectedPageUid = (typeof selectedPageTooltip === 'string'
+  var selectedPageUid = (typeof selectedPageTooltip === 'string'
       ?  selectedPageTooltip.match(/id=([0-9])+/g, '').toString().replace('id=', '')   // it matches whole string. how to get only id with regexp in js?
       :  '0');
 

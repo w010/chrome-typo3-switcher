@@ -23,74 +23,147 @@ chrome.browserAction.onClicked.addListener(function (tab) {
   _currentTab = tab;
   _url = _currentTab.url.toString();
 
-  var urlParts = _url.match(/\/typo3\//);
 
+  // get configuration (how to just get them all?)
+  chrome.storage.sync.get({
+      switch_fe_openSelectedPageUid: true,
+      switch_be_useBaseHref: true
+    },
+    function(options) {
+      main(options);
+  });
 
-  // IS IN BACKEND
-
-  // if /typo3/ found in url, click switches to frontend
-  if (urlParts) {
-
-    // tries to extract current pid from backend pagetree and sends a message
-    chrome.tabs.executeScript(null, {
-
-      file: 'getSelectedPageUid.js'
-
-    }, function () {
-        // on system pages you can't inject any scripts
-        if (chrome.runtime.lastError) {
-            console.warning('Error injecting script: \n' + chrome.runtime.lastError.message);
-            console.warning('You\'re probably trying to use this extension on some Chrome\'s system page.');
-        }
-    });
-  }
-
-  // IS IN FRONTEND
-
-  // othrwise, try to find proper backend url and open it
-  else {
-
-    chrome.tabs.executeScript(null, {
-
-      file: 'getBaseHref.js'
-
-    }, function () {
-      // on system pages you can't inject any scripts
-      if (chrome.runtime.lastError) {
-        console.warning('Error injecting script: \n' + chrome.runtime.lastError.message);
-        console.warning('You\'re probably trying to use this extension on some Chrome\'s system page.');
-      }
-    });
-  }
 });
 
+
+
+function main(options)  {
+
+    // console.log(options.switch_fe_openSelectedPageUid);
+    // console.log(options.switch_be_useBaseHref);
+
+    var urlParts = _url.match(/\/typo3\//);
+
+
+
+    // IS IN BACKEND
+
+    // if /typo3/ found in url, click switches to frontend
+    if (urlParts) {
+
+        if (options.switch_fe_openSelectedPageUid) {
+            // tries to extract current pid from backend pagetree and sends a message
+            chrome.tabs.executeScript(null, {
+
+                file: 'getSelectedPageUid.js'
+
+            }, function () {
+                // on system pages you can't inject any scripts
+                if (chrome.runtime.lastError) {
+                    console.warning('Error injecting script: \n' + chrome.runtime.lastError.message);
+                    console.warning('You\'re probably trying to use this extension on some Chrome\'s system page.');
+                }
+            });
+        }
+        else {
+            // opens homepage
+            openFrontend(0);
+        }
+    }
+
+
+
+    // IS IN FRONTEND
+
+    // otherwise, open backend
+    else {
+
+        if (options.switch_be_useBaseHref)  {
+            // try to find proper backend url and open it
+            chrome.tabs.executeScript(null, {
+
+                file: 'getBaseHref.js'
+
+            }, function () {
+                // on system pages you can't inject any scripts
+                if (chrome.runtime.lastError) {
+                    console.warning('Error injecting script: \n' + chrome.runtime.lastError.message);
+                    console.warning('You\'re probably trying to use this extension on some Chrome\'s system page.');
+                }
+            });
+        }
+        else {
+            // open backend in classic way
+            openBackend('');
+        }
+    }
+
+}
+
+
+
+
+function openFrontend(pageUid) {
+  // remove /typo3/ and everything after it in url. add page id, if received
+  var newTabUrl = _url.replace(/typo3\/.*/, '')
+      + (pageUid > 0  ?  '?id=' + pageUid  :  '');
+
+  // note, that this logs only to the extension dev console, not to page devtools.
+  console.info('newTabUrl: ' + newTabUrl);
+
+  // open TYPO3 Frontend
+  chrome.tabs.create({
+      'url': newTabUrl,
+      'index': _currentTab.index + 1
+  });
+}
+
+
+
+
+function openBackend(siteUrl) {
+
+  // if base tag cannot be read / no url found, try only a domain
+  if (!siteUrl  &&  _currentTab  &&  _url) {
+    // thanks to Patrick Lischka for inspirations and his "Fast TYPO3 CMS Backend switch" that I've used for a long time
+    // especially for this regexp :)
+    //baseHref = _currentTab.url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[0];
+
+    // extract scheme + domain
+    var parts = _url.split('/');
+      siteUrl = parts[0] + '//' + parts[2];
+
+    /*console.log('url: ' + _url);
+     console.log(parts);
+     console.log(siteUrl);*/
+  }
+
+  // strip trailing slash, if present
+  var newTabUrl = siteUrl.replace(/\/$/, '');
+
+  console.info('newTabUrl: ' + newTabUrl);
+
+  // finally open TYPO3 Backend tab next to current page:
+  chrome.tabs.create({
+      'url': newTabUrl + '/typo3/',
+      'index': _currentTab.index + 1
+  });
+}
 
 
 
 
 // when the injected script gets the content, it sends it using message request, so we get this message here
-chrome.runtime.onMessage.addListener(function(request, sender) {
 
-  var newTabUrl;
+chrome.runtime.onMessage.addListener(function(request, sender) {
 
 
   if (request  &&  request.action === 'selectedPageUid' || '') {
 
     var selectedPageUid = request.source;
-
-    // remove /typo3/ and everything after it in url. add page id, if received
-    newTabUrl = _url.replace(/typo3\/.*/, '')
-      + (selectedPageUid > 0  ?  '?id=' + selectedPageUid  :  '');
-
-    // note, that this logs only to the extension dev console, not to page devtools.
-    console.info('newTabUrl: ' + newTabUrl);
-
-    // open TYPO3 Frontend
-    chrome.tabs.create({
-        'url': newTabUrl,
-        'index': _currentTab.index + 1
-    });
+    openFrontend(selectedPageUid);
   }
+
 
 
   if (request  &&  request.action === 'baseHref' || '') {
@@ -102,35 +175,12 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
 
 	// prevent wrong url if someone sets base to other value than site's address
     if (baseHref === '/'  ||  baseHref === 'auto')	{
-		baseHref = '';
+      baseHref = '';
     }
 
-    // if base tag cannot be read / no url found, try only a domain
-    if (!baseHref  &&  _currentTab  &&  _url) {
-      // thanks to Patrick Lischka for inspirations and his "Fast TYPO3 CMS Backend switch" that I've used for a long time
-      // especially for this regexp :)
-      //baseHref = _currentTab.url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[0];
-
-      // extract scheme + domain
-      var parts = _url.split('/');
-      baseHref = parts[0] + '//' + parts[2];
-
-        /*console.log('url: ' + _url);
-        console.log(parts);
-        console.log(baseHref);*/
-    }
-
-    // strip trailing slash, if present
-    newTabUrl = baseHref.replace(/\/$/, '');
-
-    console.info('newTabUrl: ' + newTabUrl);
-
-    // finally open TYPO3 Backend tab next to current page:
-    chrome.tabs.create({
-      'url': newTabUrl + '/typo3/',
-      'index': _currentTab.index + 1
-    });
+    openBackend(baseHref);
   }
+
 });
 
 

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TYPO3 - Backend-Frontend Handy Switcher</title>
+    <style>
+        body {
+            padding: 10px;
+            min-width: 50%;
+        }
+        .settings-block  {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid lightgray;
+        }
+        input[type=checkbox]    {
+            margin-right: 8px;
+            bottom: 2px;
+        }
+        #status {
+            margin-top: 10px;
+            color: #ff8700;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="settings-block general">
+
+        <h2>Switching</h2>
+
+        <h3>to Frontend</h3>
+        <label>
+            <input type="checkbox" id="switch_fe_openSelectedPageUid">
+            Open current pagetree selected page <br>
+            (if disabled, open homepage)
+        </label>
+
+        <h3>to Backend</h3>
+        <label>
+            <input type="checkbox" id="switch_be_useBaseHref">
+            Use &lt;base href&gt; to recognize backend url <br>
+            (if disabled, uses current domain)
+        </label>
+
+    </div>
+
+    <button id="save">Save</button>
+
+    <div id="status"></div>
+
+    <script src="options.js"></script>
+</body>
+</html>
