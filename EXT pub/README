@@ -7,6 +7,9 @@ wolo.pl '.' studio
 wolo.wolski(at)gmail.com
 http://wolo.pl/
 
+https://chrome.google.com/webstore/detail/typo3-backend-frontend-ha/ohemimdlihjdeacgbccdkafckackmcmn
+https://github.com/w010/chrome-typo3-switcher
+
 
 **
 This extension adds button to the Chrome's toolbar that opens a tab with TYPO3 Backend of current site,
@@ -24,6 +27,8 @@ Switching to Frontend opens last selected page in backend page tree (works simil
 but works even if currently some module without page tree /or such button/ is open).
 (tested in versions 6.2, 7.6 and 8.7. any between should work as well)
 
+Please write me any problems, suggestions or ideas.
+
 
 
 
@@ -35,6 +40,7 @@ v0.9.2.999
 27.05.2017
 - configuration options added, thus main code slightly reworked 
 - storage permission now required
+- new icons
 
 v0.9.2
 21.05.2017
@@ -57,6 +63,16 @@ v0.1-0.8
 
 
 
+
 **
+Legal:
+
+
 TYPO3 and its logo are trademarks of the TYPO3 Association.
 http://typo3.org/about/the-trademarks/
+
+
+**
+Icons based on:
+https://github.com/TYPO3/TYPO3.Icons
+https://typo3.org/about/the-brand/style-guide/the-typo3-logo/
