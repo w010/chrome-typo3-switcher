@@ -24,7 +24,7 @@ chrome.browserAction.onClicked.addListener(function (tab) {
   _url = _currentTab.url.toString();
 
 
-  // get configuration (how to just get them all?)
+  // get configuration and use defaults if not configured (if null as first param: get all)
   chrome.storage.sync.get({
       switch_fe_openSelectedPageUid: true,
       switch_be_useBaseHref: true
@@ -186,7 +186,15 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
 
 
 
+// on install or update open info / changelog page
 
 chrome.runtime.onInstalled.addListener(function() {
-    chrome.tabs.create({ url: "http://wolo.pl/chrome/"});
+
+    chrome.storage.sync.get('internal_installTime', function(options){
+        // for developing reasons, try to show only once a day (on ext reload)
+        var now = new Date().getTime();
+        chrome.storage.sync.set({internal_installTime: now});
+        if (now - options.internal_installTime > 24 * 3600)
+            chrome.tabs.create({ url: "http://wolo.pl/chrome/#whats-new"});
+    });
 });
