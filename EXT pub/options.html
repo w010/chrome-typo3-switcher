@@ -3,22 +3,103 @@
 <head>
     <title>TYPO3 - Backend-Frontend Handy Switcher</title>
     <style>
+        *   {
+            box-sizing: border-box;
+        }
         body {
             padding: 10px;
-            min-width: 50%;
+            width: 990px;
+        }
+        h2  {
+            margin-top: 0;
+        }
+        h4  {
+            margin: 10px 0;
         }
         .settings-block  {
             margin-bottom: 15px;
             padding-bottom: 15px;
             border-bottom: 1px solid lightgray;
         }
-        input[type=checkbox]    {
+        label   {
+            margin-right: 15px;
+        }
+        input[type="checkbox"]    {
             margin-right: 8px;
             bottom: 2px;
         }
+        input[type="text"]    {
+            width: 260px;
+            /*margin-bottom: 8px;*/
+        }
+        input[type="color"] {
+            vertical-align: top;
+            height: 1.9em;
+            margin-right: 8px;
+        }
+        button  {
+            margin-bottom: 8px !important;
+        }
+        button.remove   {
+            position: absolute;
+            color: crimson;
+            padding: 0 !important;
+            top: 10px;
+            right: 10px;
+        }
+        label.hide  {
+            position: absolute;
+            padding: 3px 0 0 0 !important;
+            top: 10px;
+            right: 60px;
+        }
+
         #status {
             margin-top: 10px;
             color: #ff8700;
+        }
+
+        .projectItem    {
+            position: relative;
+            border: 1px solid lightgray;
+            background: #eee;
+            border-radius: 3px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .contextItem, .linkItem    {
+            position: relative;
+            border: 1px solid lightgray;
+            background: #ddd;
+            border-radius: 3px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        ._template  {
+            display: none;
+        }
+
+        .dialog-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #fff;
+            opacity: 0.7;
+        }
+        .dialog {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            text-align: center;
+        }
+        .dialog-inner {
+            margin: 10% auto;
+            background: #eee;
+            padding: 15px;
+            width: 50%;
+        }
+        .dialog button  {
+            margin: 2px 5px;
         }
     </style>
 </head>
@@ -31,23 +112,83 @@
         <h3>to Frontend</h3>
         <label>
             <input type="checkbox" id="switch_fe_openSelectedPageUid">
-            Open current pagetree selected page <br>
-            (if disabled, open homepage)
+            Open current pagetree selected page uid <br>
+            (disabled = open homepage)
         </label>
 
         <h3>to Backend</h3>
         <label>
             <input type="checkbox" id="switch_be_useBaseHref">
             Use &lt;base href&gt; to recognize backend url <br>
-            (if disabled, uses current domain)
+            (disabled = use current domain)
         </label>
 
     </div>
+
+
+    <div class="settings-block environments">
+
+        <h2>Environment</h2>
+
+        <div class="projects">
+
+            <h4>Projects</h4>
+
+            <div class="projects-container"></div>
+            <div class="projectItem _template">
+
+                <label><input type="text" name="project[name]" placeholder="Name"></label>
+
+                <div class="contexts">
+
+                    <h4>Env contexts</h4>
+
+                    <div class="contexts-container"></div>
+                    <div class="contextItem _template">
+
+                        <label><input type="text" name="context[name]" placeholder="Name"></label>
+                        <label><input type="text" name="context[url]" placeholder="Url"></label>
+                        <label><input type="color" name="context[color]" placeholder="Color">Badge color</label>
+
+                        <label class="hide"><input type="checkbox" name="context[hidden]"> Disable </label>
+                        <button class="remove env_contextRemove" title="Remove">x</button>
+                    </div>
+
+                    <button class="env_contextAdd">+ Env context</button>
+                </div>
+
+                <div class="links">
+
+                    <h4>Links</h4>
+
+                    <div class="links-container"></div>
+                    <div class="linkItem _template">
+
+                        <label><input type="text" name="link[name]" placeholder="Name"></label>
+                        <label><input type="text" name="link[url]" placeholder="Url"></label>
+
+                        <label class="hide"><input type="checkbox" name="link[hidden]"> Disable </label>
+                        <button class="remove env_linkRemove" title="Remove">x</button>
+                    </div>
+
+                    <button class="env_linkAdd">+ Link</button>
+                </div>
+
+                <label class="hide"><input type="checkbox" name="link[hidden]"> Disable </label>
+                <button class="remove env_projectRemove" title="Remove">x</button>
+            </div>
+
+        </div>
+
+        <button class="env_projectAdd">+ Project</button>
+    </div>
+
 
     <button id="save">Save</button>
 
     <div id="status"></div>
 
+    <script src="Vendor/jquery-3.2.1.min.js"></script>
     <script src="options.js"></script>
 </body>
 </html>
