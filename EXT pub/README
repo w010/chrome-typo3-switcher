@@ -36,7 +36,7 @@ Please write me any problems, suggestions or ideas.
 Changelog:
 
 
-v0.9.2.999
+v0.9.3
 27.05.2017
 - configuration options added, thus main code slightly reworked 
 - storage permission now required
