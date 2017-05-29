@@ -2,171 +2,363 @@
  * based on https://developer.chrome.com/extensions/optionsV2
  */
 
-// Saves options to chrome.storage.sync.
-function save_options() {
+// init
+$(function() {
+    ExtOptions.optionsRestore();
+    ExtOptions.updateStorageInfo();
+    ExtOptions.debugStorageData();
+});
 
-    chrome.storage.sync.set({
+// bind basic buttons
+$( '#save' ).click( function () {
+    ExtOptions.optionsSave();
+    //ExtOptions.debugSaveEnv();
+});
 
-        switch_fe_openSelectedPageUid:  $('#switch_fe_openSelectedPageUid').checked,
-        switch_be_useBaseHref:          $('#switch_be_useBaseHref').checked
-
-    }, function() {
-        // Update status
-        console.log('options saved');
-        var status = $('#status');
-        status.html ('Options saved.');
-        setTimeout(function() {
-            status.html('');
-        }, 1000);
-    });
-}
-
-// Restores select box and checkbox state using the preferences
-// stored in chrome.storage.
-function restore_options() {
-    // Set default values on read if not found
-    chrome.storage.sync.get({
-
-        switch_fe_openSelectedPageUid:  true,
-        switch_be_useBaseHref:          true
-
-    }, function(options) {
-
-        $('#switch_fe_openSelectedPageUid').checked =  options.switch_fe_openSelectedPageUid;
-        $('#switch_be_useBaseHref').checked =          options.switch_be_useBaseHref;
-
-    });
-}
-
-
-/*document.addEventListener('DOMContentLoaded', restore_options);
-document.getElementById('save').addEventListener('click',
-    save_options);*/
-
-$(function(){                   restore_options();  });
-$('#save').click(function () {  save_options();     });
-
-
-
-$('button.env_projectAdd').click(function () {
-    insertProjectItem({})
+$( 'button.env_projectAdd' ).click( function () {
+    ExtOptions.insertProjectItem( {} )
 });
 
 
 
-
-
-/**
- * Add project item block
- * @param data object
- */
-function insertProjectItem(data)   {
-    var project = $('.projectItem._template').clone().removeClass('_template')
-        .appendTo( $('.projects-container') );
-
-    // bind buttons
-    project.find('button.env_contextAdd').click(function () {
-        console.log('add context click');
-        insertContextItem(project, {});
+    chrome.storage.onChanged.addListener(function(changes, namespace) {
+        for (key in changes) {
+            var storageChange = changes[key];
+            console.log('Storage key "%s" in namespace "%s" changed. ' +
+                'Old value was "%s", new value is "%s".',
+                key,
+                namespace,
+                storageChange.oldValue,
+                storageChange.newValue);
+        }
     });
-    project.find('button.env_linkAdd').click(function () {
-        insertLinkItem(project, {});
-    });
-    project.find('button.env_projectRemove').click(function () {
-        confirmDialog('Delete project - are you sure?', function() {
-            deleteProjectItem(project);
+
+
+
+
+
+var ExtOptions = {
+
+    DEV : true,
+
+    
+    /**
+     * Saves options to chrome.storage.sync.
+     */
+    optionsSave : function() {
+    
+        chrome.storage.sync.set({
+    
+            'switch_fe_openSelectedPageUid':  !!$( '#switch_fe_openSelectedPageUid' ).is( ':checked' ),
+            'switch_be_useBaseHref':          !!$( '#switch_be_useBaseHref' ).is( ':checked' ),
+            'env_projects':                   ExtOptions.collectEnvSettings()
+    
+        }, function() {
+            // update storage info
+            ExtOptions.updateStorageInfo();
+            ExtOptions.debugStorageData();
+            // update status message
+            var status = $( '#status' );
+            status.html( 'Options saved.' );
+            setTimeout( function() {
+                status.html('');
+            }, 1000);
         });
-    });
-}
+    },
 
-/**
- * Add env context block
- * @param project element
- * @param data object
- */
-function insertContextItem(project, data)   {
-    var context = $(project).find('.contextItem._template').clone().removeClass('_template')
-        .appendTo( $(project).find('.contexts-container') );
+    /**
+     * Restores select box and checkbox state using the preferences
+     * stored in chrome.storage
+     */
+    optionsRestore : function() {
 
-    // bind buttons
-    context.find('button.env_contextRemove').click(function () {
-        confirmDialog('Delete context - are you sure?', function() {
-            deleteContextItem(context);
+        chrome.storage.sync.get({
+
+            // Set default values on read if not found
+            'switch_fe_openSelectedPageUid':  true,
+            'switch_be_useBaseHref':          true,
+            'env_projects':                   []
+
+        }, function(options) {
+
+            $( '#switch_fe_openSelectedPageUid' ).attr( 'checked',  options.switch_fe_openSelectedPageUid );
+            $( '#switch_be_useBaseHref' ).attr( 'checked',          options.switch_be_useBaseHref );
+            ExtOptions.populateEnvSettings(                         options.env_projects );
+
         });
-    });
-}
+    },
 
-/**
- * Add link block
- * @param project element
- * @param data object
- */
-function insertLinkItem(project, data)   {
-    var link = $(project).find('.linkItem._template').clone().removeClass('_template')
-        .appendTo( $(project).find('.links-container') );
 
-    // bind buttons
-    link.find('button.env_linkRemove').click(function () {
-        confirmDialog('Delete link - are you sure?', function() {
-            deleteLinkItem(link);
+    
+    
+    
+    
+    
+    // ENV SETTINGS
+    
+    /**
+     * Add project item block
+     * @param projectItem object
+     */
+    insertProjectItem : function(projectItem)   {
+        var project = $( '.projectItem._template' ).clone().removeClass( '_template' )
+            .appendTo( $( '.projects-container' ) );
+
+        // populate data
+        project.find( "[name='project[name]']" ).val( projectItem.name );
+        project.find( "[name='project[hidden]']" ).prop( 'checked', projectItem.hidden );
+
+        // todo: check what if no .contexts
+        if (projectItem.contexts !== typeof undefined) {
+            $.each(projectItem.contexts, function (i, contextItem) {
+                ExtOptions.insertContextItem(project, contextItem);
+            });
+        }
+
+        // todo: check what if no .links
+        if (projectItem.links !== typeof undefined) {
+            $.each(projectItem.links, function (i, linkItem) {
+                ExtOptions.insertLinkItem(project, linkItem);
+            });
+        }
+
+        // bind buttons
+        project.find( 'button.env_contextAdd' ).click( function() {
+            ExtOptions.insertContextItem( project, {} );
         });
-    });
-}
+        project.find( 'button.env_linkAdd' ).click( function() {
+            ExtOptions.insertLinkItem( project, {} );
+        });
+        project.find( 'button.env_projectRemove' ).click( function() {
+            ExtOptions.confirmDialog( 'Delete project - are you sure?', function() {
+                ExtOptions.deleteProjectItem( project );
+            });
+        });
+    },
+
+    /**
+     * Add env context block
+     * @param project element
+     * @param contextItem object with data
+     */
+    insertContextItem : function(project, contextItem)   {
+        var context = project.find( '.contextItem._template' ).clone().removeClass( '_template' )
+            .appendTo( project.find( '.contexts-container' ) );
+
+        // populate data
+        context.find( "[name='context[name]']" ).val( contextItem.name );
+        context.find( "[name='context[url]']" ).val( contextItem.url );
+        context.find( "[name='context[color]']" ).val( contextItem.color );
+        context.find( ".color-picker" ).val( contextItem.color );
+        context.find( "[name='context[hidden]']" ).prop( 'checked', contextItem.hidden );
+
+        // bind buttons
+        context.find( 'button.env_contextRemove' ).click( function() {
+            ExtOptions.confirmDialog( 'Delete context - are you sure?', function() {
+                ExtOptions.deleteContextItem( context );
+            });
+        });
+
+        // color picker - set text input
+        context.find( 'input.color-picker' ).on( 'change', function() {
+            console.log('picker changed');
+            console.log(context);
+            context.find( 'input.color-text' ).val( $(this).val() );
+        });
+        // color input - set picker color
+        context.find( 'input.color-text' ).on( 'keyup', function() {
+            console.log('color text changed');
+            console.log(context);
+            // add # on beginning if not there
+            if ( !( /^#/.test( $(this).val() ) ) )
+                $(this).val( '#' + $(this).val() );
+
+            if ( $(this).val().length === 7 )
+                context.find( 'input.color-picker' ).val( $(this).val() );
+        });
+    },
+
+    /**
+     * Add link block
+     * @param project element
+     * @param linkItem object with data
+     */
+    insertLinkItem : function(project, linkItem)   {
+        var link = project.find( '.linkItem._template' ).clone().removeClass( '_template' )
+            .appendTo( project.find( '.links-container' ) );
+
+        // populate data
+        link.find( "[name='link[name]']" ).val( linkItem.name );
+        link.find( "[name='link[url]']" ).val( linkItem.url );
+        link.find( "[name='link[hidden]']" ).prop( 'checked', linkItem.hidden );
+
+        // bind buttons
+        link.find( 'button.env_linkRemove' ).click( function() {
+            ExtOptions.confirmDialog( 'Delete link - are you sure?', function() {
+                ExtOptions.deleteLinkItem( link );
+            });
+        });
+    },
 
 
 
-/**
- * Delete project
- * @param project element
- */
-function deleteProjectItem(project)   {
-    $(project).remove();
-}
+    /**
+     * Delete project
+     * @param project element
+     */
+    deleteProjectItem : function(project)   {
+        $( project ).remove();
+    },
 
-/**
- * Delete context
- * @param context element
- */
-function deleteContextItem(context)   {
-    $(context).remove();
-}
+    /**
+     * Delete context
+     * @param context element
+     */
+    deleteContextItem : function(context)   {
+        $( context ).remove();
+    },
 
-/**
- * Delete link
- * @param link element
- */
-function deleteLinkItem(link)   {
-    $(link).remove();
-}
+    /**
+     * Delete link
+     * @param link element
+     */
+    deleteLinkItem : function(link)   {
+        $( link ).remove();
+    },
 
 
-/**
- * Simple modal dialog with Yes / No buttons
- * @param message
- * @param callbackConfirm
- * @param callbackDecline
- */
-function confirmDialog(message, callbackConfirm, callbackDecline)   {
-    if (typeof callbackConfirm !== "function")  callbackConfirm = function(){};
-    if (typeof callbackDecline !== "function")  callbackDecline = function(){};
 
-    var dialog_overlay = $('<div class="dialog-overlay">');
-    var dialog = $('<div class="dialog">');
-    $('body').append(dialog_overlay).append(dialog);
-    var dialog_inner = $('<div class="dialog-inner">')
-        .append( $('<h3>').html( message ) )
-        .append( $('<button class="confirm">').click( function(){
-            callbackConfirm();
-            closeDialog(dialog);
-        }).html('Yes') )
-        .append( $('<button class="decline">').click( function() {
-            callbackDecline();
-            closeDialog(dialog);
-        }).html('No') )
-        .appendTo( dialog );
-}
 
-function closeDialog(dialog)  {
-    $(dialog).remove();
-    $('.dialog-overlay').remove();
-}
+    // ENV SETTINGS: READ / WRITE
+
+    /**
+     * Iterate projects / environments elements and build an array
+     */
+    collectEnvSettings : function()   {
+        console.log('called: collectEnvSettings');
+        var projects = [];
+        $( '.settings-block.environments .projects-container .projectItem' ).each( function()  {
+            var projectItem = {};
+            projectItem['name'] = $(this).find( "[name='project[name]']" ).val();
+            projectItem['hidden'] = $(this).find( "[name='project[hidden]']" ).is( ':checked' );
+            projectItem['contexts'] = [];
+            projectItem['links'] = [];
+
+            $(this).find( '.contexts-container .contextItem' ).each( function() {
+                var contextItem = {};
+                contextItem['name'] = $(this).find( "[name='context[name]']" ).val();
+                contextItem['url'] = $(this).find( "[name='context[url]']" ).val();
+                contextItem['color'] = $(this).find( "[name='context[color]']" ).val();
+                contextItem['hidden'] = $(this).find( "[name='context[hidden]']" ).is( ':checked' );
+
+                projectItem['contexts'].push( contextItem );
+            });
+
+            $(this).find( '.links-container .linkItem' ).each( function() {
+                var linkItem = {};
+                linkItem['name'] = $(this).find( "[name='link[name]']" ).val();
+                linkItem['url'] = $(this).find( "[name='link[url]']" ).val();
+                linkItem['hidden'] = $(this).find( "[name='link[hidden]']" ).is( ':checked' );
+
+                projectItem['links'].push( linkItem );
+            });
+
+            // todo: get contexts & links items
+
+            projects.push( projectItem );
+        });
+        console.log(projects);
+        return projects;
+    },
+
+
+    /**
+     *
+     * @param projects array
+     */
+    populateEnvSettings : function(projects)   {
+        console.info('called: ExtOptions.populateEnvSettings');
+        console.info('projects from conf:', projects);
+
+        $.each( projects, function(i, projectItem)    {
+            console.log(projectItem);
+
+            ExtOptions.insertProjectItem( projectItem );
+        });
+
+    },
+
+
+
+
+    // HELPERS
+
+
+    /**
+     * Simple modal dialog with Yes / No buttons
+     * @param message string
+     * @param callbackConfirm function
+     * @param callbackDecline function
+     */
+    confirmDialog : function(message, callbackConfirm, callbackDecline)   {
+        if (typeof callbackConfirm !== "function")  callbackConfirm = function(){};
+        if (typeof callbackDecline !== "function")  callbackDecline = function(){};
+
+        var dialog_overlay = $( '<div class="dialog-overlay">' );
+        var dialog = $( '<div class="dialog">' );
+        $('body').append( dialog_overlay ).append( dialog );
+        var dialog_inner = $( '<div class="dialog-inner">' )
+            .append( $( '<h3>' ).html( message ) )
+            .append( $( '<button class="confirm">' ).click( function() {
+                callbackConfirm();
+                ExtOptions.closeDialog( dialog );
+            }).html( 'Yes' ) )
+            .append( $( '<button class="decline">' ).click( function() {
+                callbackDecline();
+                ExtOptions.closeDialog( dialog );
+            }).html( 'No' ) )
+            .appendTo( dialog );
+    },
+
+    closeDialog : function(dialog)  {
+        $( dialog ).remove();
+        $( '.dialog-overlay' ).remove();
+    },
+
+
+    /**
+     * Show storage usage
+     */
+    updateStorageInfo : function()    {
+        if ( !ExtOptions.DEV )    return;
+        chrome.storage.sync.getBytesInUse(null, function (bytes) {
+            $( '#storageInfo' ).text( 'Bytes in storage: ' + bytes );
+        });
+
+        //chrome.storage.sync.clear();
+    },
+
+    /**
+     * Debug environment data to be saved
+     */
+    debugSaveEnv : function() {
+        if ( !ExtOptions.DEV )    return;
+        console.log('called: ExtOptions.debugSaveEnv');
+        var envSettings = ExtOptions.collectEnvSettings();
+        $( '#debug' ).html( JSON.stringify( envSettings, null, 4 ) );
+    },
+
+    /**
+     * Debug whole storage saved data
+     */
+    debugStorageData : function() {
+        if ( !ExtOptions.DEV )    return;
+        console.log('called: ExtOptions.debugStorageData');
+        chrome.storage.sync.get( null, function(options) {
+            //console.log(options);
+            $( '#debug' ).html( 'storage content: \n' + JSON.stringify( options, null, 4 ) );
+        });
+    }
+
+
+};

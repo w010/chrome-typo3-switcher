@@ -194,7 +194,10 @@ chrome.runtime.onInstalled.addListener(function() {
         // for developing reasons, try to show only once a day (on ext reload)
         var now = new Date().getTime();
         chrome.storage.sync.set({internal_installTime: now});
-        if (now - options.internal_installTime > 24 * 3600)
+        if (now - options.internal_installTime > 24 * 360000)
             chrome.tabs.create({ url: "http://wolo.pl/chrome/#whats-new"});
     });
 });
+
+
+//console.log(chrome.runtime.getManifest().version);
