@@ -10,13 +10,17 @@ $(function() {
 });
 
 // bind basic buttons
-$( '#save' ).click( function () {
+$( 'button#save' ).click( function () {
     ExtOptions.optionsSave();
     //ExtOptions.debugSaveEnv();
 });
 
 $( 'button.env_projectAdd' ).click( function () {
     ExtOptions.insertProjectItem( {} )
+});
+
+$( 'button#env_import' ).click( function () {
+    ExtOptions.importProjects( {} )
 });
 
 
@@ -46,23 +50,22 @@ var ExtOptions = {
      * Saves options to chrome.storage.sync.
      */
     optionsSave : function() {
+
+        var env_projects = ExtOptions.collectEnvSettings();
     
         chrome.storage.sync.set({
     
-            'switch_fe_openSelectedPageUid':  !!$( '#switch_fe_openSelectedPageUid' ).is( ':checked' ),
-            'switch_be_useBaseHref':          !!$( '#switch_be_useBaseHref' ).is( ':checked' ),
-            'env_projects':                   ExtOptions.collectEnvSettings()
+            'switch_fe_openSelectedPageUid':  $( '#switch_fe_openSelectedPageUid' ).is( ':checked' ),
+            'switch_be_useBaseHref':          $( '#switch_be_useBaseHref' ).is( ':checked' ),
+            'env_projects':                   env_projects
     
         }, function() {
             // update storage info
             ExtOptions.updateStorageInfo();
             ExtOptions.debugStorageData();
+            ExtOptions.fillExportData( env_projects );
             // update status message
-            var status = $( '#status' );
-            status.html( 'Options saved.' );
-            setTimeout( function() {
-                status.html('');
-            }, 1000);
+            ExtOptions.displayMessage( 'Options saved.' );
         });
     },
 
@@ -84,6 +87,8 @@ var ExtOptions = {
             $( '#switch_fe_openSelectedPageUid' ).attr( 'checked',  options.switch_fe_openSelectedPageUid );
             $( '#switch_be_useBaseHref' ).attr( 'checked',          options.switch_be_useBaseHref );
             ExtOptions.populateEnvSettings(                         options.env_projects );
+
+            ExtOptions.fillExportData( options.env_projects );
 
         });
     },
@@ -111,14 +116,14 @@ var ExtOptions = {
         // todo: check what if no .contexts
         if (projectItem.contexts !== typeof undefined) {
             $.each(projectItem.contexts, function (i, contextItem) {
-                ExtOptions.insertContextItem(project, contextItem);
+                ExtOptions.insertContextItem( project, contextItem );
             });
         }
 
         // todo: check what if no .links
         if (projectItem.links !== typeof undefined) {
             $.each(projectItem.links, function (i, linkItem) {
-                ExtOptions.insertLinkItem(project, linkItem);
+                ExtOptions.insertLinkItem( project, linkItem );
             });
         }
 
@@ -133,6 +138,9 @@ var ExtOptions = {
             ExtOptions.confirmDialog( 'Delete project - are you sure?', function() {
                 ExtOptions.deleteProjectItem( project );
             });
+        });
+        project.find( '.toggle' ).click( function() {
+            project.toggleClass( 'collapse' );
         });
     },
 
@@ -235,7 +243,6 @@ var ExtOptions = {
      * Iterate projects / environments elements and build an array
      */
     collectEnvSettings : function()   {
-        console.log('called: collectEnvSettings');
         var projects = [];
         $( '.settings-block.environments .projects-container .projectItem' ).each( function()  {
             var projectItem = {};
@@ -267,7 +274,7 @@ var ExtOptions = {
 
             projects.push( projectItem );
         });
-        console.log(projects);
+        console.info('collectEnvSettings - projects: ', projects);
         return projects;
     },
 
@@ -290,8 +297,53 @@ var ExtOptions = {
 
 
 
+    // IMPORT / EXPORT
+
+
+    fillExportData : function ( env_projects ) {
+        $( '#env_importexport-data' ).html(
+            JSON.stringify( env_projects, null, 4 )
+        );
+    },
+
+
+    importProjects : function ()    {
+        var importData = [];
+        try {
+            importData = JSON.parse( $( '#env_importexport-data' ).val() );
+
+            if ( $( '#env_import_overwrite' ).is(':checked') )  {
+                $( '.projects-container' ).empty();
+            }
+
+            ExtOptions.populateEnvSettings( importData );
+            ExtOptions.displayMessage( 'Environments / projects imported', '#status-import', 99999 );
+            ExtOptions.optionsSave();
+
+        } catch(e)   {
+            //console.log(e.message);
+            ExtOptions.displayMessage( 'JSON parsing problem. Message: <br>' + e.message, '#status-import', 99999 );
+        }
+
+        console.log( importData );
+    },
+
+
+
 
     // HELPERS
+
+
+    displayMessage : function(msg, target, time)   {
+        if (typeof time !== "number")   time = 2000;
+        if (typeof target !== "string")  target = '#status';
+
+        var status = $( target );
+        status.html( msg );
+        setTimeout( function() {
+            status.html('');
+        }, time);
+    },
 
 
     /**

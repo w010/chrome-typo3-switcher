@@ -23,6 +23,7 @@
         }
         label   {
             margin-right: 15px;
+            margin-bottom: 8px;
         }
         input[type="checkbox"]    {
             margin-right: 8px;
@@ -52,12 +53,36 @@
             margin-left: 8px;
         }
         button  {
-            margin-bottom: 8px !important;
+            /*margin-bottom: 8px !important;*/
+            cursor: pointer;
+            border: none !important;
         }
+
+        .btn {
+            display: inline-block;
+            margin-bottom: 0;
+            font-weight: normal;
+            text-align: center;
+            vertical-align: middle;
+            background-image: none;
+            border: 1px solid transparent;
+            white-space: nowrap;
+            padding: 6px 6px;
+            font-size: 12px;
+            line-height: 1.5;
+            border-radius: 2px;
+            user-select: none;
+            box-shadow: none !Important;
+            min-width: 28px;
+            min-height: 28px;
+        }
+
         button.remove   {
             position: absolute;
-            color: crimson;
-            padding: 0 !important;
+            /*color: crimson;*/
+            background: url(/Icons/Options/Delete.svg) no-repeat 0 0 !important;
+            background-size: 60% 60%;
+            /*padding: 0 !important;*/
             top: 10px;
             right: 10px;
         }
@@ -68,7 +93,7 @@
             right: 60px;
         }
 
-        #status {
+        #status, #status-import {
             margin-top: 10px;
             color: #ff8700;
         }
@@ -81,6 +106,9 @@
             padding: 10px;
             margin-bottom: 10px;
         }
+        .projectItem > label  {
+            display: block;
+        }
         .contextItem, .linkItem    {
             position: relative;
             border: 1px solid lightgray;
@@ -91,6 +119,21 @@
         }
         ._template  {
             display: none;
+        }
+        .toggle {
+            position: absolute;
+            top: 0px;
+            left: 280px;
+            width: 530px;
+            height: 45px;
+            cursor: pointer;
+        }
+        .projectItem.collapse .contexts,
+        .projectItem.collapse .links    {
+            display: none;
+        }
+        .settings-block > label {
+            display: block;
         }
 
         .dialog-overlay {
@@ -115,6 +158,7 @@
         .dialog button  {
             margin: 2px 5px;
         }
+
     </style>
 </head>
 
@@ -149,9 +193,10 @@
             <h4>Projects</h4>
 
             <div class="projects-container"></div>
-            <div class="projectItem _template">
+            <div class="projectItem collapse _template">
 
-                <label><input type="text" name="project[name]" placeholder="Name" class="required"></label>
+                <div class="toggle"></div>
+                <input type="text" name="project[name]" placeholder="Name" class="required">
 
                 <div class="contexts">
 
@@ -168,7 +213,7 @@
                         </label>
 
                         <label class="hide"><input type="checkbox" name="context[hidden]"> Disable </label>
-                        <button class="remove env_contextRemove" title="Remove">x</button>
+                        <button class="remove env_contextRemove" title="Remove"></button>
                     </div>
 
                     <button class="env_contextAdd">+ Env context</button>
@@ -185,25 +230,54 @@
                         <label><input type="text" name="link[url]" placeholder="Url" class="required"></label>
 
                         <label class="hide"><input type="checkbox" name="link[hidden]"> Disable </label>
-                        <button class="remove env_linkRemove" title="Remove">x</button>
+                        <button class="remove env_linkRemove" title="Remove"></button>
                     </div>
 
                     <button class="env_linkAdd">+ Link</button>
                 </div>
 
                 <label class="hide"><input type="checkbox" name="project[hidden]"> Disable </label>
-                <button class="remove env_projectRemove" title="Remove">x</button>
+                <button class="remove btn env_projectRemove" title="Remove"></button>
             </div>
 
         </div>
 
         <button class="env_projectAdd">+ Project</button>
+
+        <br>
+        <br>
+        <button id="save" class="btn">Save</button>
+        <div id="status"></div>
     </div>
 
 
-    <button id="save">Save</button>
+    <div class="settings-block importexport">
 
-    <div id="status"></div>
+        <h2>Import / export</h2>
+        <h4>Environment</h4>
+
+        <label>
+            <input type="checkbox" id="env_import_overwrite">
+            Overwrite all current projects (!)<br>
+            (disabled = add)
+        </label>
+        <label>
+            <input type="checkbox" id="env_import_test">
+            Test import<br>
+            (disabled = save after import)
+        </label>
+        <br><br>
+        <textarea placeholder="paste json" id="env_importexport-data" cols="80" rows="5"></textarea>
+
+        <br>
+        <br>
+        <button id="env_import">Import</button>
+
+        <div id="status-import"></div>
+
+    </div>
+
+
 
     <div id="storageInfo"></div>
     <pre id="debug"></pre>
