@@ -21,19 +21,26 @@
             padding-bottom: 15px;
             border-bottom: 1px solid lightgray;
         }
+        /* default inputs & labels */
         label   {
             margin-right: 15px;
             margin-bottom: 8px;
         }
+        label.check {
+            cursor: pointer;
+        }
         input[type="checkbox"]    {
             margin-right: 8px;
             bottom: 2px;
+            cursor: pointer;
         }
         input[type="text"]    {
             width: 260px;
+            min-height: 2em;
             background-color: transparent;
             border-color: transparent;
             transition: background-color 0.3s;
+            font-size: 1.2em;
         }
         input[type="text"]:focus,
         input[type="text"]:hover    {
@@ -44,59 +51,74 @@
             border-bottom-color: #ff8700;
         }
         input[type="color"] {
-            vertical-align: top;
+            vertical-align: top;    /* middle doesn't work well here */
+            margin-top: 2px;
             height: 1.9em;
             margin-left: 8px;
+            cursor: pointer;
         }
         input.color-text    {
             width: 64px;
             margin-left: 8px;
         }
+
+        label.hide  {
+            position: absolute;
+            padding: 3px 0 0 0 !important;
+            top: 13px;
+            right: 60px;
+            cursor: pointer;
+        }
+
+        /* buttons */
         button  {
             /*margin-bottom: 8px !important;*/
             cursor: pointer;
-            border: none !important;
+            /*border: none !important;*/
         }
-
         .btn {
             display: inline-block;
             margin-bottom: 0;
             font-weight: normal;
             text-align: center;
             vertical-align: middle;
-            background-image: none;
-            border: 1px solid transparent;
+            background-image: none !important;
+            background-color: #dedede;
+            border: 1px solid #c4c4c4;
             white-space: nowrap;
             padding: 6px 6px;
-            font-size: 12px;
-            line-height: 1.5;
+            line-height: 0.9;
             border-radius: 2px;
             user-select: none;
             box-shadow: none !Important;
             min-width: 28px;
             min-height: 28px;
         }
+            .btn:hover {
+                color: #333333;
+                background-color: #c4c4c4;
+                border-color: #a6a6a6;
+            }
+            .btn .icon  {
+                width: 16px;    height: 16px;
+                display: inline-block;
+                background: transparent no-repeat 0 0;
+            }
+            .btn .text {
+                display: inline-block;
+                line-height: 1.35em;
+                vertical-align: top;
+            }
 
         button.remove   {
             position: absolute;
-            /*color: crimson;*/
-            background: url(/Icons/Options/Delete.svg) no-repeat 0 0 !important;
-            background-size: 60% 60%;
-            /*padding: 0 !important;*/
-            top: 10px;
-            right: 10px;
+            top: 10px;  right: 10px;
+            /*background-size: 60% 60%;*/
         }
-        label.hide  {
-            position: absolute;
-            padding: 3px 0 0 0 !important;
-            top: 10px;
-            right: 60px;
-        }
-
-        #status, #status-import {
-            margin-top: 10px;
-            color: #ff8700;
-        }
+        button.remove .icon  {  background-image: url(/Icons/Options/Delete.svg);   }
+        button.add .icon  {     background-image: url(/Icons/Options/Add.svg);  }
+        button.save .icon  {    background-image: url(/Icons/Options/Save.svg);  }
+        button.import .icon  {  background-image: url(/Icons/Options/Import.svg);  }
 
         .projectItem    {
             position: relative;
@@ -122,31 +144,53 @@
         }
         .toggle {
             position: absolute;
-            top: 0px;
+            top: 0;
             left: 280px;
-            width: 530px;
-            height: 45px;
+            width: 530px;   height: 45px;
             cursor: pointer;
         }
+            .toggle .icon   {
+                display: block;
+                width: 16px;    height: 16px;
+                position: absolute;
+                top: 17px;
+                left: 10px;
+                background: transparent url(Icons/Options/Collapse.svg) no-repeat 0 0;
+                opacity: 0;
+                transition: opacity 0.4s;
+            }
+            .projectItem:hover .toggle .icon    {
+                opacity: 0.2;
+            }
+            .projectItem.collapse .toggle .icon    {
+                background: transparent url(Icons/Options/Expand.svg) no-repeat 0 0;
+            }
+
         .projectItem.collapse .contexts,
         .projectItem.collapse .links    {
             display: none;
         }
+
         .settings-block > label {
             display: block;
         }
 
+        #status, #status-import {
+            margin-top: 10px;
+            color: #ff8700;
+        }
+
         .dialog-overlay {
-            position: absolute;
+            position: fixed;
             top: 0; left: 0;
-            width: 100%; height: 100%;
+            width: 100%;    height: 100%;
             background: #fff;
             opacity: 0.7;
         }
         .dialog {
             position: fixed;
             top: 0; left: 0;
-            width: 100%; height: 100%;
+            width: 100%;    height: 100%;
             text-align: center;
         }
         .dialog-inner {
@@ -168,14 +212,14 @@
         <h2>Switching</h2>
 
         <h3>to Frontend</h3>
-        <label>
+        <label class="check">
             <input type="checkbox" id="switch_fe_openSelectedPageUid">
             Open current pagetree selected page uid <br>
             (disabled = open homepage)
         </label>
 
         <h3>to Backend</h3>
-        <label>
+        <label class="check">
             <input type="checkbox" id="switch_be_useBaseHref">
             Use &lt;base href&gt; to recognize backend url <br>
             (disabled = use current domain)
@@ -195,7 +239,7 @@
             <div class="projects-container"></div>
             <div class="projectItem collapse _template">
 
-                <div class="toggle"></div>
+                <div class="toggle"><span class="icon"></span></div>
                 <input type="text" name="project[name]" placeholder="Name" class="required">
 
                 <div class="contexts">
@@ -212,11 +256,11 @@
                             <input type="text" name="context[color]" placeholder="#Hex" class="color-text" maxlength="7">
                         </label>
 
-                        <label class="hide"><input type="checkbox" name="context[hidden]"> Disable </label>
-                        <button class="remove env_contextRemove" title="Remove"></button>
+                        <label class="check hide"><input type="checkbox" name="context[hidden]"> Disable </label>
+                        <button class="btn remove env_contextRemove" title="Remove"><span class="icon"></span></button>
                     </div>
 
-                    <button class="env_contextAdd">+ Env context</button>
+                    <button class="btn add env_contextAdd"><span class="icon"></span> <span class="text">Env context</span></button>
                 </div>
 
                 <div class="links">
@@ -229,24 +273,24 @@
                         <label><input type="text" name="link[name]" placeholder="Name" class="required"></label>
                         <label><input type="text" name="link[url]" placeholder="Url" class="required"></label>
 
-                        <label class="hide"><input type="checkbox" name="link[hidden]"> Disable </label>
-                        <button class="remove env_linkRemove" title="Remove"></button>
+                        <label class="check hide"><input type="checkbox" name="link[hidden]"> Disable </label>
+                        <button class="btn remove env_linkRemove" title="Remove"><span class="icon"></span></button>
                     </div>
 
-                    <button class="env_linkAdd">+ Link</button>
+                    <button class="btn add env_linkAdd"><span class="icon"></span> <span class="text">Link</span></button>
                 </div>
 
-                <label class="hide"><input type="checkbox" name="project[hidden]"> Disable </label>
-                <button class="remove btn env_projectRemove" title="Remove"></button>
+                <label class="check hide"><input type="checkbox" name="project[hidden]"> Disable </label>
+                <button class="btn remove env_projectRemove" title="Remove"><span class="icon"></span></button>
             </div>
 
         </div>
 
-        <button class="env_projectAdd">+ Project</button>
+        <button class="btn add env_projectAdd"><span class="icon"></span> <span class="text">Project</span></button>
 
         <br>
         <br>
-        <button id="save" class="btn">Save</button>
+        <button id="save" class="btn save"><span class="icon"></span> <span class="text">Save</span></button>
         <div id="status"></div>
     </div>
 
@@ -256,12 +300,12 @@
         <h2>Import / export</h2>
         <h4>Environment</h4>
 
-        <label>
+        <label class="check">
             <input type="checkbox" id="env_import_overwrite">
             Overwrite all current projects (!)<br>
             (disabled = add)
         </label>
-        <label>
+        <label class="check">
             <input type="checkbox" id="env_import_test">
             Test import<br>
             (disabled = save after import)
@@ -271,7 +315,7 @@
 
         <br>
         <br>
-        <button id="env_import">Import</button>
+        <button id="env_import" class="btn import"><span class="icon"></span> <span class="text">Import</span></button>
 
         <div id="status-import"></div>
 
