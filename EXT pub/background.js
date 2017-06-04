@@ -9,6 +9,11 @@
  * wolo.wolski+t3becrx@gmail.com
  */
 
+/**
+ * Main script - fe/be switching with icon
+ */
+
+//console.log('background.js loaded');
 
 
 var _currentTab;
@@ -17,7 +22,7 @@ var _url;
 
 // on click action inject the script to current page
 chrome.browserAction.onClicked.addListener(function (tab) {
-  //console.log('action clicked - inject the script into document');
+  console.log('action clicked - inject the script into document');
 
   // store current tab and its url for later
   _currentTab = tab;
@@ -190,11 +195,16 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
 
 chrome.runtime.onInstalled.addListener(function() {
 
+        /*chrome.storage.sync.get('internal_installTime', function(options){
+            console.log('install time: ' + options.internal_installTime );
+        });
+        return;*/
+
     chrome.storage.sync.get('internal_installTime', function(options){
         // for developing reasons, try to show only once a day (on ext reload)
-        var now = new Date().getTime();
+        var now = new Date().getTime(); // miliseconds
         chrome.storage.sync.set({internal_installTime: now});
-        if (now - options.internal_installTime > 24 * 360000)
+        if (now - options.internal_installTime > 24 * 360000  ||  !options.internal_installTime)
             chrome.tabs.create({ url: "http://wolo.pl/chrome/#whats-new"});
     });
 });
