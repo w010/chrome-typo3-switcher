@@ -1,41 +1,15 @@
 /**
- * based on https://developer.chrome.com/extensions/optionsV2
+ * TYPO3 Backend-Frontend Handy Switcher - Chrome extension
+ *
+ * wolo.pl '.' studio 2017
+ * Adam wolo Wolski
+ * wolo.wolski+t3becrx@gmail.com
  */
 
-// init
-$(function() {
-    ExtOptions.optionsRestore();
-    ExtOptions.updateStorageInfo();
-    ExtOptions.debugStorageData();
-});
-
-// bind basic buttons
-$( 'button#save' ).click( function () {
-    ExtOptions.optionsSave();
-    //ExtOptions.debugSaveEnv();
-});
-
-$( 'button.env_projectAdd' ).click( function () {
-    ExtOptions.insertProjectItem( {} )
-});
-
-$( 'button#env_import' ).click( function () {
-    ExtOptions.importProjects( {} )
-});
-
-
-
-    chrome.storage.onChanged.addListener(function(changes, namespace) {
-        for (key in changes) {
-            var storageChange = changes[key];
-            console.log('Storage key "%s" in namespace "%s" changed. ' +
-                'Old value was "%s", new value is "%s".',
-                key,
-                namespace,
-                storageChange.oldValue,
-                storageChange.newValue);
-        }
-    });
+/**
+ * Options screen script
+ * @see https://developer.chrome.com/extensions/optionsV2
+ */
 
 
 
@@ -412,5 +386,48 @@ var ExtOptions = {
         });
     }
 
-
 };
+
+
+
+
+
+
+
+
+// init
+$(function() {
+    ExtOptions.optionsRestore();
+    ExtOptions.updateStorageInfo();
+    ExtOptions.debugStorageData();
+});
+
+// bind basic buttons
+$( 'button#save' ).click( function () {
+    ExtOptions.optionsSave();
+    //ExtOptions.debugSaveEnv();
+});
+
+$( 'button.env_projectAdd' ).click( function () {
+    ExtOptions.insertProjectItem( {} )
+});
+
+$( 'button#env_import' ).click( function () {
+    ExtOptions.importProjects( {} )
+});
+
+
+
+chrome.storage.onChanged.addListener(function(changes, namespace) {
+    for (key in changes) {
+        var storageChange = changes[key];
+        console.log('Storage key "%s" in namespace "%s" changed. ' +
+            'Old value was "%s", new value is "%s".',
+            key,
+            namespace,
+            storageChange.oldValue,
+            storageChange.newValue);
+    }
+});
+
+
