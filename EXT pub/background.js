@@ -9,6 +9,10 @@
  * wolo.wolski+t3becrx@gmail.com
  */
 
+/**
+ * Main script - fe/be switching with icon
+ */
+
 //console.log('background.js loaded');
 
 
