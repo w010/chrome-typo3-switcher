@@ -48,8 +48,8 @@ var Switcher = {
                 }, function () {
                     // on system pages you can't inject any scripts
                     if ( chrome.runtime.lastError ) {
-                        console.warning('Error injecting script: \n' + chrome.runtime.lastError.message);
-                        console.warning('You\'re probably trying to use this extension on some Chrome\'s system page.');
+                        console.warn('Error injecting script: \n' + chrome.runtime.lastError.message);
+                        console.warn('You\'re probably trying to use this extension on some Chrome\'s system page.');
                     }
                 });
             }
@@ -75,8 +75,8 @@ var Switcher = {
                 }, function () {
                     // on system pages you can't inject any scripts
                     if ( chrome.runtime.lastError ) {
-                        console.warning('Error injecting script: \n' + chrome.runtime.lastError.message);
-                        console.warning('You\'re probably trying to use this extension on some Chrome\'s system page.');
+                        console.warn('Error injecting script: \n' + chrome.runtime.lastError.message);
+                        console.warn('You\'re probably trying to use this extension on some Chrome\'s system page.');
                     }
                 });
             }
@@ -212,6 +212,7 @@ chrome.runtime.onInstalled.addListener(function() {
         });
         return;*/
 
+    // todo: instead of date, store minor version (second number) and open webpage only if it has changed)
     chrome.storage.sync.get( 'internal_installTime', function(options)  {
         // for developing reasons, try to show only once a day (on ext reload)
         var now = new Date().getTime(); // miliseconds

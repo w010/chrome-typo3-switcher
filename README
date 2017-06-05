@@ -15,7 +15,7 @@ https://github.com/w010/chrome-typo3-switcher
 This extension adds button to the Chrome's toolbar that opens a tab with TYPO3 Backend of current site,
 or a Frontend, if detects it is in Backend.
 
-Some time ago there was a similar extension, but it simply opened current domain + /typo3/ segment - I've used it
+Some time ago there was a similar extension, but it was only opening current domain + /typo3/ segment - I've used it
 for a long time though. Thanks to the author of original ext, Patrick Lischka, for inspirations to improve this idea.
 
 My ext goes further and it can open back the Frontend from Backend, also it can not only add a path to a domain, but
@@ -33,8 +33,44 @@ Please write me any problems, suggestions or ideas.
 
 
 **
+FAQ:
+
+Q: I have a multi-domain site. And when I'm in Backend I use switch to get to Frontend.
+ Why am I getting an error "ID was outside the domain"?
+
+A: You probably have selected a page in the tree which is in a root that uses different domain than current
+ domain in url used for getting the Backend.
+ You must select a page within the root that contains current domain or disable the "Open current pagetree selected page"
+ in extension options.
+
+
+Q: Couldn't it detect proper domain for selected page?
+
+A: No. It's impossible to retrieve such information from Backend using Chrome's extension.
+
+
+Q: I'm on some page id in Frontend, and when I use the button to open Backend, I'm getting the "About modules" screen.
+ Could it detect that page id and expand the tree for me?
+
+A: It would be great, but as far as I know it's not possible to make Backend preselect a page in tree from any
+ external call. I'll try some workaround in future, but it will need a special TYPO3 extension just for that.
+
+
+
+
+**
 Changelog:
 
+
+v0.9.992
+5.06.2017
+- new features!
+- project environments switching (configuration + context menu)
+- showing badge with env info
+- import / export of project settings
+- ext type had to be changed to "background"
+- contextMenus permission now required
+- jquery 3.2.1 added (included only in options screen)
 
 v0.9.3
 27.05.2017

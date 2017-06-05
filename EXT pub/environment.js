@@ -44,23 +44,23 @@ var Env = {
         // switch window
         chrome.tabs.onHighlighted.addListener( function () {
             console.log('EVENT: tabs.onHighlighted');
-            Env.findProjectConfigForCurrentTabUrl( options );
+            Env.findAndApplyProjectConfigForCurrentTabUrl( options, 'onHighlighted' );
         });
         // switch tab
         chrome.windows.onFocusChanged.addListener( function () {
             console.log('EVENT: windows.onFocusChanged');
-            Env.findProjectConfigForCurrentTabUrl( options );
+            Env.findAndApplyProjectConfigForCurrentTabUrl( options, 'onFocusChanged' );
         });
         // load page
         chrome.tabs.onUpdated.addListener( function () {
             console.log('EVENT: tabs.onUpdated');
-            Env.findProjectConfigForCurrentTabUrl( options );
+            Env.findAndApplyProjectConfigForCurrentTabUrl( options, 'onUpdated' );
         });
     },
 
 
 
-    findProjectConfigForCurrentTabUrl : function(options) {
+    findAndApplyProjectConfigForCurrentTabUrl : function(options, _debugEventTriggered) {
 
         // clear current options
         // todo: check, if this is sure
@@ -102,9 +102,8 @@ var Env = {
 
                                     console.info('project: ', project.name, ', context: ', context.name);
 
-                                    Env.setupIconMenu( context, project );
-                                    // todo: badge (if once set, try to not add again) - try to save info in tab object. is it possible?
-                                    //setupBadge( context, project );
+                                    Env.setupIconMenu( context, project, _debugEventTriggered );
+                                    Env.setupBadge( context, project, tab, _debugEventTriggered );
 
                                     break;
                                 }
@@ -131,7 +130,7 @@ var Env = {
      * @param activeContext
      * @param project
      */
-    setupIconMenu : function(activeContext, project) {
+    setupIconMenu : function(activeContext, project, _debugEventTriggered) {
         //console.log(project);
 
         chrome.contextMenus.ACTION_MENU_TOP_LEVEL_LIMIT = 10;
@@ -153,13 +152,52 @@ var Env = {
                     //"parentId": "parent"
                 }, function () {
                     if ( chrome.runtime.lastError ) {
+                        console.warn('Error: Probably duplicated url for various projects. Project: ' + project.name);
                         console.error(chrome.runtime.lastError.message);
-                        console.warn('project: ' + project.name, ', context: ' + context.name);
-                        console.warn('Probably duplicated url for various projects');
                     }
                 });
             }
         }
+    },
+
+
+    // todo: badge (if once set, try to not add again) - try to save info in tab object. is it possible?
+    // todo: option to disable overall env and only badges (and per project: no color set = no badge)
+    setupBadge : function (context, project, tab, _debugEventTriggered) {
+
+        if ( !context.color )
+            return;
+
+        chrome.tabs.executeScript( null, {
+
+            code: 'var badge_params = {' +
+                    'DEV: '+Env.DEV+',' +
+                    'projectLabel: "'+project.name+'",' +
+                    'contextLabel: "'+context.name+'",' +
+                    'contextColor: "'+context.color+'",' +
+                    '_debugEventTriggered: "'+_debugEventTriggered+'"' +
+                '};'
+
+        }, function () {
+
+            // on system pages you can't inject any scripts
+            if ( chrome.runtime.lastError ) {
+                console.warn('Env.setupBadge(): Error executing code: \n' + chrome.runtime.lastError.message);
+            }
+            else {
+                chrome.tabs.executeScript( null, {
+
+                    file: 'setBadge.js'
+
+                }, function() {
+
+                    // on system pages you can't inject any scripts
+                    if ( chrome.runtime.lastError ) {
+                        console.warn('Error injecting badge script: \n' + chrome.runtime.lastError.message);
+                    }
+                });
+            }
+        });
     },
 
 
@@ -174,7 +212,7 @@ var Env = {
         console.log(activeContext);
 
         // params2.pageUrl is a key in object passed to this func? not passed, so get it
-        chrome.tabs.getSelected(null, function (_currentTab) {
+        chrome.tabs.getSelected( null, function (_currentTab) {
             console.log(_currentTab);
 
             // strip trailing slash
@@ -190,8 +228,8 @@ var Env = {
 
             // finally open TYPO3 Backend tab next to current page:
             chrome.tabs.create({
-                'url': newTabUrl,
-                'index': _currentTab.index + 1
+                'url':      newTabUrl,
+                'index':    _currentTab.index + 1
             });
         });
 
