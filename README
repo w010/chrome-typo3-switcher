@@ -1,5 +1,5 @@
 
-TYPO3 - Backend-Frontend Handy Switcher
+TYPO3 - BE-FE-Env Handy Switcher
 
 
 wolo.pl '.' studio
@@ -12,20 +12,33 @@ https://github.com/w010/chrome-typo3-switcher
 
 
 **
-This extension adds button to the Chrome's toolbar that opens a tab with TYPO3 Backend of current site,
+What does it do?
+
+This extension adds button to the Chrome's toolbar that opens a tab with TYPO3 Backend of current site (base href-based),
 or a Frontend, if detects it is in Backend.
+Also, it provides configuration for various work environments (contexts) to fast jump between them.
+It displays info badge on each one to easy recognize on which one you are.
+Additionally, you can add some project-related links (like, to task manager) to the context menu (displayed only on that project).
+Project configuration may be exported to share with your team.
 
-Some time ago there was a similar extension, but it was only opening current domain + /typo3/ segment - I've used it
-for a long time though. Thanks to the author of original ext, Patrick Lischka, for inspirations to improve this idea.
-
-My ext goes further and it can open back the Frontend from Backend, also it can not only add a path to a domain, but
-tries to extract the <base> tag from a page source, then uses it for a backend url (or just a domain, if not found).
-So it works as expected when running TYPO3 project in subdirectory, ie. on your dev environment.
-(For this, it needs that you set <base href="[url]"> in <head>)
+Note, that you may disable all environment-related functionality, to use only BE/FE switching and keep the ext lightweight.
 
 Switching to Frontend opens last selected page in backend page tree (works similar as View webpage button in backend,
 but works even if currently some module without page tree /or such button/ is open).
 (tested in versions 6.2, 7.6 and 8.7. any between should work as well)
+
+
+**
+Story:
+
+Some time ago there was an extension for switching to backend, but it was only opening current domain + /typo3/ segment - I've used it
+for a long time though. Thanks to the author of original ext, Patrick Lischka, for inspirations to improve this idea.
+
+- My ext goes further and it can open back the Frontend from Backend, also it can not only add a path to a domain, but
+tries to extract the <base> tag from a page source, then uses it for a backend url (or just a domain, if not found).
+So it works as expected when running TYPO3 project in subdirectory, ie. on your dev environment.
+(For this, it needs that you set <base href="[url]"> in <head>)
+
 
 Please write me any problems, suggestions or ideas.
 

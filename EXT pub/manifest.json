@@ -10,7 +10,7 @@
 
   "browser_action": {
     "default_icon": "Icons/icon-48.png",
-    "default_title": "TYPO3 - Switch Backend-Frontend"
+    "default_title": "TYPO3 - switch Backend-Frontend (right click for environment switch)"
   },
 
   "icons": {
