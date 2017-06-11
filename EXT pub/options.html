@@ -11,7 +11,10 @@
             width: 990px;
         }
         h2  {
-            margin-top: 0;
+            margin: .1em 0 .7em;
+        }
+        h3  {
+            margin: 1em 0 .7em;
         }
         h4  {
             margin: 10px 0;
@@ -26,13 +29,24 @@
             margin-right: 15px;
             margin-bottom: 8px;
         }
-        label.check {
+        label span  {
+            display: inline-block;
+        }
+        label.check,
+        label.radio,
+        label.radio-item {
             cursor: pointer;
         }
         input[type="checkbox"]    {
             margin-right: 8px;
-            bottom: 2px;
             cursor: pointer;
+            vertical-align: top;
+            margin-top: 2px;
+        }
+        input[type="radio"]    {
+            margin-right: 8px;
+            cursor: pointer;
+            vertical-align: top;
         }
         input[type="text"]    {
             width: 260px;
@@ -68,6 +82,15 @@
             top: 13px;
             right: 60px;
             cursor: pointer;
+        }
+        label.text input    {
+            border: 1px solid #bbb;
+        }
+        label.text span    {
+            margin-right: 8px;
+        }
+        input#env_badge_scale   {
+            width: 35px;
         }
 
         /* buttons */
@@ -121,13 +144,22 @@
         button.save .icon  {    background-image: url(/Icons/Options/Save.svg);  }
         button.import .icon  {  background-image: url(/Icons/Options/Import.svg);  }
 
+        button.env_contextAddDefaultSet {
+            display: none;
+        }
+
         .projectItem    {
             position: relative;
-            border: 1px solid lightgray;
+            border: 1px solid transparent;
             background: #eee;
             border-radius: 3px;
             padding: 10px;
             margin-bottom: 10px;
+            transition: opacity 0.4s;
+        }
+        .projectItem:hover,
+        .projectItem:focus    {
+            border: 1px solid lightgray;
         }
         .projectItem > label  {
             display: block;
@@ -139,6 +171,7 @@
             border-radius: 3px;
             padding: 10px;
             margin-bottom: 10px;
+            transition: opacity 0.4s;
         }
         ._template  {
             display: none;
@@ -147,7 +180,7 @@
             position: absolute;
             top: 0;
             left: 280px;
-            width: 530px;   height: 45px;
+            width: 530px;   height: 49px;
             cursor: pointer;
         }
             .toggle .icon   {
@@ -171,14 +204,21 @@
         .projectItem.collapse .links    {
             display: none;
         }
+        .projectItem.hidden,
+        .contextItem.hidden,
+        .linkItem.hidden    {
+            opacity: .5;
+        }
 
         .settings-block > label {
             display: block;
         }
 
-        #status, #status-import {
-            margin-top: 10px;
+        .status-save, .status-import {
             color: #ff8700;
+            display: inline-block;
+            vertical-align: middle;
+            padding-left: 10px;
         }
 
         .dialog-overlay {
@@ -208,22 +248,30 @@
 </head>
 
 <body>
+
+    <div class="settings-block saveblock">
+        <button class="btn save"><span class="icon"></span> <span class="text">Save</span></button>
+        <span class="status-save"></span>
+        <br>
+        <br>
+    </div>
+
     <div class="settings-block general">
 
-        <h2>Switching</h2>
+        <h1>Switching</h1>
 
-        <h3>to Frontend</h3>
+        <h3>to Frontend:</h3>
         <label class="check">
             <input type="checkbox" id="switch_fe_openSelectedPageUid">
-            Open current pagetree selected page uid <br>
-            (disabled = open homepage)
+            <span>Open current pagetree selected page uid <br>
+                (disabled = open homepage)</span>
         </label>
 
-        <h3>to Backend</h3>
+        <h3>to Backend:</h3>
         <label class="check">
             <input type="checkbox" id="switch_be_useBaseHref">
-            Use &lt;base href&gt; to recognize backend url <br>
-            (disabled = use current domain)
+            <span>Use &lt;base href&gt; to recognize backend url <br>
+                (disabled = use current domain)</span>
         </label>
 
     </div>
@@ -231,7 +279,49 @@
 
     <div class="settings-block environments">
 
-        <h2>Environment</h2>
+        <h1>Environment</h1>
+
+        <label class="check">
+            <input type="checkbox" id="env_enable">
+            <span>Use this whole Contexts / Environments functionality <br>
+                (disabled = no env menu, no badges, no nothing. only FE/BE switching)</span>
+        </label>
+
+        <h3>Context switch:</h3>
+
+        <label class="check">
+            <input type="checkbox" id="env_switching">
+            <span>Enable right-click menu context switching</span>
+        </label>
+
+        <h3>Badge:</h3>
+
+        <label class="check">
+            <input type="checkbox" id="env_badge">
+            <span>Display badge on page to identify current context</span>
+        </label>
+        <label class="check">
+            <input type="checkbox" id="env_badge_projectname">
+            <span>Show also project name on badge <br>
+                (disabled = show only context name)</span>
+        </label>
+        <label class="radio">
+            <span>Position:</span>
+        </label>
+        <label class="radio-item">
+            <input type="radio" class="env_badge_position" id="env_badge_position_left" value="left" name="badge_position">
+            On left corner</label>
+        <label class="radio-item">
+            <input type="radio" class="env_badge_position" id="env_badge_position_right" value="right" name="badge_position">
+            On right corner</label>
+
+        <label class="text">
+            <span>Badge scale: </span>
+            <input type="text" id="env_badge_scale">
+        </label>
+
+
+        <br>
 
         <div class="projects">
 
@@ -262,6 +352,7 @@
                     </div>
 
                     <button class="btn add env_contextAdd"><span class="icon"></span> <span class="text">Env context</span></button>
+                    <button class="btn add env_contextAddDefaultSet" title="Adds some default predefined contexts"><span class="icon"></span> <span class="text">Add standard context set</span></button>
                 </div>
 
                 <div class="links">
@@ -288,38 +379,56 @@
         </div>
 
         <button class="btn add env_projectAdd"><span class="icon"></span> <span class="text">Project</span></button>
+        <br><br>
+    </div>
 
+
+    <div class="settings-block miscoptions">
+
+        <h2>Misc options</h2>
+
+        <label class="check">
+            <input type="checkbox" id="ext_debug">
+            <span>Debug info <br>
+                (shows some console messages and vars values)</span>
+        </label>
+    </div>
+
+
+    <div class="settings-block saveblock">
+        <br>
+        <button class="btn save"><span class="icon"></span> <span class="text">Save</span></button>
+        <span class="status-save"></span>
         <br>
         <br>
-        <button id="save" class="btn save"><span class="icon"></span> <span class="text">Save</span></button>
-        <div id="status"></div>
     </div>
 
 
     <div class="settings-block importexport">
 
         <h2>Import / export</h2>
-        <h4>Environment</h4>
+        <h4>Backup project settings or share with your team</h4>
 
         <label class="check">
             <input type="checkbox" id="env_import_overwrite">
-            Overwrite all current projects (!)<br>
-            (disabled = add)
+            <span>Overwrite all current projects (!)<br>
+                (disabled = add)</span>
         </label>
         <label class="check">
             <input type="checkbox" id="env_import_test">
-            Test import<br>
-            (disabled = save after import)
+            <span>Test import<br>
+                (see the imported projects, you can tune them and save, or not.<br>
+                disabled / default = save right after import)</span>
         </label>
-        <br><br>
+        <br>
+        <p>Export: copy JSON from below. Import: paste JSON into textbox and hit the button</p>
         <textarea placeholder="paste json" id="env_importexport-data" cols="80" rows="5"></textarea>
 
         <br>
         <br>
         <button id="env_import" class="btn import"><span class="icon"></span> <span class="text">Import</span></button>
 
-        <div id="status-import"></div>
-
+        <span class="status-import"></span>
     </div>
 
 

@@ -134,8 +134,8 @@ var Switcher = {
 
         // finally open TYPO3 Backend tab next to current page:
         chrome.tabs.create({
-            'url': newTabUrl,
-            'index': Switcher._currentTab.index + 1
+            'url':      newTabUrl,
+            'index':    Switcher._currentTab.index + 1
         });
     }
 
@@ -149,7 +149,6 @@ var Switcher = {
 // on click action inject the script to current page
 
 chrome.browserAction.onClicked.addListener(function (tab) {
-    if (Switcher.DEV)   console.log('action clicked - inject the script into document');
 
     // store current tab and its url for later
     Switcher._currentTab = tab;
@@ -158,13 +157,16 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 
     // get configuration and use defaults if not configured (if null as first param: get all)
     chrome.storage.sync.get({
-            switch_fe_openSelectedPageUid: true,
-            switch_be_useBaseHref: true
+            switch_fe_openSelectedPageUid : true,
+            switch_be_useBaseHref : true,
+            ext_debug : false
         },
         function(options) {
+            if ( options.ext_debug )
+                console.log('action clicked - inject the script into document');
+            Switcher.DEV = options.ext_debug;
             Switcher.main( options );
         });
-
 });
 
 
@@ -207,20 +209,15 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
 
 chrome.runtime.onInstalled.addListener(function() {
 
-        /*chrome.storage.sync.get('internal_installTime', function(options){
-            console.log('install time: ' + options.internal_installTime );
-        });
-        return;*/
+    // store install version. if minor (second) number has changed, open webpage with changelog.
+    chrome.storage.sync.get( 'internal_installVersion', function(options)  {
 
-    // todo: instead of date, store minor version (second number) and open webpage only if it has changed)
-    chrome.storage.sync.get( 'internal_installTime', function(options)  {
-        // for developing reasons, try to show only once a day (on ext reload)
-        var now = new Date().getTime(); // miliseconds
-        chrome.storage.sync.set({ internal_installTime: now });
-        if ( now - options.internal_installTime > 24 * 360000  ||  !options.internal_installTime )
+        var version = chrome.runtime.getManifest().version;
+
+        if ( options.internal_installVersion.split( '.' )[1] !== version.split( '.' )[1]  ||  !options.internal_installVersion ) {
             chrome.tabs.create({ url: "http://wolo.pl/chrome/#whats-new" });
+            chrome.storage.sync.set({ internal_installVersion: version });
+        }
     });
 });
 
-
-//console.log(chrome.runtime.getManifest().version);

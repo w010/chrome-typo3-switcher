@@ -15,12 +15,8 @@
  * It's important in this file, where the context menu are set up. Please remember this and don't mix them!)
  */
 
-console.log('environment.js loaded');
+// console.log('environment.js loaded');
 
-
-
-
-// todo: option for disabling this whole context menu functionality
 
 
 
@@ -86,6 +82,8 @@ var Env = {
                         if ( project.hidden )
                             continue;
 
+
+
                         if ( typeof project.contexts !== 'undefined' ) {
                             for ( var c = 0;  c < project.contexts.length;  c++ ) {
 
@@ -102,8 +100,11 @@ var Env = {
 
                                     console.info('project: ', project.name, ', context: ', context.name);
 
-                                    Env.setupIconMenu( context, project, _debugEventTriggered );
-                                    Env.setupBadge( context, project, tab, _debugEventTriggered );
+                                    // exit now, if whole env functionality is disabled
+                                    if ( options.env_switching !== false )
+                                        Env.setupContextMenu( context, project, _debugEventTriggered );
+                                    if ( options.env_badge !== false )
+                                        Env.setupBadge( context, project, tab, _debugEventTriggered );
 
                                     break;
                                 }
@@ -130,8 +131,7 @@ var Env = {
      * @param activeContext
      * @param project
      */
-    setupIconMenu : function(activeContext, project, _debugEventTriggered) {
-        //console.log(project);
+    setupContextMenu : function(activeContext, project, _debugEventTriggered) {
 
         chrome.contextMenus.ACTION_MENU_TOP_LEVEL_LIMIT = 10;
 
@@ -141,10 +141,13 @@ var Env = {
                 var context = project.contexts[c],
                     mark = activeContext.name === context.name  ?  '-> '  :  '';
 
+                if ( context.hidden )
+                    continue;
+
                 chrome.contextMenus.create({
-                    title: mark + context.name,
-                    contexts: ["browser_action", "page"],
-                    id: 'env' + c
+                    title:      mark + context.name,
+                    contexts:   [ "browser_action", "page" ],
+                    id:         'env' + c
 
                     //onclick: function,
                     //type: "normal",  // default value
@@ -161,8 +164,7 @@ var Env = {
     },
 
 
-    // todo: badge (if once set, try to not add again) - try to save info in tab object. is it possible?
-    // todo: option to disable overall env and only badges (and per project: no color set = no badge)
+
     setupBadge : function (context, project, tab, _debugEventTriggered) {
 
         if ( !context.color )
@@ -175,6 +177,9 @@ var Env = {
                     'projectLabel: "'+project.name+'",' +
                     'contextLabel: "'+context.name+'",' +
                     'contextColor: "'+context.color+'",' +
+                    'projectLabelDisplay: '+( typeof Env._options.env_badge_projectname === 'undefined'  ||  Env._options.env_badge_projectname === true  ?  'true'  :  'false' )+',' +
+                    'scale: '+( typeof Env._options.env_badge_scale !== 'undefined'  ?  parseFloat( Env._options.env_badge_scale )  :  1.0 )+',' +
+                    'position: "'+( typeof Env._options.env_badge_position !== 'undefined'  ?  Env._options.env_badge_position  :  'left' )+'",' +
                     '_debugEventTriggered: "'+_debugEventTriggered+'"' +
                 '};'
 
@@ -242,76 +247,80 @@ var Env = {
 
 
 
-// for performance, get all project options once to not read them on every tab switch
-chrome.storage.sync.get( 'env_projects', function(options) {
-
-    Env._options = options;     // store to use in onclick
-    Env.initProject( options );
-});
-
-
-
-
 
 /**
- * Handle menu items onclick (the only way to pass params)
+ * The whole magic
  */
-chrome.contextMenus.onClicked.addListener(function(info, tab) {
+chrome.storage.sync.get( null, function(options) {
 
-    // console.log(info);
-    // console.log(tab);
-    // console.log(_options);
-    var menuItemIndex = +info.menuItemId.match( /\d+/g ).join([]);  // + casts matched digit to number
+        // exit now, if whole env functionality is disabled
+        if ( typeof options.env_enable !== 'undefined'  &&  options.env_enable === false )
+            return;
 
-    console.log(menuItemIndex);
+        Env._options = options;     // store to use in onclick
+        Env.initProject( options );
 
-    chrome.tabs.getSelected( null, function(tab) {
-        //console.log(tab);
 
-        // console.log(menuItemIndex);
 
-        var activeProject,
-            activeContext,
-            newContext;
+        /**
+         * Handle menu items onclick (the only way to pass params)
+         */
+        chrome.contextMenus.onClicked.addListener(function(info, tab) {
 
-            // setup new ones, if url found in config
-        if ( typeof Env._options.env_projects !== 'undefined' )    {
-            for ( var p = 0;  p < Env._options.env_projects.length;  p++ )    {
+            // console.log(info);
+            // console.log(tab);
+            // console.log(_options);
+            var menuItemIndex = +info.menuItemId.match( /\d+/g ).join([]);  // + casts matched digit to number
 
-                var project = Env._options.env_projects[p];
+            console.log(menuItemIndex);
 
-                if ( typeof project.contexts !== 'undefined' )    {
+            chrome.tabs.getSelected( null, function(tab) {
+                //console.log(tab);
 
-                    for ( var c = 0;  c < project.contexts.length;  c++ ) {
+                // console.log(menuItemIndex);
 
-                        var context = project.contexts[c];
+                var activeProject,
+                    activeContext,
+                    newContext;
 
-                        if ( c === menuItemIndex )    {
-                            newContext = context;
-                            console.log('context selection index found');
+                    // setup new ones, if url found in config
+                if ( typeof Env._options.env_projects !== 'undefined' )    {
+                    for ( var p = 0;  p < Env._options.env_projects.length;  p++ )    {
+
+                        var project = Env._options.env_projects[p];
+
+                        if ( typeof project.contexts !== 'undefined' )    {
+
+                            for ( var c = 0;  c < project.contexts.length;  c++ ) {
+
+                                var context = project.contexts[c];
+
+                                if ( c === menuItemIndex )    {
+                                    newContext = context;
+                                    console.log('context selection index found');
+                                }
+                                if ( context.url  &&  tab.url.match( context.url ) )  {
+                                    activeProject = project;
+                                    activeContext = context;
+                                    console.log('active project & active context found');
+                                }
+                                if ( newContext  &&  newContext === activeContext )   {
+                                    console.log('current context clicked: do nothing');
+                                    return;
+                                }
+                            }
                         }
-                        if ( context.url  &&  tab.url.match( context.url ) )  {
-                            activeProject = project;
-                            activeContext = context;
-                            console.log('active project & active context found');
-                        }
-                        if ( newContext  &&  newContext === activeContext )   {
-                            console.log('current context clicked: do nothing');
-                            return;
+
+                        if ( activeProject )  {
+                            console.log('active project found, so dont iterate next');
+                            break;
                         }
                     }
                 }
 
-                if ( activeProject )  {
-                    console.log('active project found, so dont iterate next');
-                    break;
-                }
-            }
-        }
+                Env.switchEnvironment( newContext, activeContext, activeProject );
+            });
 
-        Env.switchEnvironment( newContext, activeContext, activeProject );
-    });
+        });
 
 });
-
-

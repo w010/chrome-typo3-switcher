@@ -1,6 +1,6 @@
 
 
-if (badge_params  &&  badge_params.DEV)         console.log('TYPO3 Switcher: setBadge.js successfully injected');
+//if (badge_params  &&  badge_params.DEV)         console.log('TYPO3 Switcher: setBadge.js successfully injected');
 
 
 
@@ -11,33 +11,55 @@ var Badge = {
 
     setBadge : function() {
 
-        if ( document.getElementsByClassName('chrome-typo3switcher-badge').length > 0 )
+        //console.log('badge from event: ' + badge_params._debugEventTriggered);
+
+        if ( document.getElementsByClassName( 'chrome-typo3switcher-badge' ).length > 0 )
             return;
 
         var params = badge_params;
 
         console.log(params);
 
-        var div = document.createElement('div');
-        div.innerHTML = params.projectLabel + '<br><b>' + params.contextLabel + '</b>';
-        div.classList.add( 'chrome-typo3switcher-badge' );
-        // div.style.backgroundColor = params.contextColor;
-        Badge.css( div, {
+        var scale = typeof params.scale === "number"  ?  params.scale  :  1;
+        var badgeContainer = document.createElement( 'div' );
+
+        badgeContainer.innerHTML = '<b>' + params.contextLabel + '</b>';
+        if ( typeof params.projectLabelDisplay === 'undefined'  ||  params.projectLabelDisplay === true )
+            badgeContainer.innerHTML = params.projectLabel + '<br>' + badgeContainer.innerHTML;
+
+        badgeContainer.classList.add( 'chrome-typo3switcher-badge' );
+        Badge.css( badgeContainer, {
             position: 'fixed',
             zIndex: '9999999',
-            top: '16px',
-            left: '-48px',
-            padding: '5px 50px',
-            transform: 'rotate(-45deg)',
+            padding: 5 * scale + 'px 0',
+            width: 200 + 'px',
+            overflow: 'hidden',
             backgroundColor: params.contextColor,
             textAlign: 'center',
             fontFamily: 'Arial, Tahoma, Verdana',
             color: '#000',
             opacity: '.85',
             cursor: 'normal',
-            pointerEvents: 'none'
+            pointerEvents: 'none',
+            fontSize: 12 * scale + 'px',
+            lineHeight: 1.2 + 'em'
         });
-        document.getElementsByTagName('body')[0].appendChild( div );
+
+        if ( params.position === 'right' )    {
+            Badge.css(badgeContainer, {
+                top: '12px',
+                right: '-70px',
+                transform: 'rotate(45deg)'
+            });
+        }
+        else {
+            Badge.css(badgeContainer, {
+                top: '12px',
+                left: '-70px',
+                transform: 'rotate(-45deg)'
+            });
+        }
+        document.getElementsByTagName( 'body' )[0].appendChild( badgeContainer );
     },
 
 

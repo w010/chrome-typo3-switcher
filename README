@@ -62,11 +62,11 @@ A: It would be great, but as far as I know it's not possible to make Backend pre
 Changelog:
 
 
-v0.9.992
-5.06.2017
+v0.9.993
+11.06.2017
 - new features!
 - project environments switching (configuration + context menu)
-- showing badge with env info
+- display badge with env info (+ options)
 - import / export of project settings
 - ext type had to be changed to "background"
 - contextMenus permission now required
