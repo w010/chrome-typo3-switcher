@@ -28,6 +28,7 @@ var Env = {
 
     _options: null,
 
+    lock: false,
 
 
     /**
@@ -39,17 +40,29 @@ var Env = {
 
         // switch window
         chrome.tabs.onHighlighted.addListener( function () {
-            console.log('EVENT: tabs.onHighlighted');
+            console.log(': EVENT: tabs.onHighlighted');
+            if (Env.lock)   {
+                console.log( ': LOCKED!' );
+                return;
+            }
             Env.findAndApplyProjectConfigForCurrentTabUrl( options, 'onHighlighted' );
         });
         // switch tab
         chrome.windows.onFocusChanged.addListener( function () {
-            console.log('EVENT: windows.onFocusChanged');
+            console.log(': EVENT: windows.onFocusChanged');
+            if (Env.lock)   {
+                console.log( ': LOCKED!' );
+                return;
+            }
             Env.findAndApplyProjectConfigForCurrentTabUrl( options, 'onFocusChanged' );
         });
         // load page
         chrome.tabs.onUpdated.addListener( function () {
-            console.log('EVENT: tabs.onUpdated');
+            console.log(': EVENT: tabs.onUpdated');
+            if (Env.lock)   {
+                console.log( ': LOCKED!' );
+                return;
+            }
             Env.findAndApplyProjectConfigForCurrentTabUrl( options, 'onUpdated' );
         });
     },
@@ -58,12 +71,15 @@ var Env = {
 
     findAndApplyProjectConfigForCurrentTabUrl : function(options, _debugEventTriggered) {
 
-        // clear current options
-        // todo: check, if this is sure
-        chrome.contextMenus.removeAll( function () {
+        // avoid paralell setup when multiple events triggers
+        Env.lock = true;
+        console.group('Project context setup');
+        console.info('--------------- PROJECT CONTEXT SETUP begin - find project for current url & clear menu [LOCK]');
 
-            console.log('REMOVED ALL ITEMS');
-            console.log('- Add new menu items: (should be after remove has finished)');
+        // clear current options
+       chrome.contextMenus.removeAll( function () {
+
+            console.log('-- CLEAN menu. MATCH url to project');
 
             // gets current tab with details (tab from events only returns id)
             chrome.tabs.getSelected( null, function (tab) {
@@ -76,20 +92,15 @@ var Env = {
                     for ( var p = 0;  p < options.env_projects.length;  p++ ) {
 
                         var project = options.env_projects[p];
-                        console.log(isProjectFound);
-                        console.log(project);
 
                         if ( project.hidden )
                             continue;
-
 
 
                         if ( typeof project.contexts !== 'undefined' ) {
                             for ( var c = 0;  c < project.contexts.length;  c++ ) {
 
                                 var context = project.contexts[c];
-                                console.log(context);
-                                //console.log(tab.url.match( context.url ));
 
                                 if ( context.hidden )
                                     continue;
@@ -98,29 +109,26 @@ var Env = {
 
                                     isProjectFound = true;
 
-                                    console.info('project: ', project.name, ', context: ', context.name);
+                                    console.info('--- FOUND project: ', project.name, ', context: ', context.name);
 
                                     // exit now, if whole env functionality is disabled
                                     if ( options.env_switching !== false )
-                                        Env.setupContextMenu( context, project, _debugEventTriggered );
+                                        Env.setupContextMenu( context, p, project, _debugEventTriggered );
                                     if ( options.env_badge !== false )
                                         Env.setupBadge( context, project, tab, _debugEventTriggered );
 
-                                    break;
+                                    // stop searching projects, without releasing the lock (release in setup callback)
+                                    return;
                                 }
                             }
                         }
-
-                        if ( isProjectFound ) {
-
-                            // todo: display separator and links
-
-                            console.info('ADD LINKS');
-
-                            return;
-                        }
                     }
                 }
+
+                // if project not found, release the lock
+                console.log('- project not found - exit [LOCK RELEASE]');
+                console.groupEnd();
+                Env.lock = false;
             });
         });
     },
@@ -129,12 +137,19 @@ var Env = {
     /**
      * Add to submenu all contexts of a project
      * @param activeContext
+     * @param p - project's array index
      * @param project
+     * @param _debugEventTriggered
      */
-    setupContextMenu : function(activeContext, project, _debugEventTriggered) {
+    setupContextMenu : function(activeContext, p, project, _debugEventTriggered) {
+
+        console.log('---- SETUP context menu: ADD items');
 
         chrome.contextMenus.ACTION_MENU_TOP_LEVEL_LIMIT = 10;
 
+        var contextMenuItems = [];
+
+        // ENVIRONMENTS (CONTEXTS)
         if ( typeof project.contexts !== 'undefined' ) {
             for ( var c = 0;  c < project.contexts.length;  c++ ) {
 
@@ -144,27 +159,112 @@ var Env = {
                 if ( context.hidden )
                     continue;
 
-                chrome.contextMenus.create({
-                    title:      mark + context.name,
-                    contexts:   [ "browser_action", "page" ],
-                    id:         'env' + c
-
-                    //onclick: function,
-                    //type: "normal",  // default value
-                    //"id": "parent",  // for submenu
-                    //"parentId": "parent"
-                }, function () {
-                    if ( chrome.runtime.lastError ) {
-                        console.warn('Error: Probably duplicated url for various projects. Project: ' + project.name);
-                        console.error(chrome.runtime.lastError.message);
-                    }
+                contextMenuItems.push({
+                    title : mark + context.name,
+                    id :    'project-' + p + '-env-' + c
                 });
             }
+        }
+
+        // LINKS
+        if ( typeof project.links !== 'undefined' ) {
+
+            // add separator, if any
+            contextMenuItems.push({
+                type : 'separator'
+            });
+
+            for ( var l = 0;  l < project.links.length;  l++ ) {
+
+                var link = project.links[l];
+
+                if ( link.hidden )
+                    continue;
+
+                contextMenuItems.push({
+                    title : link.name,
+                    id :    'project-' + p + '-link-' + l
+                });
+            }
+        }
+
+        // when item array ready, build the menu
+
+        console.log('---- ITEMS: ', contextMenuItems);
+
+        // add top level submenu because of action icon menu positions limit in chrome...
+        var topLevelGroupMenu;
+        if ( contextMenuItems.length > 6 )  {
+            topLevelGroupMenu = true;
+            chrome.contextMenus.create({
+                    title :     project.name + ' -> ',
+                    contexts :  [ "browser_action" ],
+                    id :        'parent'
+            })
+        }
+
+        // set up context menu
+        for ( var i = 0;  i < contextMenuItems.length;  i++ ) {
+
+            console.log(contextMenuItems[i]);
+
+            var menuCallbackDefault = function () {
+                if ( chrome.runtime.lastError ) {
+                    console.warn('Error: Probably duplicated url for various projects. Project: ' + project.name + ', from event: ' + _debugEventTriggered);
+                    console.error(chrome.runtime.lastError.message);
+                }
+            };
+
+            // on last item
+            var menuCallbackLast = function()   {
+                if ( chrome.runtime.lastError ) {
+                    console.warn('Error: Probably duplicated url for various projects. Project: ' + project.name + ', from event: ' + _debugEventTriggered);
+                    console.error(chrome.runtime.lastError.message);
+                }
+
+                console.info('----- CONTEXT MENU: SUCCESS');
+
+                // release the lock
+                Env.lock = false;
+                console.info('--------------- PROJECT CONTEXT SETUP END - exit [LOCK RELEASE]');
+                console.groupEnd();
+            };
+
+            // action icon menu
+            chrome.contextMenus.create({
+                title :     contextMenuItems[i].title,
+                contexts :  [ "browser_action" ],
+                id :        contextMenuItems[i].id,
+                type :      typeof contextMenuItems[i].type !== 'undefined'  &&  contextMenuItems[i].type === 'separator'
+                    ?  'separator'
+                    :  'normal',
+                parentId: topLevelGroupMenu ? 'parent' : null   // for submenu
+            },
+                menuCallbackDefault
+            );
+
+            // page right-click menu
+            chrome.contextMenus.create({
+                    title :     contextMenuItems[i].title,
+                    contexts :  [ "page" ],
+                    id :        'pagemenu_'+contextMenuItems[i].id,
+                    type :      typeof contextMenuItems[i].type !== 'undefined'  &&  contextMenuItems[i].type === 'separator'
+                        ?  'separator'
+                        :  'normal'
+                },
+                ( i+1 === contextMenuItems.length  ?  menuCallbackLast  :  menuCallbackDefault )
+            );
         }
     },
 
 
-
+    /**
+     * Inject badge script with it's settings into current tab source
+     * @param context
+     * @param project
+     * @param tab
+     * @param _debugEventTriggered
+     */
     setupBadge : function (context, project, tab, _debugEventTriggered) {
 
         if ( !context.color )
@@ -206,40 +306,41 @@ var Env = {
     },
 
 
+
     /**
      * Switch to selected context environment - open tab with current subpage and different host
+     * @param newContext
+     * @param activeContext
+     * @param project
      */
-    switchEnvironment : function(newContext, activeContext, activeProject) {
-        // todo: option to choose whether to open context in new tab, or replace (maybe checkbox in menu?)
+    switchEnvironment : function(newContext, activeContext, project) {
 
-        console.log('SWITCH ENV!');
-        console.log(newContext);
-        console.log(activeContext);
+        console.log(':: SWITCH ENV!');
+        //console.log(newContext);
+        //console.log(activeContext);
 
         // params2.pageUrl is a key in object passed to this func? not passed, so get it
         chrome.tabs.getSelected( null, function (_currentTab) {
-            console.log(_currentTab);
 
             // strip trailing slash
             var activeContextBaseUrl = activeContext.url.replace( /\/$/, '' );
             var newContextBaseUrl = newContext.url.replace( /\/$/, '' );
 
-            console.log(activeContextBaseUrl);
-            console.log(newContextBaseUrl);
+            console.log('active url: ' + activeContextBaseUrl);
+            console.log('target url: ' + newContextBaseUrl);
 
             var newTabUrl = _currentTab.url.replace( activeContextBaseUrl, newContextBaseUrl );
 
-            console.log(newTabUrl);
+            console.info(':: OPEN TAB & EXIT: ' + newTabUrl);
+            console.groupEnd();
 
-            // finally open TYPO3 Backend tab next to current page:
+            // open new context in new tab
+            // todo: option to choose whether to open context in new tab, or replace (maybe checkbox in menu?)
             chrome.tabs.create({
-                'url':      newTabUrl,
-                'index':    _currentTab.index + 1
+                'url' :     newTabUrl,
+                'index' :   _currentTab.index + 1
             });
         });
-
-
-        //console.log(params);
     }
 
 };
@@ -269,56 +370,79 @@ chrome.storage.sync.get( null, function(options) {
 
             // console.log(info);
             // console.log(tab);
-            // console.log(_options);
-            var menuItemIndex = +info.menuItemId.match( /\d+/g ).join([]);  // + casts matched digit to number
+            // console.log(Env._options);
 
-            console.log(menuItemIndex);
+            // extract necessary info from button id
+            var idParts = info.menuItemId.split(/-/);
+            var projectIndex = idParts[1];
+            var itemType = idParts[2];
+            var itemIndex = idParts[3];
+
+            console.group('open tab');
+            console.log(idParts);
+
+            var project = Env._options.env_projects[ projectIndex ];
+            console.log(project);
+
+            if ( typeof project === 'undefined' )
+                return;
+
+            // menu position: LINK
+
+            if ( typeof itemType !== 'undefined'  &&  itemType === 'link'  &&  typeof project.links[ itemIndex ]  !==  'undefined' )  {
+                //console.log(project.links[ itemIndex ]);
+
+                console.info(':: OPEN TAB & EXIT: ' + project.links[ itemIndex ].url);
+                console.groupEnd();
+
+                chrome.tabs.create({
+                    'url' :     project.links[ itemIndex ].url,
+                    'index' :   tab.index + 1
+                });
+
+                return;
+            }
+
+
+            // menu position: ENV / CONTEXT
+
+            var newContext = project.contexts[ itemIndex ];
+            //console.log(newContext);
+
+            if ( typeof newContext === 'undefined' ) {
+                console.warn('error - no such context set in menu? context index: ' + itemIndex);
+                console.groupEnd();
+                return;
+            }
 
             chrome.tabs.getSelected( null, function(tab) {
                 //console.log(tab);
 
-                // console.log(menuItemIndex);
+                var activeContext;
 
-                var activeProject,
-                    activeContext,
-                    newContext;
+                // look for current context (for base url replace)
+                if ( typeof project.contexts !== 'undefined' )    {
+                    for ( var c = 0;  c < project.contexts.length;  c++ ) {
 
-                    // setup new ones, if url found in config
-                if ( typeof Env._options.env_projects !== 'undefined' )    {
-                    for ( var p = 0;  p < Env._options.env_projects.length;  p++ )    {
+                        var context = project.contexts[c];
 
-                        var project = Env._options.env_projects[p];
-
-                        if ( typeof project.contexts !== 'undefined' )    {
-
-                            for ( var c = 0;  c < project.contexts.length;  c++ ) {
-
-                                var context = project.contexts[c];
-
-                                if ( c === menuItemIndex )    {
-                                    newContext = context;
-                                    console.log('context selection index found');
-                                }
-                                if ( context.url  &&  tab.url.match( context.url ) )  {
-                                    activeProject = project;
-                                    activeContext = context;
-                                    console.log('active project & active context found');
-                                }
-                                if ( newContext  &&  newContext === activeContext )   {
-                                    console.log('current context clicked: do nothing');
-                                    return;
-                                }
-                            }
-                        }
-
-                        if ( activeProject )  {
-                            console.log('active project found, so dont iterate next');
-                            break;
+                        if ( context.url  &&  tab.url.match( context.url ) )  {
+                            activeContext = context;
+                            console.log(':: PRE-SWITCH: active context found');
                         }
                     }
                 }
 
-                Env.switchEnvironment( newContext, activeContext, activeProject );
+                if ( newContext === activeContext )   {
+                    console.log(':: PRE-SWITCH: current context clicked: do nothing');
+                    return;
+                }
+
+                // console.log(newContext);
+                // console.log(activeContext)
+                // console.groupEnd();
+
+                Env.switchEnvironment( newContext, activeContext, project );
             });
 
         });

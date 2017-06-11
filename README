@@ -56,19 +56,25 @@ A: It would be great, but as far as I know it's not possible to make Backend pre
  external call. I'll try some workaround in future, but it will need a special TYPO3 extension just for that.
 
 
+Q: Why there's suddenly a "project-name" submenu in icon context menu, and my envs goes there, instead to be in top-level?
+
+A: This is because of Chrome's stupid limit of items (6) in this menu - and you've added more. So to show them all,
+ they must go into submenu - submenus doesn't have limits, but are less comfortable. So consider reducing number of
+ env contexts and/or links. Sorry - blame Google.
+
 
 
 **
 Changelog:
 
 
-v0.9.993
-11.06.2017
-- new features!
+v0.9.994
+12.06.2017
+- new features! (which can be disabled, if you want only fe/be jumping)
 - project environments switching (configuration + context menu)
 - display badge with env info (+ options)
 - import / export of project settings
-- ext type had to be changed to "background"
+- ext type had to be changed to "background" (I tried to make bg scripts as light as possible)
 - contextMenus permission now required
 - jquery 3.2.1 added (included only in options screen)
 

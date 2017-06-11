@@ -21,7 +21,6 @@
 
 var Switcher = {
 
-    // todo: add checkbox for this
     DEV : true,
 
     _currentTab : null,
