@@ -81,7 +81,7 @@ A: This is because of Chrome's stupid limit of items (6) in this menu - and you'
 Changelog:
 
 
-v0.9.994
+v0.9.995
 12.06.2017
 - new features! (which can be disabled, if you want only fe/be jumping)
 - project environments switching (configuration + context menu)
