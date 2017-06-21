@@ -80,6 +80,9 @@ A: This is because of Chrome's stupid limit of items (6) in this menu - and you'
 **
 Changelog:
 
+v0.9.996
+21.06.2017
+- bugfix (env: current tab setup)
 
 v0.9.995
 12.06.2017

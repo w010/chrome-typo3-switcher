@@ -84,6 +84,11 @@ var Env = {
             // gets current tab with details (tab from events only returns id)
             chrome.tabs.getSelected( null, function (tab) {
                 //console.log(tab);
+                if (typeof tab === 'undefined') {
+                    console.log('-- can\'t read tab (system?) - exit [ LOCK RELEASE ] ');
+                    Env.lock = false;
+                    return;
+                }
 
                 var isProjectFound = false;
 
