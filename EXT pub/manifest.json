@@ -6,7 +6,7 @@
   "name": "TYPO3 - BE/FE/Env Handy Switcher",
   "short_name": "TYPO3 Switcher",
   "description": "Switches between Frontend / Backend and work environment on TYPO3 sites. Works well even when running site in subdirectory.",
-  "version": "0.9.996",
+  "version": "0.9.997",
 
   "browser_action": {
     "default_icon": "Icons/icon-48.png",

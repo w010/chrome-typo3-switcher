@@ -250,7 +250,7 @@ var ExtOptions = {
                 "name": "STAGE"
             }, {
                 "color": "#df0000",
-                "name": "PRODUCTION"
+                "name": "LIVE"
             }];
         $.each( defaultContexts, function( i, context ) {
             ExtOptions.insertContextItem( project, context );

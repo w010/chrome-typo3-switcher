@@ -18,7 +18,10 @@ var Badge = {
 
         var params = badge_params;
 
-        console.log(params);
+        if (Badge.DEV) {
+            console.log('TYPO3 Switcher - SET BADGE with params:');
+            console.log(params);
+        }
 
         var scale = typeof params.scale === "number"  ?  params.scale  :  1;
         var badgeContainer = document.createElement( 'div' );

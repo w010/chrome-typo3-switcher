@@ -20,11 +20,9 @@
 
 
 
-
-
 var Env = {
 
-    DEV: Switcher.DEV,
+    DEV: false,
 
     _options: null,
 
@@ -38,7 +36,7 @@ var Env = {
 
         console.log('options.env_projects', options.env_projects);
 
-        // switch window
+        // switch tab
         chrome.tabs.onHighlighted.addListener( function () {
             console.log(': EVENT: tabs.onHighlighted');
             if (Env.lock)   {
@@ -47,7 +45,7 @@ var Env = {
             }
             Env.findAndApplyProjectConfigForCurrentTabUrl( options, 'onHighlighted' );
         });
-        // switch tab
+        // switch window
         chrome.windows.onFocusChanged.addListener( function () {
             console.log(': EVENT: windows.onFocusChanged');
             if (Env.lock)   {
@@ -57,19 +55,24 @@ var Env = {
             Env.findAndApplyProjectConfigForCurrentTabUrl( options, 'onFocusChanged' );
         });
         // load page
-        chrome.tabs.onUpdated.addListener( function () {
+        chrome.tabs.onUpdated.addListener( function (tabId) {
             console.log(': EVENT: tabs.onUpdated');
             if (Env.lock)   {
                 console.log( ': LOCKED!' );
                 return;
             }
-            Env.findAndApplyProjectConfigForCurrentTabUrl( options, 'onUpdated' );
+            Env.findAndApplyProjectConfigForCurrentTabUrl( options, 'onUpdated', tabId );
         });
     },
 
 
-
-    findAndApplyProjectConfigForCurrentTabUrl : function(options, _debugEventTriggered) {
+    /**
+     * looks for current tab url in projects config. if found, rebuilds action menu, badge and other env settings
+     * @param options
+     * @param _debugEventTriggered
+     * @param tabId
+     */
+    findAndApplyProjectConfigForCurrentTabUrl : function(options, _debugEventTriggered, tabId) {
 
         // avoid paralell setup when multiple events triggers
         Env.lock = true;
@@ -116,11 +119,39 @@ var Env = {
 
                                     console.info('--- FOUND project: ', project.name, ', context: ', context.name);
 
+                                    Env.setActionIcon( 'active', tabId );
+
                                     // exit now, if whole env functionality is disabled
                                     if ( options.env_switching !== false )
                                         Env.setupContextMenu( context, p, project, _debugEventTriggered );
                                     if ( options.env_badge !== false )
                                         Env.setupBadge( context, project, tab, _debugEventTriggered );
+
+                                    // stop searching projects, without releasing the lock (release in setup callback)
+                                    return;
+                                }
+                            }
+                        }
+
+                        if ( typeof project.links !== 'undefined' ) {
+                            for ( var l = 0;  l < project.links.length;  l++ ) {
+
+                                var link = project.links[l];
+
+                                if ( link.hidden )
+                                    continue;
+
+                                if ( link.url  &&  tab.url.match( link.url ) ) {
+
+                                    isProjectFound = true;
+
+                                    console.info('--- FOUND project: ', project.name, ', link: ', link.name);
+
+                                    Env.setActionIcon( 'active', tabId );
+
+                                    // exit now, if whole env functionality is disabled
+                                    if ( options.env_switching !== false )
+                                        Env.setupContextMenu( link, p, project, _debugEventTriggered );
 
                                     // stop searching projects, without releasing the lock (release in setup callback)
                                     return;
@@ -153,13 +184,14 @@ var Env = {
         chrome.contextMenus.ACTION_MENU_TOP_LEVEL_LIMIT = 10;
 
         var contextMenuItems = [];
+        var mark = '';
 
         // ENVIRONMENTS (CONTEXTS)
         if ( typeof project.contexts !== 'undefined' ) {
             for ( var c = 0;  c < project.contexts.length;  c++ ) {
 
-                var context = project.contexts[c],
-                    mark = activeContext.name === context.name  ?  '-> '  :  '';
+                var context = project.contexts[c];
+                mark = activeContext.name === context.name && activeContext.url === context.url  ?  '-> '  :  '';
 
                 if ( context.hidden )
                     continue;
@@ -174,20 +206,26 @@ var Env = {
         // LINKS
         if ( typeof project.links !== 'undefined' ) {
 
-            // add separator, if any
-            contextMenuItems.push({
-                type : 'separator'
-            });
+            var separatorAdded = false;
 
             for ( var l = 0;  l < project.links.length;  l++ ) {
 
                 var link = project.links[l];
+                mark = activeContext.name === link.name && activeContext.url === link.url  ?  '-> '  :  '';
 
                 if ( link.hidden )
                     continue;
 
+                // add separator on first (not hidden) item
+                if ( !separatorAdded ) {
+                    contextMenuItems.push({
+                        type : 'separator'
+                    });
+                    separatorAdded = true;
+                }
+
                 contextMenuItems.push({
-                    title : link.name,
+                    title : mark + link.name,
                     id :    'project-' + p + '-link-' + l
                 });
             }
@@ -327,16 +365,24 @@ var Env = {
         // params2.pageUrl is a key in object passed to this func? not passed, so get it
         chrome.tabs.getSelected( null, function (_currentTab) {
 
-            // strip trailing slash
-            var activeContextBaseUrl = activeContext.url.replace( /\/$/, '' );
-            var newContextBaseUrl = newContext.url.replace( /\/$/, '' );
+            var newTabUrl = '';
 
-            console.log('active url: ' + activeContextBaseUrl);
-            console.log('target url: ' + newContextBaseUrl);
+            // if we are on project's link, not context, we may not get activeContext
+            if ( typeof activeContext !== 'undefined' )  {
+                // strip trailing slash
+                var activeContextBaseUrl = activeContext.url.replace( /\/$/, '' );
+                var newContextBaseUrl = newContext.url.replace( /\/$/, '' );
 
-            var newTabUrl = _currentTab.url.replace( activeContextBaseUrl, newContextBaseUrl );
+                console.log('active url: ' + activeContextBaseUrl);
+                console.log('target url: ' + newContextBaseUrl);
 
-            console.info(':: OPEN TAB & EXIT: ' + newTabUrl);
+                newTabUrl = _currentTab.url.replace( activeContextBaseUrl, newContextBaseUrl );
+            }
+            else    {
+                newTabUrl = newContext.url;
+            }
+
+            console.info(':: OPEN TAB [ENV] & EXIT: ' + newTabUrl);
             console.groupEnd();
 
             // open new context in new tab
@@ -346,6 +392,33 @@ var Env = {
                 'index' :   _currentTab.index + 1
             });
         });
+    },
+
+
+    /**
+     * Set action icon on chrome's bar
+     * @param type
+     */
+    setActionIcon : function (type, tabId) {
+
+        // set icon only when tab is set for the first time
+        if (!tabId)
+            return;
+
+        switch (type)   {
+            case 'active':
+                chrome.browserAction.setIcon({
+                    path : "Icons/icon-48-act.png",
+                    tabId: tabId
+                });
+                break;
+
+            default:
+                chrome.browserAction.setIcon({
+                    path : "Icons/icon-48.png",
+                    tabId: tabId
+                });
+        }
     }
 
 };
@@ -366,6 +439,7 @@ chrome.storage.sync.get( null, function(options) {
         Env._options = options;     // store to use in onclick
         Env.initProject( options );
 
+        Env.DEV = options.ext_debug;
 
 
         /**
@@ -397,7 +471,7 @@ chrome.storage.sync.get( null, function(options) {
             if ( typeof itemType !== 'undefined'  &&  itemType === 'link'  &&  typeof project.links[ itemIndex ]  !==  'undefined' )  {
                 //console.log(project.links[ itemIndex ]);
 
-                console.info(':: OPEN TAB & EXIT: ' + project.links[ itemIndex ].url);
+                console.info(':: OPEN TAB [LINK] & EXIT: ' + project.links[ itemIndex ].url);
                 console.groupEnd();
 
                 chrome.tabs.create({
