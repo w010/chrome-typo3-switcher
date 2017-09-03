@@ -80,6 +80,10 @@ A: This is because of Chrome's stupid limit of items (6) in this menu - and you'
 **
 Changelog:
 
+v0.9.998
+4.09.2017
+- bugfix (options: fix drag & drop)
+
 v0.9.997
 2.09.2017
 - options: projects /contexts /links now has drag & drop order setup (includes jquery ui with Sortable component)

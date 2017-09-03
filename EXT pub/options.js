@@ -36,7 +36,7 @@ var ExtOptions = {
             'env_switching' :                   $( '#env_switching' ).is( ':checked' ),
             'env_badge' :                       $( '#env_badge' ).is( ':checked' ),
             'env_badge_projectname' :           $( '#env_badge_projectname' ).is( ':checked' ),
-            'env_badge_position' :              $( '#env_badge_position_right' ).is( ':checked' )  ?  'right' : 'left',
+            'env_badge_position' :              $( '#env_badge_position_right' ).is( ':checked' )  ?  'right'  :  'left',
             'env_badge_scale' :                 $( '#env_badge_scale' ).val(),
             'ext_debug' :                       $( '#ext_debug' ).is( ':checked' )
 
@@ -153,6 +153,9 @@ var ExtOptions = {
         project.find( '.toggle' ).click( function() {
             project.toggleClass( 'collapse' );
         });
+
+        project.find( '.contexts-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer' });
+        project.find( '.links-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer' });
 
         return project;
     },
@@ -344,6 +347,7 @@ var ExtOptions = {
             ExtOptions.insertProjectItem( projectItem );
         });
 
+        $('.projects-container').sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer' });
     },
 
 
@@ -387,6 +391,13 @@ var ExtOptions = {
     // HELPERS
 
 
+
+    /**
+     * Display a notice
+     * @param msg string
+     * @param target string - element selector
+     * @param time integer - displaying time of the message
+     */
     displayMessage : function(msg, target, time)   {
         if ( typeof time !== 'number' )   time = 2000;
         if ( typeof target !== 'string' )  target = '.status-save';

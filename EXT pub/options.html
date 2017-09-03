@@ -213,6 +213,9 @@
         .settings-block > label {
             display: block;
         }
+        .settings-block > label:hover {
+            background: #f8f8f8;
+        }
 
         .status-save, .status-import {
             color: #ff8700;
@@ -242,6 +245,19 @@
         }
         .dialog button  {
             margin: 2px 5px;
+        }
+
+        .ui-sortable    {
+            cursor: move;
+        }
+        .ui-sortable-helper {
+        }
+        .ui-state-highlight {
+            min-height: 51px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #eaf5e0;
+            border: 1px dashed #ccc !important;
         }
 
     </style>
@@ -438,6 +454,7 @@
     <pre id="debug"></pre>
 
     <script src="Vendor/jquery-3.2.1.min.js"></script>
+    <script src="Vendor/jquery-ui-1.12.1-custom.min.js"></script>
     <script src="options.js"></script>
 </body>
 </html>
