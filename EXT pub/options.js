@@ -45,8 +45,9 @@ var ExtOptions = {
             ExtOptions.updateStorageInfo();
             ExtOptions.debugStorageData();
             ExtOptions.fillExportData( env_projects );
-            // update status message
+            // update status message and display visual feedback
             ExtOptions.displayMessage( 'Options saved.' );
+            ExtOptions.visualFeedback( 'feedback-success' );
             // reload extension to reapply settings
             chrome.extension.getBackgroundPage().window.location.reload();
         });
@@ -90,6 +91,21 @@ var ExtOptions = {
             ExtOptions.populateEnvSettings(                         options.env_projects );
             ExtOptions.fillExportData( options.env_projects );
             ExtOptions.debugStorageData();
+        });
+    },
+
+
+
+    makeInputsAutosave : function (selector) {
+        if ( typeof selector === 'undefined' )
+            selector = 'body';
+
+        // todo: to musi byc blur lub change value itd zaleznie od typu pola, bo nie zawsze blur dziala dobrze
+        // todo: ten visual feedback dac tylko dla ramki body (wrap zrobic z bialym bg)
+        $( selector + ' input' ).blur( function() {
+            /*ExtOptions.optionsSave();*/
+            ExtOptions.visualFeedback();
+            console.log('BLUR');
         });
     },
 
@@ -400,6 +416,28 @@ var ExtOptions = {
 
 
     /**
+     * Blink the window
+     */
+    visualFeedback : function (type) {
+        var el = $('body')
+        //el.addClass( type );
+        switch (type) {
+            case 'feedback-success':
+            default:
+                el.css('background-color', 'Palegreen');
+                break;
+        }
+
+        setTimeout( function() {
+            el.css('transition', 'background-color .6s ease-out');
+            el.css('background-color', '#fff');
+        }, 300);
+
+        el.css('transition', 'none');
+    },
+
+
+    /**
      * Simple modal dialog with Yes / No buttons
      * @param message string
      * @param callbackConfirm function
@@ -477,6 +515,7 @@ var ExtOptions = {
 // init
 $(function() {
     ExtOptions.optionsRestore();
+    ExtOptions.makeInputsAutosave();
     ExtOptions.updateStorageInfo();
 });
 
