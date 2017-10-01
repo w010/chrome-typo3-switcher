@@ -84,6 +84,11 @@ var Env = {
 
             console.log('-- CLEAN menu. MATCH url to project');
 
+            // project and link not needed for now, disable to not hit storage write quota
+            chrome.storage.sync.set({'_currentProject': {}});
+            chrome.storage.sync.set({'_currentContext': {}});
+            chrome.storage.sync.set({'_currentLink': {}});
+
             // gets current tab with details (tab from events only returns id)
             chrome.tabs.getSelected( null, function (tab) {
                 //console.log(tab);
@@ -113,11 +118,16 @@ var Env = {
                                 if ( context.hidden )
                                     continue;
 
-                                if ( context.url  &&  tab.url.match( context.url ) ) {
+                                if ( ( context.url  &&  tab.url.match( context.url )  )
+                                        ||  (context.altBackendUrl  &&  tab.url.match( context.altBackendUrl ) ) )   {
 
                                     isProjectFound = true;
 
                                     console.info('--- FOUND project: ', project.name, ', context: ', context.name);
+
+                                    chrome.storage.sync.set({'_currentProject': project});
+                                    chrome.storage.sync.set({'_lastProject': project});     // for options autoscroll, not resetted on every setup
+                                    chrome.storage.sync.set({'_currentContext': context});
 
                                     Env.setActionIcon( 'active', tabId );
 
@@ -146,6 +156,10 @@ var Env = {
                                     isProjectFound = true;
 
                                     console.info('--- FOUND project: ', project.name, ', link: ', link.name);
+
+                                    chrome.storage.sync.set({'_currentProject': project});
+                                    chrome.storage.sync.set({'_lastProject': project});     // for options autoscroll, not resetted on every setup
+                                    chrome.storage.sync.set({'_currentLink': link});
 
                                     Env.setActionIcon( 'active', tabId );
 
@@ -398,6 +412,7 @@ var Env = {
     /**
      * Set action icon on chrome's bar
      * @param type
+     * @param tabId
      */
     setActionIcon : function (type, tabId) {
 

@@ -22,6 +22,7 @@
 var Switcher = {
 
     DEV : true,
+    options : {},
 
     _currentTab : null,
     _url : null,
@@ -30,13 +31,29 @@ var Switcher = {
 
     main : function(options)  {
 
-        var urlTypo3Part = Switcher._url.match( /\/typo3\// );
+        this.options = options;
+        this.DEV = options.ext_debug;
+
+        var isInBackend = false;
+
+        // if a project is found being set, try to match current context's altBackendUrl
+        if ( options.env_enable
+                &&  typeof options._currentContext.altBackendUrl !== 'undefined'
+                &&  options._currentContext.altBackendUrl !== '' ) {
+            isInBackend = Switcher._url.match( options._currentContext.altBackendUrl );
+            console.info('alternative Backend URL found: ' + options._currentContext.altBackendUrl);
+        }
+        // standard operation - if /typo3/ found in url
+        else    {
+            isInBackend = Switcher._url.match( /\/typo3\// );
+        }
+
 
 
         // IS IN BACKEND
 
-        // if /typo3/ found in url, click switches to frontend
-        if ( urlTypo3Part ) {
+        // click switches to frontend
+        if ( isInBackend ) {
 
             if ( options.switch_fe_openSelectedPageUid ) {
                 // tries to extract current pid from backend pagetree and sends a message
@@ -65,7 +82,17 @@ var Switcher = {
         // otherwise, open backend
         else {
 
-            if ( options.switch_be_useBaseHref )  {
+            // if a project is found being set, try to use current context's altBackendUrl
+            if ( options.env_enable
+                    &&  typeof options._currentContext.altBackendUrl !== 'undefined'
+                    &&  options._currentContext.altBackendUrl !== '' ) {
+                console.info('alternative Backend URL found: ' + options._currentContext.altBackendUrl);
+
+                Switcher.openBackend( options._currentContext.altBackendUrl, false );
+            }
+
+            // or retrieve site url from base tag
+            else if ( options.switch_be_useBaseHref )  {
                 // try to find proper backend url and open it
                 chrome.tabs.executeScript( null, {
 
@@ -79,8 +106,9 @@ var Switcher = {
                     }
                 });
             }
+
+            // or open backend in classic way
             else {
-                // open backend in classic way
                 Switcher.openBackend( '' );
             }
         }
@@ -91,12 +119,28 @@ var Switcher = {
 
 
     openFrontend : function(pageUid) {
-        // remove /typo3/ and everything after it in url. add page id, if received
-        var newTabUrl = Switcher._url.replace( /typo3\/.*/, '' )
-            + ( pageUid > 0  ?  '?id=' + pageUid  :  '' );
 
-        // note, that this logs only to the extension dev console, not to page devtools.
-        console.info('newTabUrl: ' + newTabUrl);
+        var newTabUrl = '';
+
+        // if current tab is set and context found, get frontend url from config
+        if ( this.options.env_enable
+                &&  typeof this.options._currentContext.url !== 'undefined'
+                &&  this.options._currentContext.url !== '' ) {
+            newTabUrl = this.options._currentContext.url.replace( /\/$/, '' ) + '/'      // avoid double slash - strip if exists and add one
+                + ( pageUid > 0  ?  '?id=' + pageUid  :  '' );
+
+            console.info('frontend URL found in current context: ' + this.options._currentContext.url);
+        }
+        // else - old way
+        else    {
+            // remove /typo3/ and everything after it in url. add page id, if received
+            newTabUrl = Switcher._url.replace( /typo3\/.*/, '' )
+                + ( pageUid > 0  ?  '?id=' + pageUid  :  '' );
+
+            // note, that this logs only to the extension dev console, not to page devtools.
+            console.info('newTabUrl: ' + newTabUrl);
+        }
+
 
         // open TYPO3 Frontend
         chrome.tabs.create({
@@ -108,7 +152,11 @@ var Switcher = {
 
 
 
-    openBackend : function(siteUrl) {
+    openBackend : function(siteUrl, addStandardBackendSegment) {
+
+        var newTabUrl = '';
+        if ( typeof addStandardBackendSegment === 'undefined' )
+            addStandardBackendSegment = true;
 
         // if base tag cannot be read / no url found, try only a domain
         if ( !siteUrl  &&  Switcher._currentTab  &&  Switcher._url ) {
@@ -125,9 +173,14 @@ var Switcher = {
             console.log(siteUrl);*/
         }
 
-        // strip trailing slash, if present
-        var newTabUrl = siteUrl.replace( /\/$/, '' )
-            + '/typo3/';
+        newTabUrl = siteUrl;
+
+        if (addStandardBackendSegment)  {
+            // strip trailing slash, if present
+            newTabUrl = siteUrl.replace( /\/$/, '' )
+                + '/typo3/';
+        }
+
 
         console.info('newTabUrl: ' + newTabUrl);
 
@@ -158,12 +211,16 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     chrome.storage.sync.get({
             switch_fe_openSelectedPageUid : true,
             switch_be_useBaseHref : true,
-            ext_debug : false
+            ext_debug : false,
+
+            env_enable : false,
+            _currentProject : {},
+            _currentContext : {}
         },
         function(options) {
             if ( options.ext_debug )
                 console.log('action clicked - inject the script into document');
-            Switcher.DEV = options.ext_debug;
+
             Switcher.main( options );
         });
 });
