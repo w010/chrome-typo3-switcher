@@ -84,6 +84,11 @@ var Env = {
 
             console.log('-- CLEAN menu. MATCH url to project');
 
+            // project and link not needed for now, disable to not hit storage write quota
+            // chrome.storage.sync.set({'_currentProject': {}});
+            // chrome.storage.sync.set({'_currentContext': {}});
+            // chrome.storage.sync.set({'_currentLink': {}});
+
             // gets current tab with details (tab from events only returns id)
             chrome.tabs.getSelected( null, function (tab) {
                 //console.log(tab);
@@ -119,6 +124,10 @@ var Env = {
 
                                     console.info('--- FOUND project: ', project.name, ', context: ', context.name);
 
+                                    //chrome.storage.sync.set({'_currentProject': project});
+                                    //chrome.storage.sync.set({'_lastProject': project});     // for options autoscroll, not resetted on every setup
+                                    //chrome.storage.sync.set({'_currentContext': context});
+
                                     Env.setActionIcon( 'active', tabId );
 
                                     // exit now, if whole env functionality is disabled
@@ -146,6 +155,10 @@ var Env = {
                                     isProjectFound = true;
 
                                     console.info('--- FOUND project: ', project.name, ', link: ', link.name);
+
+                                    //chrome.storage.sync.set({'_currentProject': project});
+                                    //chrome.storage.sync.set({'_lastProject': project});     // for options autoscroll, not resetted on every setup
+                                    //chrome.storage.sync.set({'_currentLink': link});
 
                                     Env.setActionIcon( 'active', tabId );
 
@@ -180,8 +193,6 @@ var Env = {
     setupContextMenu : function(activeContext, p, project, _debugEventTriggered) {
 
         console.log('---- SETUP context menu: ADD items');
-
-        chrome.contextMenus.ACTION_MENU_TOP_LEVEL_LIMIT = 10;
 
         var contextMenuItems = [];
         var mark = '';
@@ -274,7 +285,7 @@ var Env = {
             };
 
             // action icon menu
-            chrome.contextMenus.create({
+            /*chrome.contextMenus.create({
                 title :     contextMenuItems[i].title,
                 contexts :  [ "browser_action" ],
                 id :        contextMenuItems[i].id,
@@ -284,12 +295,12 @@ var Env = {
                 parentId: topLevelGroupMenu ? 'parent' : null   // for submenu
             },
                 menuCallbackDefault
-            );
+            );*/
 
             // page right-click menu
             chrome.contextMenus.create({
                     title :     contextMenuItems[i].title,
-                    contexts :  [ "page" ],
+                    contexts :  [ "all" ],
                     id :        'pagemenu_'+contextMenuItems[i].id,
                     type :      typeof contextMenuItems[i].type !== 'undefined'  &&  contextMenuItems[i].type === 'separator'
                         ?  'separator'
@@ -310,8 +321,10 @@ var Env = {
      */
     setupBadge : function (context, project, tab, _debugEventTriggered) {
 
-        if ( !context.color )
+        if ( !context.color )   {
+            console.warn('Env.setupBadge(): color not set. project / context: \n' + project.name + ' / ' + context.name);
             return;
+        }
 
         chrome.tabs.executeScript( null, {
 
@@ -398,6 +411,7 @@ var Env = {
     /**
      * Set action icon on chrome's bar
      * @param type
+     * @param tabId
      */
     setActionIcon : function (type, tabId) {
 

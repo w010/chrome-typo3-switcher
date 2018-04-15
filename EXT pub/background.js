@@ -22,6 +22,7 @@
 var Switcher = {
 
     DEV : true,
+    options : {},
 
     _currentTab : null,
     _url : null,
@@ -30,13 +31,16 @@ var Switcher = {
 
     main : function(options)  {
 
-        var urlTypo3Part = Switcher._url.match( /\/typo3\// );
+        this.options = options;
+        this.DEV = options.ext_debug;
+
+        var isInBackend = Switcher._url.match( /\/typo3\// );
 
 
         // IS IN BACKEND
 
-        // if /typo3/ found in url, click switches to frontend
-        if ( urlTypo3Part ) {
+        // click switches to frontend
+        if ( isInBackend ) {
 
             if ( options.switch_fe_openSelectedPageUid ) {
                 // tries to extract current pid from backend pagetree and sends a message
@@ -158,12 +162,16 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     chrome.storage.sync.get({
             switch_fe_openSelectedPageUid : true,
             switch_be_useBaseHref : true,
-            ext_debug : false
+            ext_debug : false,
+
+            env_enable : false
+            //_currentProject : {},
+            //_currentContext : {}
         },
         function(options) {
             if ( options.ext_debug )
                 console.log('action clicked - inject the script into document');
-            Switcher.DEV = options.ext_debug;
+
             Switcher.main( options );
         });
 });
