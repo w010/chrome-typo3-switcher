@@ -64,6 +64,16 @@
         input[type="text"].required:placeholder-shown {
             border-bottom-color: #ff8700;
         }
+        input[name="context[name]"],
+        input[name="link[name]"] {
+            width: 150px;
+        }
+        input[name="context[url]"]  {
+            width: 300px;
+        }
+        input[name="link[url]"] {
+            width: 500px;
+        }
         input[type="color"] {
             vertical-align: top;    /* middle doesn't work well here */
             margin-top: 2px;
@@ -143,6 +153,7 @@
         button.add .icon  {     background-image: url(/Icons/Options/Add.svg);  }
         button.save .icon  {    background-image: url(/Icons/Options/Save.svg);  }
         button.import .icon  {  background-image: url(/Icons/Options/Import.svg);  }
+        button.export .icon  {  background-image: url(/Icons/Options/Export.svg);  }
 
         button.env_contextAddDefaultSet {
             display: none;
@@ -179,31 +190,44 @@
         .toggle {
             position: absolute;
             top: 0;
-            left: 280px;
+            right: 150px;
             width: 530px;   height: 49px;
             cursor: pointer;
+            /*background: red;*/
         }
             .toggle .icon   {
                 display: block;
                 width: 16px;    height: 16px;
                 position: absolute;
                 top: 17px;
-                left: 10px;
-                background: transparent url(Icons/Options/Collapse.svg) no-repeat 0 0;
+                right: 10px;
+                background: transparent url(Icons/Options/Expand.svg) no-repeat 0 0;
                 opacity: 0;
                 transition: opacity 0.4s;
             }
-            .projectItem:hover .toggle .icon    {
+            .projectItem:hover > .toggle .icon    {
                 opacity: 0.2;
             }
-            .projectItem.collapse .toggle .icon    {
-                background: transparent url(Icons/Options/Expand.svg) no-repeat 0 0;
+            .projectItem.collapse > .toggle .icon    {
+                background: transparent url(Icons/Options/Collapse.svg) no-repeat 0 0;
+            }
+        .contextItem .toggle {
+            width: 100px;
+            /*background: green;*/
+        }
+            .contextItem:hover > .toggle .icon    {
+                opacity: 0.2;
+            }
+            .contextItem.collapse > .toggle .icon    {
+                background: transparent url(Icons/Options/Collapse.svg) no-repeat 0 0;
             }
 
         .projectItem.collapse .contexts,
-        .projectItem.collapse .links    {
+        .projectItem.collapse .links,
+        .contextItem.collapse .moreSettings    {
             display: none;
         }
+
         .projectItem.hidden,
         .contextItem.hidden,
         .linkItem.hidden    {
@@ -334,7 +358,7 @@
         <label class="text">
             <span>Badge scale: </span>
             <input type="text" id="env_badge_scale">
-            <span> (0.5 - 1.5 recommended, other could make unexpected results)</span>
+            <span> (0.5 - 1.5 recommended, other may cause unexpected results)</span>
         </label>
 
 
@@ -347,7 +371,6 @@
             <div class="projects-container"></div>
             <div class="projectItem collapse _template">
 
-                <div class="toggle"><span class="icon"></span></div>
                 <input type="text" name="project[name]" placeholder="Name" class="required">
 
                 <div class="contexts">
@@ -355,7 +378,7 @@
                     <h4>Env contexts</h4>
 
                     <div class="contexts-container"></div>
-                    <div class="contextItem _template">
+                    <div class="contextItem collapse _template">
 
                         <label><input type="text" name="context[name]" placeholder="Name" class="required"></label>
                         <label><input type="text" name="context[url]" placeholder="Url" class="required"></label>
@@ -363,6 +386,14 @@
                             <input type="color" class="color-picker">
                             <input type="text" name="context[color]" placeholder="#Hex" class="color-text" maxlength="7">
                         </label>
+
+                        <!--<div class="moreSettings">
+                            <label>
+                                <input type="text" name="context[altBackendUrl]" placeholder="Alternative backend url">
+                            </label>
+                        </div>
+
+                        <div class="toggle context"><span class="icon"></span></div>-->
 
                         <label class="check hide"><input type="checkbox" name="context[hidden]"> Disable </label>
                         <button class="btn remove env_contextRemove" title="Remove"><span class="icon"></span></button>
@@ -388,6 +419,8 @@
 
                     <button class="btn add env_linkAdd"><span class="icon"></span> <span class="text">Link</span></button>
                 </div>
+
+                <div class="toggle project"><span class="icon"></span></div>
 
                 <label class="check hide"><input type="checkbox" name="project[hidden]"> Disable </label>
                 <button class="btn remove env_projectRemove" title="Remove"><span class="icon"></span></button>
@@ -435,15 +468,35 @@
             <input type="checkbox" id="env_import_test">
             <span>Test import<br>
                 (see the imported projects, you can tune them and save, or not.<br>
-                disabled / default = save right after import)</span>
+                disabled / default = autosave right after import)</span>
         </label>
+
+        <p>Import projects from <abbr title="Treat import data structure as exported from selected extension (json or base64 json)">other extension</abbr>: &nbsp;
+
+            <select id="env_import_extension">
+                <option value=""></option>
+                <option value="environment_switcher">Environment switcher</option>
+                <option value="environment_switcher2">Environment switcher (other)</option>
+                <option value="environment_marker">Environment marker</option>
+            </select>
+        </p>
+
         <br>
-        <p>Export: copy JSON from below. Import: paste JSON into textbox and hit the button</p>
+        <p>Import: paste JSON into textbox and press Import<br>
+            Export: copy JSON from textbox</p>
         <textarea placeholder="paste json" id="env_importexport-data" cols="80" rows="5"></textarea>
 
         <br>
         <br>
-        <button id="env_import" class="btn import"><span class="icon"></span> <span class="text">Import</span></button>
+        <button id="env_import" class="btn import"><span class="icon"></span> <span class="text">Import from textbox</span></button>
+
+        <br>
+        <br>
+        <p>Or using file upload/download</p>
+        <input type="file" id="env_import_file">
+        <br>
+        <br>
+        <button id="env_export_download" class="btn export"><span class="icon"></span> <span class="text">Export - download</span></button>
 
         <span class="status-import"></span>
     </div>

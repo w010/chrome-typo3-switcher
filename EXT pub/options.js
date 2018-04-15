@@ -18,6 +18,7 @@
 var ExtOptions = {
 
     DEV : false,
+    options : {},
 
     
     /**
@@ -86,6 +87,7 @@ var ExtOptions = {
             $( '#ext_debug' ).attr( 'checked',                      options.ext_debug );
 
             ExtOptions.DEV = options.ext_debug;
+            ExtOptions.options = options;
 
             ExtOptions.populateEnvSettings(                         options.env_projects );
             ExtOptions.fillExportData( options.env_projects );
@@ -108,6 +110,8 @@ var ExtOptions = {
     insertProjectItem : function(projectItem)   {
         var project = $( '.projectItem._template' ).clone().removeClass( '_template' )
             .appendTo( $( '.projects-container' ) );
+
+        //project.prop( 'id', hashCode( projectItem.name ) );
 
         // populate data
         project.find( '[name="project[name]"]' ).val( projectItem.name );
@@ -150,7 +154,7 @@ var ExtOptions = {
         project.find( '> .hide input' ).on( 'change', function() {
             project.toggleClass( 'hidden' );
         });
-        project.find( '.toggle' ).click( function() {
+        project.find( '.toggle.project' ).click( function() {
             project.toggleClass( 'collapse' );
         });
 
@@ -202,6 +206,10 @@ var ExtOptions = {
 
             if ( $(this).val().length === 7 )
                 context.find( 'input.color-picker' ).val( $(this).val() );
+        });
+
+        context.find( '.toggle.context' ).click( function() {
+            context.toggleClass( 'collapse' );
         });
 
         return context;
@@ -342,12 +350,29 @@ var ExtOptions = {
         // console.info('projects from conf:', projects);
 
         $.each( projects, function(i, projectItem)    {
-            console.log(projectItem);
 
             ExtOptions.insertProjectItem( projectItem );
+
+            if ( this.DEV )
+                console.log(projectItem);
         });
 
-        $('.projects-container').sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer' });
+
+        // init drag & drop
+        $( '.projects-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer' });
+
+
+        // scroll to last set project on load
+        /*if ( typeof this.options._lastProject !== 'undefined'  &&  this.options._lastProject.length > 0 )  {
+            var scrollToElement = $( '#' + hashCode( this.options._lastProject.name ) );
+            console.log(this.options._lastProject);
+            console.log(scrollToElement);
+            if ( scrollToElement ) {
+                $( window ).scrollTop( scrollToElement.offset().top );
+                scrollToElement.toggleClass( 'collapse' );
+            }
+            chrome.storage.sync.set({ '_lastProject': {} });
+        }*/
     },
 
 
@@ -358,33 +383,177 @@ var ExtOptions = {
     fillExportData : function ( env_projects ) {
         $( '#env_importexport-data' ).html(
             JSON.stringify( env_projects, null, 4 )
-        );
+        ).focus( function() {
+            this.select();
+        });
     },
 
 
-    importProjects : function ()    {
+    importProjects : function ( dataString )    {
         var importData = [];
         try {
-            importData = JSON.parse( $( '#env_importexport-data' ).val() );
 
-            if ( $( '#env_import_overwrite' ).is(':checked') )  {
+            if ( $( "select#env_import_extension" ).val() )   {
+                importData = ExtOptions.importProjectsFromOtherExtension_mapItems( dataString );
+            }
+            else    {
+                importData = JSON.parse( dataString );
+            }
+
+            if ( $( '#env_import_overwrite' ).is( ':checked' ) )  {
                 $( '.projects-container' ).empty();
             }
 
             ExtOptions.populateEnvSettings( importData );
-            ExtOptions.displayMessage( 'Environments / projects imported', '.status-import', 99999 );
 
-            if ( !$( '#env_import_test' ).is( ':checked' ) )
+            if ( !$( '#env_import_test' ).is( ':checked' ) ) {
                 ExtOptions.optionsSave();
+                ExtOptions.displayMessage( 'Environments / projects imported', '.status-import', 99999 );
+            }
+            else    {
+                ExtOptions.displayMessage( 'Environments / projects imported - TEST IMPORT - not autosaved', '.status-import', 99999 );
+            }
 
         } catch(e)   {
-            //console.log(e.message);
+            if ( ExtOptions.DEV )
+                console.log(e);
             ExtOptions.displayMessage( 'JSON parsing problem. Message: <br>' + e.message, '.status-import', 99999 );
         }
 
-        console.log( importData );
+        if ( ExtOptions.DEV )
+            console.log( importData );
     },
 
+
+    importProjectsFromTextarea : function ()    {
+        ExtOptions.importProjects( $( '#env_importexport-data' ).val() );
+    },
+
+
+    importProjectsFromUpload : function (files)  {
+        var file = files[0];
+
+        if ( !file || !window.FileReader )  {
+            ExtOptions.displayMessage( 'File reader problem', '.status-import', 99999 );
+            return;
+        }
+
+        var reader = new FileReader();
+        reader.readAsText( file );
+        reader.onloadend = function()   {
+            ExtOptions.importProjects( reader.result );
+        }
+    },
+
+    importProjectsFromOtherExtension_mapItems : function (dataString)    {
+        var extension = $( "select#env_import_extension" ).val();
+        var importData = [];
+        var projects;
+
+        switch ( extension )    {
+
+            case 'environment_switcher':
+                projects = JSON.parse( dataString );
+                $.each( projects, function( i, project ) {
+                    if ( !project.name )
+                        return true;    // continue in $.each
+                    var contexts = [];
+                    var links = [];
+
+                    if ( $.isArray( project.environments ) )    {
+                        $.each( project.environments, function( i, environment ) {
+                            if ( typeof environment !== 'undefined'  &&  environment !== null )
+                                contexts.push({
+                                    name: environment.name,
+                                    url: environment.baseUrl,
+                                    hidden: !environment.status
+                                });
+                        });
+                    }
+                    if ( $.isArray( project.links ) )    {
+                        $.each( project.links, function( i, link ) {
+                            links.push({
+                                name: link.text,
+                                url: link.url,
+                                hidden: !link.status
+                            });
+                        });
+                    }
+                    importData.push({
+                        name : project.name,
+                        contexts : contexts,
+                        links : links
+                    });
+                });
+                break;
+
+            case 'environment_switcher2':
+
+                // base64 decode
+                dataString = decodeURIComponent(window.atob(dataString));
+                projects = JSON.parse( dataString );
+
+                if ( typeof projects.Sites !== 'undefined' )    {
+                    $.each( projects.Sites, function( i, project ) {
+                        if ( !project.Name )
+                            return true;    // continue in $.each
+                        var contexts = [];
+
+                        if ( $.isArray( project.Environments ) )
+                            $.each( project.Environments, function( i, environment ) {
+                                if ( typeof environment !== 'undefined'  &&  environment !== null )
+                                    contexts.push({
+                                        name: environment.Name,
+                                        url: environment.Domain,
+                                        color: environment.Color
+                                    });
+                            });
+                        importData.push({
+                            name : project.Name,
+                            contexts : contexts
+                        });
+                    });
+                }
+                break;
+
+            case 'environment_marker':
+                projects = JSON.parse( dataString );
+                $.each( projects, function( i, project ) {
+                    if ( !project.name )
+                        return true;    // continue in $.each
+                    var contexts = [{
+                        name: project.name,
+                        url: project.address,
+                        color: '#' + project.color
+                    }];
+
+                    importData.push({
+                        name : project.name,
+                        contexts : contexts
+                    });
+                });
+                break;
+        }
+
+        return importData;
+    },
+
+
+    exportProjectsDownloadFile : function() {
+        //var data = new Blob( [ JSON.stringify( ExtOptions.options.env_projects, null, 4 ) ], {type: 'text/json'} );
+        //var url = window.URL.createObjectURL( data );
+        var url = 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify( ExtOptions.options.env_projects, null, 4 ) + '\n');
+        //console.log(data);
+        //console.log(url);
+        var a = document.createElement( "a" );
+        document.body.appendChild( a );
+        a.style = "display: none";
+        a.href = url;
+        a.download = 't3switcher-projects.json';
+        a.click();
+        a.remove();
+        //window.URL.revokeObjectURL( url );
+    },
 
 
 
@@ -468,8 +637,7 @@ var ExtOptions = {
      * Debug whole storage saved data
      */
     debugStorageData : function() {
-        if ( !ExtOptions.DEV )    return;
-        console.log('called: ExtOptions.debugStorageData');
+        if ( !ExtOptions.DEV )  return;
         chrome.storage.sync.get( null, function(options) {
             //console.log(options);
             $( '#debug' ).html( 'storage content: \n' + JSON.stringify( options, null, 4 ) );
@@ -504,14 +672,21 @@ $( 'button.env_projectAdd' ).click( function () {
 });
 
 $( 'button#env_import' ).click( function () {
-    ExtOptions.importProjects( {} )
+    ExtOptions.importProjectsFromTextarea( {} )
+});
+
+$( 'input#env_import_file' ).change( function() {
+    ExtOptions.importProjectsFromUpload( this.files );
+});
+
+$( 'button#env_export_download' ).click( function() {
+    ExtOptions.exportProjectsDownloadFile();
 });
 
 
 
-
     // some debug. should be disabled later
-    chrome.storage.onChanged.addListener(function(changes, namespace) {
+    /*chrome.storage.onChanged.addListener(function(changes, namespace) {
         for (key in changes) {
             var storageChange = changes[key];
             console.log('Storage key "%s" in namespace "%s" changed. ' +
@@ -521,6 +696,25 @@ $( 'button#env_import' ).click( function () {
                 storageChange.oldValue,
                 storageChange.newValue);
         }
-    });
+    });*/
 
 
+/**
+ * Simple hash generating from string
+ * @param str
+ * @returns {number}
+ */
+function hashCode(str)  {
+    if (typeof str === 'undefined')
+        return;
+    var hash = 0;
+    var char;
+    if (str.length === 0)
+        return hash;
+    for (var i = 0; i < str.length; i++) {
+        char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash;
+}
