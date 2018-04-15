@@ -80,6 +80,11 @@ A: This is because of Chrome's stupid limit of items (6) in this menu - and you'
 **
 Changelog:
 
+v0.9.999
+16.04.2018
+- bugfix: options panel was not usable because of scroll problem in latest chrome, switched back to open in tab
+- bugfix: right click context menu items was not displaying when clicked on links etc. now displays on everything
+
 v0.9.998
 4.09.2017
 - bugfix (options: fix drag & drop)
