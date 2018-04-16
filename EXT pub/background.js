@@ -140,6 +140,35 @@ var Switcher = {
             'url':      newTabUrl,
             'index':    Switcher._currentTab.index + 1
         });
+    },
+
+
+
+    openInstallTool : function(siteUrl) {
+        // if base tag cannot be read / no url found, try only a domain
+        if ( !siteUrl  &&  Switcher._currentTab  &&  Switcher._url ) {
+
+            // extract scheme + domain
+            var parts = Switcher._url.split( '/' );
+            siteUrl = parts[0] + '//' + parts[2];
+
+            /*console.log('url: ' + _url);
+             console.log(parts);
+             console.log(siteUrl);*/
+        }
+
+        // strip trailing slash, if present
+        var newTabUrl = siteUrl.replace( /\/$/, '' )
+            + '/typo3/install/';
+
+        console.info('newTabUrl: ' + newTabUrl);
+
+        chrome.tabs.getSelected( null, function (_currentTab) {
+            chrome.tabs.create({
+                'url':      newTabUrl,
+                'index':    _currentTab.index + 1
+            });
+        });
     }
 
 };

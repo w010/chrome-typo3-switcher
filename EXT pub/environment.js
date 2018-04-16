@@ -197,9 +197,12 @@ var Env = {
         var contextMenuItems = [];
         var mark = '';
 
-        // ENVIRONMENTS (CONTEXTS)
+        // -- ENVIRONMENTS (CONTEXTS)
         if ( typeof project.contexts !== 'undefined' ) {
-            for ( var c = 0;  c < project.contexts.length;  c++ ) {
+
+            var c = 0;
+
+            for ( c;  c < project.contexts.length;  c++ ) {
 
                 var context = project.contexts[c];
                 mark = activeContext.name === context.name && activeContext.url === context.url  ?  '-> '  :  '';
@@ -209,17 +212,32 @@ var Env = {
 
                 contextMenuItems.push({
                     title : mark + context.name,
-                    id :    'project-' + p + '-env-' + c
+                    id :    'project-' + p + '-env-' + c,
+                    parentId :  'parent-contexts'
+                });
+            }
+
+            // if any not hidden contexts
+            if ( c > 0 )    {
+                // add top level submenu because of action icon menu positions limit in chrome...
+                //if ( contextMenuItems.length > chrome.contextMenus.ACTION_MENU_TOP_LEVEL_LIMIT )  {
+
+                // add top level submenu always (for action icon, not for page right click menu)
+                chrome.contextMenus.create({
+                    title :     project.name + ': contexts -> ',
+                    contexts :  [ "browser_action" ],
+                    id :        'parent-contexts'
                 });
             }
         }
 
-        // LINKS
+        // -- LINKS
         if ( typeof project.links !== 'undefined' ) {
 
             var separatorAdded = false;
+            var l = 0;
 
-            for ( var l = 0;  l < project.links.length;  l++ ) {
+            for ( l;  l < project.links.length;  l++ ) {
 
                 var link = project.links[l];
                 mark = activeContext.name === link.name && activeContext.url === link.url  ?  '-> '  :  '';
@@ -230,37 +248,62 @@ var Env = {
                 // add separator on first (not hidden) item
                 if ( !separatorAdded ) {
                     contextMenuItems.push({
-                        type : 'separator'
+                        // for action icon where we use submenus, we set parentId
+                        // in that case this separator is not used.
+                        // it's only for page context menu, where we don't use additional submenus
+                        title :             '_separator-links',    // needed to not cause error later in iteration
+                        id :                '_separator-links',    // needed to not cause error later in iteration
+                        type :              'separator',
+                        showForMenuType:    'rightClickOnly'
                     });
                     separatorAdded = true;
                 }
 
                 contextMenuItems.push({
                     title : mark + link.name,
-                    id :    'project-' + p + '-link-' + l
+                    id :    'project-' + p + '-link-' + l,
+                    parentId :  'parent-links'
+                });
+            }
+
+            // if any not hidden links
+            if (l > 0)  {
+                chrome.contextMenus.create({
+                    title :     project.name + ': links -> ',
+                    contexts :  [ "browser_action" ],
+                    id :        'parent-links'
                 });
             }
         }
 
-        // when item array ready, build the menu
+        // -- INSTALL TOOL
+        // todo: option condition
+        //if ( [option show install] ) {
+
+            contextMenuItems.push({
+                title :             '_separator-install',
+                id :                '_separator-install',
+                type :              'separator',
+                showForMenuType:    'rightClickOnly'
+            });
+
+            contextMenuItems.push({
+                title : 'Install Tool',
+                id :    'project-' + p + '-installtool-'
+            });
+        //}
+
+
+        // when item array ready,
+        // BUILD THE MENU
 
         console.log('---- ITEMS: ', contextMenuItems);
 
-        // add top level submenu because of action icon menu positions limit in chrome...
-        var topLevelGroupMenu;
-        if ( contextMenuItems.length > 6 )  {
-            topLevelGroupMenu = true;
-            chrome.contextMenus.create({
-                    title :     project.name + ' -> ',
-                    contexts :  [ "browser_action" ],
-                    id :        'parent'
-            })
-        }
 
         // set up context menu
         for ( var i = 0;  i < contextMenuItems.length;  i++ ) {
 
-            console.log(contextMenuItems[i]);
+            if (Env.DEV)    console.log(contextMenuItems[i]);
 
             var menuCallbackDefault = function () {
                 if ( chrome.runtime.lastError ) {
@@ -284,27 +327,35 @@ var Env = {
                 console.groupEnd();
             };
 
-            // action icon menu
-            /*chrome.contextMenus.create({
-                title :     contextMenuItems[i].title,
-                contexts :  [ "browser_action" ],
-                id :        contextMenuItems[i].id,
-                type :      typeof contextMenuItems[i].type !== 'undefined'  &&  contextMenuItems[i].type === 'separator'
-                    ?  'separator'
-                    :  'normal',
-                parentId: topLevelGroupMenu ? 'parent' : null   // for submenu
-            },
-                menuCallbackDefault
-            );*/
+            // ACTION ICON MENU
+            if ( typeof contextMenuItems[i].showForMenuType === 'undefined'
+                // don't show items dedicated only to right-click menu (like separators, when no submenus used there)
+                ||  ( typeof contextMenuItems[i].showForMenuType !== 'undefined'  &&  contextMenuItems[i].showForMenuType !== 'rightClickOnly' ) )  {
 
-            // page right-click menu
+                chrome.contextMenus.create({
+                    title :     contextMenuItems[i].title,
+                    contexts :  [ "browser_action" ],
+                    id :        contextMenuItems[i].id,
+                    type :      typeof contextMenuItems[i].type !== 'undefined'  &&  contextMenuItems[i].type === 'separator'
+                        ?  'separator'
+                        :  'normal',
+                    parentId:   typeof contextMenuItems[i].parentId !== 'undefined'
+                        ?  contextMenuItems[i].parentId
+                        : null
+                },
+                    menuCallbackDefault
+                );
+            }
+
+            // PAGE RIGHT-CLICK MENU
             chrome.contextMenus.create({
                     title :     contextMenuItems[i].title,
-                    contexts :  [ "all" ],
-                    id :        'pagemenu_'+contextMenuItems[i].id,
+                    contexts :  [ "page", "frame", "selection", "link", "editable", "image", "video", "audio", "page_action" ],
+                    id :        'pagerightclickmenu_'+contextMenuItems[i].id,
                     type :      typeof contextMenuItems[i].type !== 'undefined'  &&  contextMenuItems[i].type === 'separator'
                         ?  'separator'
                         :  'normal'
+                    // no parentId - in this menu put all in one level
                 },
                 ( i+1 === contextMenuItems.length  ?  menuCallbackLast  :  menuCallbackDefault )
             );
@@ -471,14 +522,17 @@ chrome.storage.sync.get( null, function(options) {
             var itemType = idParts[2];
             var itemIndex = idParts[3];
 
-            console.group('open tab');
-            console.log(idParts);
+            console.group('open tab. menu position params:');
+            console.log({menuPositionUniqueId: idParts[0], projectIndex: projectIndex, itemType: itemType, itemIndex: itemIndex});
+            //console.log(idParts);
 
             var project = Env._options.env_projects[ projectIndex ];
             console.log(project);
 
             if ( typeof project === 'undefined' )
                 return;
+
+
 
             // menu position: LINK
 
@@ -498,11 +552,12 @@ chrome.storage.sync.get( null, function(options) {
 
 
             // menu position: ENV / CONTEXT
+            // menu position: INSTALL TOOL
 
             var newContext = project.contexts[ itemIndex ];
             //console.log(newContext);
 
-            if ( typeof newContext === 'undefined' ) {
+            if ( typeof newContext === 'undefined'  &&  itemType !== 'installtool') {
                 console.warn('error - no such context set in menu? context index: ' + itemIndex);
                 console.groupEnd();
                 return;
@@ -524,6 +579,11 @@ chrome.storage.sync.get( null, function(options) {
                             console.log(':: PRE-SWITCH: active context found');
                         }
                     }
+                }
+
+                if (itemType === 'installtool') {
+                    Switcher.openInstallTool( activeContext.url );
+                    return;
                 }
 
                 if ( newContext === activeContext )   {
