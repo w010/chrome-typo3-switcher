@@ -80,9 +80,13 @@ var Env = {
         console.info('--------------- PROJECT CONTEXT SETUP begin - find project for current url & clear menu [LOCK]');
 
         // clear current options
-       chrome.contextMenus.removeAll( function () {
+        chrome.contextMenus.removeAll( function () {
 
             console.log('-- CLEAN menu. MATCH url to project');
+
+            // deactivate icon
+            console.info('-- ICON: deactivate');
+            Env.setActionIcon( '', tabId );
 
             // project and link not needed for now, disable to not hit storage write quota
             // chrome.storage.sync.set({'_currentProject': {}});
@@ -128,6 +132,7 @@ var Env = {
                                     //chrome.storage.sync.set({'_lastProject': project});     // for options autoscroll, not resetted on every setup
                                     //chrome.storage.sync.set({'_currentContext': context});
 
+                                    console.info('--- ICON: activate');
                                     Env.setActionIcon( 'active', tabId );
 
                                     // exit now, if whole env functionality is disabled
@@ -160,11 +165,16 @@ var Env = {
                                     //chrome.storage.sync.set({'_lastProject': project});     // for options autoscroll, not resetted on every setup
                                     //chrome.storage.sync.set({'_currentLink': link});
 
+                                    console.info('--- ICON: activate');
                                     Env.setActionIcon( 'active', tabId );
 
                                     // exit now, if whole env functionality is disabled
                                     if ( options.env_switching !== false )
                                         Env.setupContextMenu( link, p, project, _debugEventTriggered );
+                                    if ( options.env_badge !== false )  {
+                                        link.color = '#cccccc';
+                                        Env.setupBadge( link, project, tab, _debugEventTriggered );
+                                    }
 
                                     // stop searching projects, without releasing the lock (release in setup callback)
                                     return;
@@ -207,7 +217,7 @@ var Env = {
             for ( c;  c < project.contexts.length;  c++ ) {
 
                 var context = project.contexts[c];
-                mark = activeContext.name === context.name && activeContext.url === context.url  ?  '-> '  :  '';
+                mark = activeContext.name === context.name && activeContext.url === context.url  ?  '-> '  :  '     ';
 
                 if ( context.hidden )
                     continue;
@@ -226,7 +236,7 @@ var Env = {
 
                 // add top level submenu always (for action icon, not for page right click menu)
                 chrome.contextMenus.create({
-                    title :     project.name + ': contexts -> ',
+                    title :     project.name + ': contexts',
                     contexts :  [ "browser_action" ],
                     id :        'parent-contexts'
                 });
@@ -243,7 +253,7 @@ var Env = {
             for ( l;  l < project.links.length;  l++ ) {
 
                 var link = project.links[l];
-                mark = activeContext.name === link.name && activeContext.url === link.url  ?  '-> '  :  '';
+                mark = activeContext.name === link.name && activeContext.url === link.url  ?  '-> '  :  '     ';
 
                 if ( link.hidden )
                     continue;
@@ -272,7 +282,7 @@ var Env = {
             // if any not hidden links
             if (l > 0)  {
                 chrome.contextMenus.create({
-                    title :     project.name + ': links -> ',
+                    title :     project.name + ': links',
                     contexts :  [ "browser_action" ],
                     id :        'parent-links'
                 });
@@ -447,7 +457,7 @@ var Env = {
 
     /**
      * Inject badge script with it's settings into current tab source
-     * @param context
+     * @param context (actually, now it may be Context or Link)
      * @param project
      * @param tab
      * @param _debugEventTriggered
@@ -549,8 +559,8 @@ var Env = {
     setActionIcon : function (type, tabId) {
 
         // set icon only when tab is set for the first time
-        if (!tabId)
-            return;
+        /*if (!tabId)
+            return;*/
 
         switch (type)   {
             case 'active':
