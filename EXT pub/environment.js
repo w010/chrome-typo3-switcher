@@ -196,6 +196,8 @@ var Env = {
 
         var contextMenuItems = [];
         var mark = '';
+        var options = this._options;
+
 
         // -- ENVIRONMENTS (CONTEXTS)
         if ( typeof project.contexts !== 'undefined' ) {
@@ -230,6 +232,7 @@ var Env = {
                 });
             }
         }
+
 
         // -- LINKS
         if ( typeof project.links !== 'undefined' ) {
@@ -276,6 +279,7 @@ var Env = {
             }
         }
 
+
         // -- INSTALL TOOL
         // todo: option condition
         //if ( [option show install] ) {
@@ -294,6 +298,71 @@ var Env = {
         //}
 
 
+        // -- ALL PROJECTS
+        // todo: option condition
+        //if ( [option show all projects] ) {
+
+            /*contextMenuItems.push({
+                title :             '_separator-allprojects',
+                id :                '_separator-allprojects',
+                type :              'separator',
+                showForMenuType :   'rightClickOnly'
+            });*/
+
+            contextMenuItems.push({
+                title :             'All projects',
+                id :                'parent-allprojects',
+                showForMenuType :   'actionMenuOnly'
+            });
+
+            // iterate all projects and links
+            if ( typeof options.env_projects !== 'undefined' ) {
+                for ( var _p = 0;  _p < options.env_projects.length;  _p++ ) {
+                    var _project = options.env_projects[_p];
+                    if ( _project.hidden )
+                        continue;
+                    contextMenuItems.push({
+                        title :             _project.name,
+                        id :                'parent_allprojects_project-' + _p,
+                        parentId :          'parent-allprojects',
+                        showForMenuType :   'actionMenuOnly'
+                    });
+                    if ( typeof _project.contexts !== 'undefined' ) {
+                        for ( var _c = 0;  _c < _project.contexts.length;  _c++ ) {
+                            var _context = _project.contexts[_c];
+                            if ( _context.hidden )
+                                continue;
+                            if ( _context.url ) {
+                                contextMenuItems.push({
+                                    title :             _context.name,
+                                    id :                '_allprojects_project-' + _p + '-env-' + _c,
+                                    parentId :          'parent_allprojects_project-' + _p,
+                                    showForMenuType :   'actionMenuOnly'
+                                });
+                            }
+                        }
+                    }
+                    /*if ( typeof _project.links !== 'undefined' ) {
+                        for ( var _l = 0;  _l < _project.links.length;  _l++ ) {
+                            var _link = _project.links[l];
+                            if ( _link.hidden )
+                                continue;
+                            if ( _link.url ) {
+                                contextMenuItems.push({
+                                    title : _link.name,
+                                    id :    'project-' + _p + '-link-' + _l,
+                                    parentId :  'parent-allprojects'
+                                });
+                            }
+                        }
+                    }*/
+                }
+            }
+
+        //}
+
+
+
         // when item array ready,
         // BUILD THE MENU
 
@@ -303,7 +372,7 @@ var Env = {
         // set up context menu
         for ( var i = 0;  i < contextMenuItems.length;  i++ ) {
 
-            if (Env.DEV)    console.log(contextMenuItems[i]);
+            //if (Env.DEV)    console.log(contextMenuItems[i]);
 
             var menuCallbackDefault = function () {
                 if ( chrome.runtime.lastError ) {
@@ -348,17 +417,30 @@ var Env = {
             }
 
             // PAGE RIGHT-CLICK MENU
-            chrome.contextMenus.create({
+            if ( typeof contextMenuItems[i].showForMenuType === 'undefined'
+                // don't show items dedicated only to right-click menu (like separators, when no submenus used there)
+                ||  ( typeof contextMenuItems[i].showForMenuType !== 'undefined'  &&  contextMenuItems[i].showForMenuType !== 'actionMenuOnly' ) )  {
+
+                chrome.contextMenus.create({
                     title :     contextMenuItems[i].title,
                     contexts :  [ "page", "frame", "selection", "link", "editable", "image", "video", "audio", "page_action" ],
                     id :        'pagerightclickmenu_'+contextMenuItems[i].id,
                     type :      typeof contextMenuItems[i].type !== 'undefined'  &&  contextMenuItems[i].type === 'separator'
                         ?  'separator'
                         :  'normal'
-                    // no parentId - in this menu put all in one level
+                    // no parentId by default - in this menu put all in one level
+                    /*parentId :  typeof contextMenuItems[i].forceParentId !== 'undefined'  &&  typeof contextMenuItems[i].parentId !== 'undefined'
+                        ?  typeof contextMenuItems[i].parentId
+                        :  ''*/
                 },
-                ( i+1 === contextMenuItems.length  ?  menuCallbackLast  :  menuCallbackDefault )
-            );
+                    //( i+1 === contextMenuItems.length  ?  menuCallbackLast  :  menuCallbackDefault )
+                    menuCallbackDefault
+                );
+            }
+            // is this working well like that? release lock here, instead of in callback of last item create?
+            // no idea, how to do this better - some items are created conditionally and could never release the lock
+            if (i+1 === contextMenuItems.length)
+                menuCallbackLast();
         }
     },
 
