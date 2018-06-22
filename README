@@ -3,7 +3,7 @@ TYPO3 - BE/FE/Env Handy Switcher
 
 
 wolo.pl '.' studio
-2017
+2017-2018
 wolo.wolski(at)gmail.com
 http://wolo.pl/
 
@@ -14,6 +14,7 @@ https://github.com/w010/chrome-typo3-switcher
 **
 What does it do?
 
+Simple yet advanced
 This extension adds button to the Chrome's toolbar that opens a tab with TYPO3 Backend of current site (base href-based),
 or a Frontend, if detects it is in Backend.
 Also, it provides configuration for various work environments (contexts) to fast jump between them.
@@ -26,6 +27,9 @@ Note, that you may disable all environment-related functionality, to use only BE
 Switching to Frontend opens last selected page in backend page tree (works similar as View webpage button in backend,
 but works even if currently some module without page tree /or such button/ is open).
 (tested in versions 6.2, 7.6 and 8.7. any between should work as well)
+
+Security Trust:
+See FAQ
 
 
 **
@@ -60,6 +64,7 @@ A: You probably have selected a page in the tree which is in a root that uses di
 Q: Couldn't it detect proper domain for selected page?
 
 A: No. It's impossible to retrieve such information from Backend using Chrome's extension.
+In multi-domain sites better just use the built-in backend View button.
 
 
 Q: I'm on some page id in Frontend, and when I use the button to open Backend, I'm getting the "About modules" screen.
@@ -74,6 +79,16 @@ Q: Why there's suddenly a "project-name" submenu in icon context menu, and my en
 A: This is because of Chrome's stupid limit of items (6) in this menu - and you've added more. So to show them all,
  they must go into submenu - submenus doesn't have limits, but are less comfortable. So consider reducing number of
  env contexts and/or links. Sorry - blame Google.
+
+
+Q: Why this extension needs access to all tab urls I browse? Does this thing spy my browse history?!
+
+A: No, this extension doesn't do anything with the urls it reads. All it does it's comparing current url with
+ your configured context urls to find if it's there to show other contexts in a menu.
+ Permission to read the urls is essential here, it's the one and only way to make this whole idea work.
+ It doesn't read any cookies, session, or user data.
+ If you don't believe me, you can always check it by yourself reading the source code.
+ If you are paranoid and still don't trust, just uninstall it.
 
 
 

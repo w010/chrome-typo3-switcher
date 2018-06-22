@@ -141,6 +141,9 @@ var Env = {
                                     if ( options.env_badge !== false )
                                         Env.setupBadge( context, project, tab, _debugEventTriggered );
 
+                                    // todo: option check
+                                    Env.setupFavicon( context, project, tab, _debugEventTriggered );
+
                                     // stop searching projects, without releasing the lock (release in setup callback)
                                     return;
                                 }
@@ -504,6 +507,52 @@ var Env = {
         });
     },
 
+
+    /**
+     * Inject favicon script with it's settings into current tab source
+     * @param context (actually, now it may be Context or Link)
+     * @param project
+     * @param tab
+     * @param _debugEventTriggered
+     */
+    setupFavicon : function (context, project, tab, _debugEventTriggered) {
+
+        if ( !context.color )   {
+            console.warn('Env.setupFavicon(): color not set. project / context: \n' + project.name + ' / ' + context.name);
+            return;
+        }
+
+        chrome.tabs.executeScript( null, {
+
+            code: 'var favicon_params = {' +
+                    'DEV: '+Env.DEV+',' +
+                    'contextColor: "'+context.color+'",' +
+                    //'scale: '+( typeof Env._options.env_badge_scale !== 'undefined'  ?  parseFloat( Env._options.env_badge_scale )  :  1.0 )+',' +
+                    //'position: "'+( typeof Env._options.env_badge_position !== 'undefined'  ?  Env._options.env_badge_position  :  'left' )+'",' +
+                    '_debugEventTriggered: "'+_debugEventTriggered+'"' +
+                '};'
+
+        }, function () {
+
+            // on system pages you can't inject any scripts
+            if ( chrome.runtime.lastError ) {
+                console.warn('Env.setupFavicon(): Error executing code: \n' + chrome.runtime.lastError.message);
+            }
+            else {
+                chrome.tabs.executeScript( null, {
+
+                    file: 'setFavicon.js'
+
+                }, function() {
+
+                    // on system pages you can't inject any scripts
+                    if ( chrome.runtime.lastError ) {
+                        console.warn('Error injecting favicon script: \n' + chrome.runtime.lastError.message);
+                    }
+                });
+            }
+        });
+    },
 
 
     /**
