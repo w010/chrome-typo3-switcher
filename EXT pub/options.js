@@ -47,9 +47,14 @@ var ExtOptions = {
             ExtOptions.debugStorageData();
             ExtOptions.fillExportData( env_projects );
             // update status message
-            ExtOptions.displayMessage( 'Options saved.' );
-            // reload extension to reapply settings
-            chrome.extension.getBackgroundPage().window.location.reload();
+            if (chrome.runtime.lastError)   {
+                ExtOptions.displayMessage( 'Options save problem -  ' + chrome.runtime.lastError.message, null, 100000 );
+            }
+            else    {
+                ExtOptions.displayMessage( 'Options saved.' );
+                // reload extension to reapply settings
+                chrome.extension.getBackgroundPage().window.location.reload();
+            }
         });
     },
 
