@@ -35,10 +35,13 @@ var ExtOptions = {
             'env_projects' :                    env_projects,
             'env_enable' :                      $( '#env_enable' ).is( ':checked' ),
             'env_switching' :                   $( '#env_switching' ).is( ':checked' ),
+            'env_menu_show_allprojects' :       $( '#env_menu_show_allprojects' ).is( ':checked' ),
+            'env_menu_show_installtool' :       $( '#env_menu_show_installtool' ).is( ':checked' ),
             'env_badge' :                       $( '#env_badge' ).is( ':checked' ),
             'env_badge_projectname' :           $( '#env_badge_projectname' ).is( ':checked' ),
             'env_badge_position' :              $( '#env_badge_position_right' ).is( ':checked' )  ?  'right'  :  'left',
             'env_badge_scale' :                 $( '#env_badge_scale' ).val(),
+            'env_favicon' :                     $( '#env_favicon' ).is( ':checked' ),
             'ext_debug' :                       $( '#ext_debug' ).is( ':checked' )
 
         }, function() {
@@ -72,10 +75,13 @@ var ExtOptions = {
             'env_projects' :                    [],
             'env_enable' :                      true,
             'env_switching' :                   true,
+            'env_menu_show_allprojects' :       true,
+            'env_menu_show_installtool' :       true,
             'env_badge' :                       true,
             'env_badge_projectname' :           true,
             'env_badge_position' :              'left',
             'env_badge_scale' :                 '1.0',
+            'env_favicon' :                     false,  // for now when testing disable by default
             'ext_debug' :                       false
 
         }, function(options) {
@@ -84,12 +90,15 @@ var ExtOptions = {
             $( '#switch_be_useBaseHref' ).attr( 'checked',          options.switch_be_useBaseHref );
             $( '#env_enable' ).attr( 'checked',                     options.env_enable );
             $( '#env_switching' ).attr( 'checked',                  options.env_switching );
+            $( '#env_menu_show_allprojects' ).attr( 'checked',      options.env_menu_show_allprojects );
+            $( '#env_menu_show_installtool' ).attr( 'checked',      options.env_menu_show_installtool );
             $( '#env_badge' ).attr( 'checked',                      options.env_badge );
             $( '#env_badge_projectname' ).attr( 'checked',          options.env_badge_projectname );
             $( '#env_badge_position_left' ).attr( 'checked',        options.env_badge_position === 'left' );
             $( '#env_badge_position_right' ).attr( 'checked',       options.env_badge_position === 'right' );
             $( '#env_badge_scale' ).val(                            options.env_badge_scale );
             $( '#ext_debug' ).attr( 'checked',                      options.ext_debug );
+            $( '#env_favicon' ).attr( 'checked',                    options.env_favicon );
 
             ExtOptions.DEV = options.ext_debug;
             ExtOptions.options = options;
@@ -313,7 +322,7 @@ var ExtOptions = {
      */
     collectEnvSettings : function()   {
         var projects = [];
-        $( '.settings-block.environments .projects-container .projectItem' ).each( function()  {
+        $( '.settings-block.projects .projects-container .projectItem' ).each( function()  {
             var projectItem = {};
             projectItem['name'] = $(this).find( "[name='project[name]']" ).val();
             projectItem['hidden'] = $(this).find( "[name='project[hidden]']" ).is( ':checked' );

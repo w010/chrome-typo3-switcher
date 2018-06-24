@@ -10,6 +10,9 @@
             padding: 10px;
             width: 990px;
         }
+        h1  {
+            font-weight: 600;
+        }
         h2  {
             margin: .1em 0 .7em;
         }
@@ -234,10 +237,12 @@
             opacity: .5;
         }
 
-        .settings-block > label {
+        .settings-block > label,
+        .settings-block > .settings-block-section  > label {
             display: block;
         }
-        .settings-block > label:hover {
+        .settings-block > label:hover,
+        .settings-block > .settings-block-section > label:hover {
             background: #f8f8f8;
         }
 
@@ -283,6 +288,15 @@
             background: #eaf5e0;
             border: 1px dashed #ccc !important;
         }
+        .row    {
+            clear: both;
+        }
+        .to-left    {
+            float: left;
+        }
+        .to-right   {
+            float: right;
+        }
 
     </style>
 </head>
@@ -295,6 +309,7 @@
         <br>
         <br>
     </div>
+
 
     <div class="settings-block general">
 
@@ -327,121 +342,140 @@
                 (disabled = no env menu, no badges, no nothing. only FE/BE switching)</span>
         </label>
 
-        <h3>Context switch:</h3>
+        <div class="settings-block-section">
+            <h3>Context switch:</h3>
 
-        <label class="check">
-            <input type="checkbox" id="env_switching">
-            <span>Enable right-click menu context switching</span>
-        </label>
-
-        <h3>Badge:</h3>
-
-        <label class="check">
-            <input type="checkbox" id="env_badge">
-            <span>Display badge on page to identify current context</span>
-        </label>
-        <label class="check">
-            <input type="checkbox" id="env_badge_projectname">
-            <span>Show also project name on badge <br>
-                (disabled = show only context name)</span>
-        </label>
-        <label class="radio">
-            <span>Position:</span>
-        </label>
-        <label class="radio-item">
-            <input type="radio" class="env_badge_position" id="env_badge_position_left" value="left" name="badge_position">
-            On left corner</label>
-        <label class="radio-item">
-            <input type="radio" class="env_badge_position" id="env_badge_position_right" value="right" name="badge_position">
-            On right corner</label>
-
-        <label class="text">
-            <span>Badge scale: </span>
-            <input type="text" id="env_badge_scale">
-            <span> (0.5 - 1.5 recommended, other may cause unexpected results)</span>
-        </label>
-
-
-        <br>
-
-        <div class="projects">
-
-            <h4>Projects</h4>
-
-            <div class="projects-container"></div>
-            <div class="projectItem collapse _template">
-
-                <input type="text" name="project[name]" placeholder="Name" class="required">
-
-                <div class="contexts">
-
-                    <h4>Env contexts</h4>
-
-                    <div class="contexts-container"></div>
-                    <div class="contextItem collapse _template">
-
-                        <label><input type="text" name="context[name]" placeholder="Name" class="required"></label>
-                        <label><input type="text" name="context[url]" placeholder="Url" class="required"></label>
-                        <label>Badge color:
-                            <input type="color" class="color-picker">
-                            <input type="text" name="context[color]" placeholder="#Hex" class="color-text" maxlength="7">
-                        </label>
-
-                        <!--<div class="moreSettings">
-                            <label>
-                                <input type="text" name="context[altBackendUrl]" placeholder="Alternative backend url">
-                            </label>
-                        </div>
-
-                        <div class="toggle context"><span class="icon"></span></div>-->
-
-                        <label class="check hide"><input type="checkbox" name="context[hidden]"> Disable </label>
-                        <button class="btn remove env_contextRemove" title="Remove"><span class="icon"></span></button>
-                    </div>
-
-                    <button class="btn add env_contextAdd"><span class="icon"></span> <span class="text">Env context</span></button>
-                    <button class="btn add env_contextAddDefaultSet" title="Adds some default predefined contexts"><span class="icon"></span> <span class="text">Add standard context set</span></button>
-                </div>
-
-                <div class="links">
-
-                    <h4>Links</h4>
-
-                    <div class="links-container"></div>
-                    <div class="linkItem _template">
-
-                        <label><input type="text" name="link[name]" placeholder="Name" class="required"></label>
-                        <label><input type="text" name="link[url]" placeholder="Url" class="required"></label>
-
-                        <label class="check hide"><input type="checkbox" name="link[hidden]"> Disable </label>
-                        <button class="btn remove env_linkRemove" title="Remove"><span class="icon"></span></button>
-                    </div>
-
-                    <button class="btn add env_linkAdd"><span class="icon"></span> <span class="text">Link</span></button>
-                </div>
-
-                <div class="toggle project"><span class="icon"></span></div>
-
-                <label class="check hide"><input type="checkbox" name="project[hidden]"> Disable </label>
-                <button class="btn remove env_projectRemove" title="Remove"><span class="icon"></span></button>
-            </div>
-
+            <label class="check">
+                <input type="checkbox" id="env_switching">
+                <span>Enable right-click menu context switching</span>
+            </label>
+            <label class="check">
+                <input type="checkbox" id="env_menu_show_allprojects">
+                <span>Show all projects in that menu</span>
+            </label>
+            <label class="check">
+                <input type="checkbox" id="env_menu_show_installtool">
+                <span>Show Install tool</span>
+            </label>
         </div>
 
-        <button class="btn add env_projectAdd"><span class="icon"></span> <span class="text">Project</span></button>
-        <br><br>
+        <div class="settings-block-section">
+            <h3>Badge:</h3>
+
+            <label class="check">
+                <input type="checkbox" id="env_badge">
+                <span>Display badge on page to identify current context</span>
+            </label>
+            <label class="check">
+                <input type="checkbox" id="env_badge_projectname">
+                <span>Show also project name on badge <br>
+                    (disabled = show only context name)</span>
+            </label>
+            <label class="radio">
+                <span>Position:</span>
+            </label>
+            <label class="radio-item">
+                <input type="radio" class="env_badge_position" id="env_badge_position_left" value="left" name="badge_position">
+                On left corner</label>
+            <label class="radio-item">
+                <input type="radio" class="env_badge_position" id="env_badge_position_right" value="right" name="badge_position">
+                On right corner</label>
+
+            <label class="text">
+                <span>Badge scale:</span>
+                <input type="text" id="env_badge_scale">
+                <span> (0.5 - 1.5 recommended, other may cause unexpected results)</span>
+            </label>
+        </div>
+
+        <div class="settings-block-section">
+            <h3>Favicon overlay:</h3>
+
+            <label class="check">
+                <input type="checkbox" id="env_favicon">
+                <span>Show color overlay on favicon<br>
+                    (this is test feature, it seems to not show always when it should)</span>
+            </label>
+        </div>
     </div>
 
 
     <div class="settings-block miscoptions">
 
-        <h2>Misc options</h2>
+        <h1>Misc options</h1>
 
         <label class="check">
             <input type="checkbox" id="ext_debug">
             <span>Debug info <br>
                 (shows some console messages and vars values)</span>
         </label>
+    </div>
+
+
+    <div class="settings-block projects">
+
+        <h1>Projects</h1>
+
+        <div class="projects-container"></div>
+        <div class="projectItem collapse _template">
+
+            <input type="text" name="project[name]" placeholder="Name" class="required">
+
+            <div class="contexts">
+
+                <h4>Env contexts</h4>
+
+                <div class="contexts-container"></div>
+                <div class="contextItem collapse _template">
+
+                    <label><input type="text" name="context[name]" placeholder="Name" class="required"></label>
+                    <label><input type="text" name="context[url]" placeholder="Url" class="required"></label>
+                    <label>Badge color:
+                        <input type="color" class="color-picker">
+                        <input type="text" name="context[color]" placeholder="#Hex" class="color-text" maxlength="7">
+                    </label>
+
+                    <!--<div class="moreSettings">
+                        <label>
+                            <input type="text" name="context[altBackendUrl]" placeholder="Alternative backend url">
+                        </label>
+                    </div>
+
+                    <div class="toggle context"><span class="icon"></span></div>-->
+
+                    <label class="check hide"><input type="checkbox" name="context[hidden]"> Disable </label>
+                    <button class="btn remove env_contextRemove" title="Remove"><span class="icon"></span></button>
+                </div>
+
+                <button class="btn add env_contextAdd"><span class="icon"></span> <span class="text">Env context</span></button>
+                <button class="btn add env_contextAddDefaultSet" title="Adds some default predefined contexts"><span class="icon"></span> <span class="text">Add standard context set</span></button>
+            </div>
+
+            <div class="links">
+
+                <h4>Links</h4>
+
+                <div class="links-container"></div>
+                <div class="linkItem _template">
+
+                    <label><input type="text" name="link[name]" placeholder="Name" class="required"></label>
+                    <label><input type="text" name="link[url]" placeholder="Url" class="required"></label>
+
+                    <label class="check hide"><input type="checkbox" name="link[hidden]"> Disable </label>
+                    <button class="btn remove env_linkRemove" title="Remove"><span class="icon"></span></button>
+                </div>
+
+                <button class="btn add env_linkAdd"><span class="icon"></span> <span class="text">Link</span></button>
+            </div>
+
+            <div class="toggle project"><span class="icon"></span></div>
+
+            <label class="check hide"><input type="checkbox" name="project[hidden]"> Disable </label>
+            <button class="btn remove env_projectRemove" title="Remove"><span class="icon"></span></button>
+        </div>
+
+        <button class="btn add env_projectAdd"><span class="icon"></span> <span class="text">Project</span></button>
+        <br><br>
     </div>
 
 
@@ -457,16 +491,30 @@
     <div class="settings-block importexport">
 
         <h2>Import / export</h2>
-        <h4>Backup project settings or share with your team</h4>
+        <h3>Backup projects or share with your team</h3>
+
+        <h4>Import: paste JSON into textbox and press Import</h4>
+        <textarea placeholder="paste json" id="env_importexport-data" cols="80" rows="5"></textarea>
+
+        <br>
+        <br>
+        <button id="env_import" class="btn import"><span class="icon"></span> <span class="text">Import from textbox</span></button>
+
+        <p>...OR upload file</p>
+        <input type="file" id="env_import_file">
+
+        <br>
+        <br>
+        <br>
 
         <label class="check">
             <input type="checkbox" id="env_import_overwrite">
-            <span>Overwrite all current projects (!)<br>
-                (disabled = add)</span>
+            <span>Overwrite all projects (!)<br>
+                (disabled = add to existing)</span>
         </label>
         <label class="check">
             <input type="checkbox" id="env_import_test">
-            <span>Test import<br>
+            <span>No autosave / Test import<br>
                 (see the imported projects, you can tune them and save, or not.<br>
                 disabled / default = autosave right after import)</span>
         </label>
@@ -482,21 +530,14 @@
         </p>
 
         <br>
-        <p>Import: paste JSON into textbox and press Import<br>
-            Export: copy JSON from textbox</p>
-        <textarea placeholder="paste json" id="env_importexport-data" cols="80" rows="5"></textarea>
 
-        <br>
-        <br>
-        <button id="env_import" class="btn import"><span class="icon"></span> <span class="text">Import from textbox</span></button>
+        <h4>Export: copy JSON from textbox OR download</h4>
 
-        <br>
-        <br>
-        <p>Or using file upload/download</p>
-        <input type="file" id="env_import_file">
-        <br>
-        <br>
         <button id="env_export_download" class="btn export"><span class="icon"></span> <span class="text">Export - download</span></button>
+
+        <br>
+        <br>
+
 
         <span class="status-import"></span>
     </div>
