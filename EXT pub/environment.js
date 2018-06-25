@@ -24,17 +24,21 @@ var Env = {
 
     DEV: false,
 
-    _options: null,
+    options: null,
+    projectsAll: null,
 
+    /**
+     * lock avoids paralell setup when multiple events triggers
+     */
     lock: false,
 
 
     /**
      * find current url in projects options. if found - set new menu and badge. otherwise exit
      */
-    initProject : function(options)   {
+    initProject : function()   {
 
-        console.log('options.env_projects', options.env_projects);
+        console.log('options.env_projects_count', Env.options.env_projects_count);
 
         // switch tab
         chrome.tabs.onHighlighted.addListener( function () {
@@ -43,7 +47,7 @@ var Env = {
                 console.log( ': LOCKED!' );
                 return;
             }
-            Env.findAndApplyProjectConfigForCurrentTabUrl( options, 'onHighlighted' );
+            Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onHighlighted' );
         });
         // switch window
         chrome.windows.onFocusChanged.addListener( function () {
@@ -52,7 +56,7 @@ var Env = {
                 console.log( ': LOCKED!' );
                 return;
             }
-            Env.findAndApplyProjectConfigForCurrentTabUrl( options, 'onFocusChanged' );
+            Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onFocusChanged' );
         });
         // load page
         chrome.tabs.onUpdated.addListener( function (tabId) {
@@ -61,7 +65,7 @@ var Env = {
                 console.log( ': LOCKED!' );
                 return;
             }
-            Env.findAndApplyProjectConfigForCurrentTabUrl( options, 'onUpdated', tabId );
+            Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onUpdated', tabId );
         });
     },
 
@@ -69,12 +73,12 @@ var Env = {
     /**
      * looks for current tab url in projects config. if found, rebuilds action menu, badge and other env settings
      * @param options
+     * @param projectsAll
      * @param _debugEventTriggered
      * @param tabId
      */
-    findAndApplyProjectConfigForCurrentTabUrl : function(options, _debugEventTriggered, tabId) {
+    findAndApplyProjectConfigForCurrentTabUrl : function(options, projectsAll, _debugEventTriggered, tabId) {
 
-        // avoid paralell setup when multiple events triggers
         Env.lock = true;
         console.group('Project context setup');
         console.info('--------------- PROJECT CONTEXT SETUP begin - find project for current url & clear menu [LOCK]');
@@ -104,11 +108,13 @@ var Env = {
 
                 var isProjectFound = false;
 
-                // setup new ones, if url found in config
-                if ( typeof options.env_projects !== 'undefined' ) {
-                    for ( var p = 0;  p < options.env_projects.length;  p++ ) {
+                // todo: here read new way projects (or maybe before? where it's all called just after first storage read? and pass them here
 
-                        var project = options.env_projects[p];
+                // setup new ones, if url found in config
+                if ( typeof projectsAll !== 'undefined' ) {
+                    for ( var p = 0;  p < projectsAll.length;  p++ ) {
+
+                        var project = projectsAll[p];
 
                         if ( project.hidden )
                             continue;
@@ -213,7 +219,7 @@ var Env = {
 
         var contextMenuItems = [];
         var mark = '';
-        var options = this._options;
+        var options = this.options;
 
 
         // -- ENVIRONMENTS (CONTEXTS)
@@ -481,9 +487,9 @@ var Env = {
                     'projectLabel: "'+project.name+'",' +
                     'contextLabel: "'+context.name+'",' +
                     'contextColor: "'+context.color+'",' +
-                    'projectLabelDisplay: '+( typeof Env._options.env_badge_projectname === 'undefined'  ||  Env._options.env_badge_projectname === true  ?  'true'  :  'false' )+',' +
-                    'scale: '+( typeof Env._options.env_badge_scale !== 'undefined'  ?  parseFloat( Env._options.env_badge_scale )  :  1.0 )+',' +
-                    'position: "'+( typeof Env._options.env_badge_position !== 'undefined'  ?  Env._options.env_badge_position  :  'left' )+'",' +
+                    'projectLabelDisplay: '+( typeof Env.options.env_badge_projectname === 'undefined'  ||  Env.options.env_badge_projectname === true  ?  'true'  :  'false' )+',' +
+                    'scale: '+( typeof Env.options.env_badge_scale !== 'undefined'  ?  parseFloat( Env.options.env_badge_scale )  :  1.0 )+',' +
+                    'position: "'+( typeof Env.options.env_badge_position !== 'undefined'  ?  Env.options.env_badge_position  :  'left' )+'",' +
                     '_debugEventTriggered: "'+_debugEventTriggered+'"' +
                 '};'
 
@@ -529,8 +535,8 @@ var Env = {
             code: 'var favicon_params = {' +
                     'DEV: '+Env.DEV+',' +
                     'contextColor: "'+context.color+'",' +
-                    //'scale: '+( typeof Env._options.env_badge_scale !== 'undefined'  ?  parseFloat( Env._options.env_badge_scale )  :  1.0 )+',' +
-                    //'position: "'+( typeof Env._options.env_badge_position !== 'undefined'  ?  Env._options.env_badge_position  :  'left' )+'",' +
+                    //'scale: '+( typeof Env.options.env_badge_scale !== 'undefined'  ?  parseFloat( Env.options.env_badge_scale )  :  1.0 )+',' +
+                    //'position: "'+( typeof Env.options.env_badge_position !== 'undefined'  ?  Env.options.env_badge_position  :  'left' )+'",' +
                     '_debugEventTriggered: "'+_debugEventTriggered+'"' +
                 '};'
 
@@ -644,10 +650,25 @@ chrome.storage.sync.get( null, function(options) {
         if ( typeof options.env_enable !== 'undefined'  &&  options.env_enable === false )
             return;
 
-        Env._options = options;     // store to use in onclick
-        Env.initProject( options );
-
+        Env.options = options;     // store to use in onclick
         Env.DEV = options.ext_debug;
+        var projectsAll = [];
+
+        // if count is saved, it means the separated projects save method is used / after migration
+        if (options.env_projects_count) {
+            // extract projects
+            var i;
+            for (i = 0; i < options.env_projects_count; i++) {
+                projectsAll.push(options['proj_' + i]);
+            }
+        }
+        // old for compatibility
+        else    {
+            projectsAll = options.env_projects;
+        }
+
+        Env.projectsAll = projectsAll;
+        Env.initProject();
 
 
         /**
@@ -657,7 +678,7 @@ chrome.storage.sync.get( null, function(options) {
 
             // console.log(info);
             // console.log(tab);
-            // console.log(Env._options);
+            // console.log(Env.options);
 
             // extract necessary info from button id
             var idParts = info.menuItemId.split(/-/);
@@ -669,11 +690,13 @@ chrome.storage.sync.get( null, function(options) {
             console.log({menuPositionUniqueId: idParts[0], projectIndex: projectIndex, itemType: itemType, itemIndex: itemIndex});
             //console.log(idParts);
 
-            var project = Env._options.env_projects[ projectIndex ];
+            var project = Env.projectsAll[ projectIndex ];
             console.log(project);
 
-            if ( typeof project === 'undefined' )
+            if ( typeof project === 'undefined' )   {
+                console.groupEnd();
                 return;
+            }
 
 
 
@@ -720,6 +743,7 @@ chrome.storage.sync.get( null, function(options) {
                         if ( context.url  &&  tab.url.match( context.url ) )  {
                             activeContext = context;
                             console.log(':: PRE-SWITCH: active context found');
+                            console.groupEnd();
                         }
                     }
                 }
@@ -731,6 +755,7 @@ chrome.storage.sync.get( null, function(options) {
 
                 if ( newContext === activeContext )   {
                     console.log(':: PRE-SWITCH: current context clicked: do nothing');
+                    console.groupEnd();
                     return;
                 }
 

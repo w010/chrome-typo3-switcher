@@ -26,13 +26,12 @@ var ExtOptions = {
      */
     optionsSave : function() {
 
-        var env_projects = ExtOptions.collectEnvSettings();
+        var projects = ExtOptions.collectEnvSettings();
     
         chrome.storage.sync.set({
     
             'switch_fe_openSelectedPageUid' :   $( '#switch_fe_openSelectedPageUid' ).is( ':checked' ),
             'switch_be_useBaseHref' :           $( '#switch_be_useBaseHref' ).is( ':checked' ),
-            'env_projects' :                    env_projects,
             'env_enable' :                      $( '#env_enable' ).is( ':checked' ),
             'env_switching' :                   $( '#env_switching' ).is( ':checked' ),
             'env_menu_show_allprojects' :       $( '#env_menu_show_allprojects' ).is( ':checked' ),
@@ -45,18 +44,44 @@ var ExtOptions = {
             'ext_debug' :                       $( '#ext_debug' ).is( ':checked' )
 
         }, function() {
-            // update storage info
-            ExtOptions.updateStorageInfo();
-            ExtOptions.debugStorageData();
-            ExtOptions.fillExportData( env_projects );
-            // update status message
+
+            // in case of problems show info and end operation
             if (chrome.runtime.lastError)   {
                 ExtOptions.displayMessage( 'Options save problem -  ' + chrome.runtime.lastError.message, null, 100000 );
             }
+            // if options saved ok, now save projects
             else    {
-                ExtOptions.displayMessage( 'Options saved.' );
-                // reload extension to reapply settings
-                chrome.extension.getBackgroundPage().window.location.reload();
+
+                chrome.storage.sync.set(
+
+                    projects
+
+                , function() {
+                    // update storage info
+                    ExtOptions.updateStorageInfo();
+                    ExtOptions.debugStorageData();
+                    ExtOptions.fillExportData( projects );
+                    // update status message and show error if any
+                    if (chrome.runtime.lastError)   {
+                        ExtOptions.displayMessage( 'Options save problem -  ' + chrome.runtime.lastError.message, null, 100000 );
+                    }
+                    else    {
+                        ExtOptions.displayMessage( 'Options saved.' );
+
+                        // store projects number
+                        chrome.storage.sync.set({
+                            'env_projects_count' : Object.keys(projects).length     // this is the way to read number of elements of an object (like array length)
+                            //'env_projects' :    // remove old-way saved projects from storage (uncomment in few versions, to cleanup. now leave for keeping backup)
+                        }, function() {
+                            //console.log('env_projects_count: ' + Object.keys(projects).length);
+                            // if settings + projects was saved successfully, we can assume this was too. so no need to check again
+                            // reload extension to reapply settings
+                            chrome.extension.getBackgroundPage().window.location.reload();
+                        });
+
+                    }
+                });
+
             }
         });
     },
@@ -72,7 +97,8 @@ var ExtOptions = {
             // Set default values on read if not found
             'switch_fe_openSelectedPageUid' :   true,
             'switch_be_useBaseHref' :           true,
-            'env_projects' :                    [],
+            'env_projects' :                    [],     // leave for compatibility - must try to read old projects array to migrate
+            'env_projects_count' :              0,      // new project store way saves projects counter, so it means it's after migration
             'env_enable' :                      true,
             'env_switching' :                   true,
             'env_menu_show_allprojects' :       true,
@@ -103,8 +129,26 @@ var ExtOptions = {
             ExtOptions.DEV = options.ext_debug;
             ExtOptions.options = options;
 
-            ExtOptions.populateEnvSettings(                         options.env_projects );
-            ExtOptions.fillExportData( options.env_projects );
+            // if count is saved, it means the separated projects save method is used / after migration
+            if (options.env_projects_count) {
+                // read all options and extract projects
+                // read them separately from above, to keep possibility to set defaults on read
+                chrome.storage.sync.get(null, function(allOptions)    {
+                    var i;
+                    var projects = [];
+                    for (i = 0; i < options.env_projects_count; i++)    {
+                        projects.push(allOptions['proj_'+i]);
+                    }
+
+                    ExtOptions.populateEnvSettings( projects );
+                    ExtOptions.fillExportData( projects );
+                });
+            }
+            else    {
+                ExtOptions.populateEnvSettings( options.env_projects );
+                ExtOptions.fillExportData( options.env_projects );
+            }
+
             ExtOptions.debugStorageData();
         });
     },
@@ -321,7 +365,8 @@ var ExtOptions = {
      * Iterate projects / environments elements and build an array
      */
     collectEnvSettings : function()   {
-        var projects = [];
+        var projects = {};
+        var counter = 0;
         $( '.settings-block.projects .projects-container .projectItem' ).each( function()  {
             var projectItem = {};
             projectItem['name'] = $(this).find( "[name='project[name]']" ).val();
@@ -348,7 +393,8 @@ var ExtOptions = {
                 projectItem['links'].push( linkItem );
             });
 
-            projects.push( projectItem );
+            projects['proj_'+counter] = projectItem;
+            counter++;
         });
         console.info('collectEnvSettings - projects: ', projects);
         return projects;
