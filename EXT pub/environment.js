@@ -337,9 +337,9 @@ var Env = {
             });
 
             // iterate all projects and links
-            if ( typeof options.env_projects !== 'undefined' ) {
-                for ( var _p = 0;  _p < options.env_projects.length;  _p++ ) {
-                    var _project = options.env_projects[_p];
+            if ( typeof Env.projectsAll !== 'undefined' ) {
+                for ( var _p = 0;  _p < Env.projectsAll.length;  _p++ ) {
+                    var _project = Env.projectsAll[_p];
                     if ( _project.hidden )
                         continue;
                     contextMenuItems.push({

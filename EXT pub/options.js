@@ -440,9 +440,9 @@ var ExtOptions = {
     // IMPORT / EXPORT
 
 
-    fillExportData : function ( env_projects ) {
+    fillExportData : function ( projects ) {
         $( '#env_importexport-data' ).html(
-            JSON.stringify( env_projects, null, 4 )
+            JSON.stringify( projects, null, 4 )
         ).focus( function() {
             this.select();
         });
@@ -602,7 +602,8 @@ var ExtOptions = {
     exportProjectsDownloadFile : function() {
         //var data = new Blob( [ JSON.stringify( ExtOptions.options.env_projects, null, 4 ) ], {type: 'text/json'} );
         //var url = window.URL.createObjectURL( data );
-        var url = 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify( ExtOptions.options.env_projects, null, 4 ) + '\n');
+        // var url = 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify( projectsAll, null, 4 ) + '\n');
+        var url = 'data:text/plain;charset=utf-8,' + encodeURIComponent( $( '#env_importexport-data' ).val() );
         //console.log(data);
         //console.log(url);
         var a = document.createElement( "a" );
