@@ -136,13 +136,15 @@ var Env = {
                                     Env.setActionIcon( 'active', tabId );
 
                                     // exit now, if whole env functionality is disabled
+                                    // todo: this should be checked on very beginning - not even come here. we don't handle situation to set badge or favicon without menu.
                                     if ( options.env_switching !== false )
                                         Env.setupContextMenu( context, p, project, _debugEventTriggered );
                                     if ( options.env_badge !== false )
                                         Env.setupBadge( context, project, tab, _debugEventTriggered );
 
-                                    // todo: option check
-                                    Env.setupFavicon( context, project, tab, _debugEventTriggered );
+                                    // todo: make sure, if options can be read simply or with typeof to not cause errors after update ext and no such option saved yet
+                                    if ( typeof options.env_favicon === 'undefined'  ||  options.env_favicon === true )
+                                        Env.setupFavicon( context, project, tab, _debugEventTriggered );
 
                                     // stop searching projects, without releasing the lock (release in setup callback)
                                     return;
@@ -188,7 +190,9 @@ var Env = {
                 }
 
                 // if project not found, release the lock
-                console.log('- project not found - exit [LOCK RELEASE]');
+                console.log('- project not found - try to set All Projects menu, if enabled');
+                Env.setupContextMenu( [], -1, [], _debugEventTriggered );
+                console.log('-- exit [LOCK RELEASE]');
                 console.groupEnd();
                 Env.lock = false;
             });
@@ -294,8 +298,7 @@ var Env = {
 
 
         // -- INSTALL TOOL
-        // todo: option condition
-        //if ( [option show install] ) {
+        if ( typeof options.env_menu_show_installtool !== 'undefined'  &&  options.env_menu_show_installtool === true  &&  p > -1 ) {
 
             contextMenuItems.push({
                 title :             '_separator-install',
@@ -308,12 +311,11 @@ var Env = {
                 title : 'Install Tool',
                 id :    'project-' + p + '-installtool-'
             });
-        //}
+        }
 
 
         // -- ALL PROJECTS
-        // todo: option condition
-        //if ( [option show all projects] ) {
+        if ( typeof options.env_menu_show_allprojects !== 'undefined'  &&  options.env_menu_show_allprojects === true ) {
 
             /*contextMenuItems.push({
                 title :             '_separator-allprojects',
@@ -372,7 +374,7 @@ var Env = {
                 }
             }
 
-        //}
+        }
 
 
 
