@@ -142,16 +142,17 @@ var Env = {
                                     console.info('--- ICON: activate');
                                     Env.setActionIcon( 'active', tabId );
 
-                                    // exit now, if whole env functionality is disabled
-                                    // todo: this should be checked on very beginning - not even come here. we don't handle situation to set badge or favicon without menu.
-                                    if ( options.env_switching !== false )
-                                        Env.setupContextMenu( context, p, project, _debugEventTriggered );
-                                    if ( options.env_badge !== false )
+                                    // don't check this option - show menu always anyway. no reason to disable it and show only badge.
+                                    // also it's problematic due to locks - menu and badge are starting the same time. probably must be done using call chain)
+                                    //if ( options.env_switching !== false )  {
+                                    Env.setupContextMenu( context, p, project, _debugEventTriggered );
+
+                                    if ( options.env_badge !== false )  {
                                         Env.setupBadge( context, project, tab, _debugEventTriggered );
+                                    }
 
                                     // todo: make sure, if options can be read simply or with typeof to not cause errors after update ext and no such option saved yet
                                     if ( ( typeof options.env_favicon === 'undefined'  ||  options.env_favicon === true )  &&  loadFavicon )    {
-                                        console.log('%%% FAVICON %%% = event ' + _debugEventTriggered);
                                         Env.setupFavicon( context, project, tab, _debugEventTriggered );
                                     }
 
@@ -182,9 +183,8 @@ var Env = {
                                     console.info('--- ICON: activate');
                                     Env.setActionIcon( 'active', tabId );
 
-                                    // exit now, if whole env functionality is disabled
-                                    if ( options.env_switching !== false )
-                                        Env.setupContextMenu( link, p, project, _debugEventTriggered );
+                                    Env.setupContextMenu( link, p, project, _debugEventTriggered );
+
                                     if ( options.env_badge !== false )  {
                                         link.color = '#cccccc';
                                         Env.setupBadge( link, project, tab, _debugEventTriggered );
