@@ -240,6 +240,7 @@
         .settings-block > label,
         .settings-block > .settings-block-section  > label {
             display: block;
+            padding-left: 20px;
         }
         .settings-block > label:hover,
         .settings-block > .settings-block-section > label:hover {
@@ -296,6 +297,16 @@
         }
         .to-right   {
             float: right;
+        }
+
+        .flashContainer    {
+            /*animation: flash linear 1s infinite;*/
+            animation: flash linear 0.5s 1;
+        }
+        @keyframes flash {
+            0% { background-color: #fff; }
+            20% { background-color: #8fffae; }
+            100% { background-color: #fff; }
         }
 
     </style>

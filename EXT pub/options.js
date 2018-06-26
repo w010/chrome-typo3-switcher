@@ -67,6 +67,10 @@ var ExtOptions = {
                     }
                     else    {
                         ExtOptions.displayMessage( 'Options saved.' );
+                        // blink window after save
+                        $('body').addClass('flashContainer');
+                        setTimeout(function() { $('body').removeClass('flashContainer'); }, 1000);
+
 
                         // store projects number
                         chrome.storage.sync.set({
