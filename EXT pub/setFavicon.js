@@ -1,147 +1,215 @@
 
 
-if (favicon_params  &&  favicon_params.DEV)         console.log('TYPO3 Switcher: setFavicon.js successfully injected');
 
 
 
 var Favicon = {
 
-    DEV: favicon_params.DEV,
+    DEV : favicon_params.DEV,
+    //lock : false,
+    //runCounter : 0,
 
 
     setFavicon : function() {
 
-        if (Favicon.DEV)    console.log('favicon from event: ' + favicon_params._debugEventTriggered);
 
-        /*if ( document.getElementsByClassName( 'chrome-typo3switcher-badge' ).length > 0 )
-            return;*/
-
+        //Favicon.runCounter++;
         var params = favicon_params;
 
         if (Favicon.DEV) {
-            console.log('TYPO3 Switcher - SET FAVICON with params:');
+            console.group('FAVICO');
+            console.log('- from event: ' + params._debugEventTriggered);
+            console.log('- params:');
             console.log(params);
         }
+        // return;
 
-        /*var scale = typeof params.scale === "number"  ?  params.scale  :  1;
-        var badgeContainer = document.createElement( 'div' );
+        // lock doesn't work as expected. for now it runs twice sometimes.
+        /*if ( favicon_params._lock === true )    {
+            console.log('### LOCKED, exit');
+            console.groupEnd();
+            return;
+        }
+        favicon_params._lock = true;*/
 
-        badgeContainer.innerHTML = '<b>' + params.contextLabel + '</b>';
-        if ( typeof params.projectLabelDisplay === 'undefined'  ||  params.projectLabelDisplay === true )
-            badgeContainer.innerHTML = params.projectLabel + '<br>' + badgeContainer.innerHTML;
+        // search current favicon, extract url and remove
+        var faviconUrl = '';
+        var linkElements = document.head.getElementsByTagName( 'link' );
+        var linkElementFound;
 
-        badgeContainer.classList.add( 'chrome-typo3switcher-badge' );*/
+        for( var i = 0;  i < linkElements.length;  i++ )  {
+            //if ( linkElements[i].getAttribute( 'rel' ).match( /^(shortcut )?icon$/i ) )    {
+            // for now look only for "shortcut icon" old style favicon and remove all others
+            // later should be tested if it works properly with "icon" and pngs
+            // (check if it helps if prepend to head instead of append)
+            if ( linkElements[i].getAttribute( 'rel' ).match( /^shortcut icon$/i ) )    {
+                faviconUrl = linkElements[i].href;
 
-
-            // Find an existing favicon to use as the URL.
-            favIconUrl = '';
-            links = document.head.getElementsByTagName('link');
-
-            for ( var i = 0;  i < links.length;  i++ )  {
-                if ( links[i].getAttribute('rel').match(/^(shortcut )?icon$/i) )    {
-                    favIconUrl = links[i].href;
-                    if (links[i].getAttribute('author') === 't3switcher') {
-                        if (Favicon.DEV)    console.log('OUR FAVICON FOUND, EXIT');
-                        return;
+                if ( linkElements[i].getAttribute( 'author' ) === 'chromeTYPO3switcher' ) {
+                    if (Favicon.DEV)    {
+                        console.log('-- OUR FAVICON FOUND, EXIT');
+                        console.groupEnd();
                     }
-                    document.head.removeChild(links[i]);
+                    return;
                 }
+                // store if found
+                linkElementFound = linkElements[i];
+                // document.head.removeChild( linkElements[i] );
+
             }
-        if (Favicon.DEV)    console.log(favIconUrl);
-
-            if ( !favIconUrl )
-                return;
-
-            var holder = new Image();
-            holder.src = favIconUrl;
-
-            holder.onload = function() {
-
-                if (Favicon.DEV)    console.log(holder.width);
-                if (Favicon.DEV)    console.log(holder.height);
-                // Transpose the icon into a canvas.
-                var canvas = document.createElement('canvas');
-                canvas.width = holder.width;
-                canvas.height = holder.height;
-                if (Favicon.DEV)    console.log(canvas);
-                var context = canvas.getContext('2d');
-                context.drawImage(holder, 0, 0);
-                context.fillStyle = params.contextColor;
-
-                // context.globalCompositeOperation = "source-in";
-                // context.fillRect(0, 0, canvas.width, canvas.height);
-
-                // context.globalAlpha = 0.5;
-                // context.fillRect(0, 0, canvas.width, canvas.height);
-
-                context.fillRect(0, Math.floor(canvas.height * 0.75), canvas.width, Math.floor(canvas.height / 4));
-
-                if (Favicon.DEV)    console.log(context);
-
-
-                // Create a new favicon link.
-                var favicon = document.createElement("link");
-                favicon.setAttribute("rel", "icon");
-                favicon.type = "image/x-icon";
-                favicon.href = canvas.toDataURL();
-                favicon.setAttribute('author', 't3switcher');
-                //favicon.href = 'https://ssl.gstatic.com/keep/keep.ico';
-                if (Favicon.DEV)console.log(favicon);
-                if (Favicon.DEV)console.log(favicon.href);
-                // Append the new favicon.
-                document.head.appendChild(favicon);
-                if (Favicon.DEV)console.log('===================================================');
+            // remove all other icons - they are problematic / browser shows some of them
+            if ( linkElements[i].getAttribute( 'rel' ).match( /^icon|apple-touch-icon$/i ) )    {
+                document.head.removeChild( linkElements[i] );
             }
+        }
+
+
+        if (Favicon.DEV)    console.log('favicon url: ' + faviconUrl);
+
+        /*if ( !faviconUrl )  {
+            if (Favicon.DEV) {
+                console.log('-- favicon NOT FOUND, use blank');
+                //console.groupEnd();
+            }
+            // todo: check if that works correctly
+            faviconUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYxIDY0LjE0MDk0OSwgMjAxMC8xMi8wNy0xMDo1NzowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNS4xIFdpbmRvd3MiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QkY4MThEODM3ODgyMTFFODk1RURGMUVCMTJBNjEzQkQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QkY4MThEODQ3ODgyMTFFODk1RURGMUVCMTJBNjEzQkQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpCRjgxOEQ4MTc4ODIxMUU4OTVFREYxRUIxMkE2MTNCRCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpCRjgxOEQ4Mjc4ODIxMUU4OTVFREYxRUIxMkE2MTNCRCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PheInx8AAAJESURBVHja7JtPSxtBGId3TIytJErSKiIe+gXSg3jRawVBSnroUU8SpEd7809v/TylJn4GhfaYQqGCaGgOpdm2IGKS2uz2tzILQ0C7k3Q2u9nfwMO+Cxl299l3Z99ZMsJ1XSvJbcxKeEu8gLRuB8dx/DAFpkM4x586PxZC3GJEQLvdtmzb9g7wCrvb4EkIAj6CDfAjyM3JZrNWPp83I8AbMHGQNxDwNsQsXQNVUPqXBE+A7qCu+wh4d3xfxg1wCP4YuOgieKbsrwSVYHoMeAoeyngHvDN01zelgC64AQ8UCS+APay3wLgSfzOY9pN+VoMyOFMyoQIeD0uAO8gbpI/mCT8G6+Brj4RHSakDpsApeN4jofo/JMSpEKqZkBC3StCX0FAkHA0iIY6lcE2OCb6E5UEyIa5zgU89Evp+HOIg4PIeCctyq0qYNToZGkI7AN/vmp7IGqGoSNgDr+MuIKXEZc2+c6OQAV7xcw5mgs6CZfUodOcmURVQk/OOrEbFeAIWjH8QCbFdSYK2vmalo/JJLCPTP7ECElMKUwAFUAAFUAAFUAAFUAAFUAAFUAAFUAAFUAAFUAAFUAAFUAAFUAAFUAAFUAAFUEC4AqK03s5VzkckMQO8RRV9/d9Jt9OFEu+CCfA7AgJWwbyMv+h0FDqLjFqt1liz2XwvhChFMQ0cx7FzudxSoVCom3oEHAjbAhXgxVaE+AwBL7GtG8uAbrdrdTodf2HiohXOusEg7Rf4gGu5TqfTViaTMSOAr0EKGL32V4ABANUr/m3+kFrxAAAAAElFTkSuQmCC';
+            // return;
+        }*/
+
+        var originalIconImageObject = new Image();
+        originalIconImageObject.src = faviconUrl;
+
+        originalIconImageObject.onload = function() {
+
+            // put original icon onto canvas
+            var canvas = document.createElement( 'canvas' );
+            canvas.width = originalIconImageObject.width;
+            canvas.height = originalIconImageObject.height;
+            // get canvas 2d drawing context
+            var context = canvas.getContext( '2d' );
+            context.drawImage( originalIconImageObject, 0, 0 );
+            context.fillStyle = params.contextColor;
+
+            if (Favicon.DEV)    {
+                //console.log(canvas);
+                //console.log(context);
+                console.log('favicon / canvas size: ' + originalIconImageObject.width + 'x' + originalIconImageObject.height);
+            }
+
+            // todo: configurable
+            var alpha = 0.75;
+            var fillRectCoverRatio = 0.6;
+            var position = 'bottom-right';
+            var compositeOperation = 'source-atop';    // source-over (default), source-in, source-atop, destination-over, xor
+
+            context.globalAlpha = alpha;
+            context.globalCompositeOperation = compositeOperation;
+
+
+            switch (position)   {
+                case 'left':
+                    context.fillRect(
+                        0,
+                        0,
+                        Math.floor( canvas.width - canvas.width * (1 - fillRectCoverRatio) ),
+                        canvas.height   );
+                    break;
+
+                case 'right':
+                    context.fillRect(
+                        Math.floor( canvas.width * (1 - fillRectCoverRatio) ),
+                        0,
+                        canvas.width,
+                        canvas.height   );
+                    break;
+
+                case 'top':
+                    context.fillRect(
+                        0,
+                        0,
+                        canvas.width,
+                        Math.floor( canvas.height - canvas.height * (1 - fillRectCoverRatio) )   );
+                    break;
+
+                case 'bottom':
+                default:
+                    context.fillRect(
+                        0,
+                        Math.floor( canvas.height * (1 - fillRectCoverRatio) ),
+                        canvas.width,
+                        canvas.height   );
+                    break;
+
+                case 'bottom-left':
+                    // triangle drawn from its top-left angle
+                    context.beginPath();
+                    context.moveTo( 0,      Math.floor( canvas.height - canvas.height * (1 - fillRectCoverRatio) ) );
+                    context.lineTo( Math.floor( canvas.width * (1 - fillRectCoverRatio) ),      canvas.height );
+                    context.lineTo( 0,      canvas.height );
+                    context.fill();
+                    break;
+
+                case 'bottom-right':
+                    // triangle drawn from its top-right angle
+                    context.beginPath();
+                    context.moveTo( canvas.width,       Math.floor( canvas.height * (1 - fillRectCoverRatio) ) );
+                    context.lineTo( canvas.width,       canvas.height );
+                    context.lineTo( Math.floor( canvas.width * (1 - fillRectCoverRatio) ),      canvas.width );
+                    context.fill();
+                    break;
+
+                case 'top-left':
+                    // triangle drawn from its bottom-left angle
+                    context.beginPath();
+                    context.moveTo( 0,      Math.floor( canvas.height * fillRectCoverRatio) );
+                    context.lineTo( 0,      0 );
+                    context.lineTo( Math.floor( canvas.width * (fillRectCoverRatio) ),      0 );
+                    context.fill();
+                    break;
+
+                case 'top-right':
+                    // triangle drawn from its bottom-right angle
+                    // debugger;
+                    context.beginPath();
+                    context.moveTo( canvas.width,      Math.floor( canvas.height * fillRectCoverRatio) );
+                    context.lineTo( Math.floor( canvas.width * (1 - fillRectCoverRatio) ),       0 );
+                    context.lineTo( canvas.width,       0 );
+                    context.fill();
+                    break;
+            }
+
+
+            // make new favicon element
+            /*var newFavicon = document.createElement( 'link' );
+            newFavicon.setAttribute( 'rel', 'shortcut icon' );
+            newFavicon.setAttribute( 'author', 'chromeTYPO3switcher' );
+            newFavicon.type = 'image/x-icon';
+            newFavicon.href = canvas.toDataURL();
+            // remove old favicon
+            document.head.removeChild( linkElementFound );
+            // put the new one into head
+            document.head.appendChild( newFavicon );*/
+
+            // change url in original element
+            linkElementFound.href = canvas.toDataURL();
+            linkElementFound.setAttribute( 'author', 'chromeTYPO3switcher' );
+
+            // favicon_params._lock = false;
+
+            if (Favicon.DEV)    {
+                //console.log(newFavicon, 'newFavicon');
+                console.log('DONE! ===================================================');
+                console.groupEnd();
+            }
+        }
     }
 };
 
 
 
-Favicon.setFavicon();
-
-/*
-switch (ext.orientation) {
-    case 'right':
-        context.fillRect(Math.floor(canvas.width * 0.75), 0, Math.floor(canvas.width / 4), canvas.height);
-        break;
-    case 'bottom':
-        context.fillRect(0, Math.floor(canvas.height * 0.75), canvas.width, Math.floor(canvas.height / 4));
-        break;
-    case 'left':
-        context.fillRect(0, 0, Math.floor(canvas.width / 4), canvas.height);
-        break;
-    case 'cover':
-        context.globalAlpha = 0.5;
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        break;
-    case 'replace':
-        context.globalCompositeOperation = "source-in";
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        break;
-    case 'background':
-        context.globalCompositeOperation = "destination-over";
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        break;
-    case 'xor-top':
-        context.globalCompositeOperation = "xor";
-        context.fillRect(0, 0, canvas.width, Math.floor(canvas.height / 4));
-        break;
-    default:
-        context.fillRect(0, 0, canvas.width, Math.floor(canvas.height / 4));
-        break;
-}*/
-
-/*
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    var links,
-        i;
-
-    if (!message.favIconUrl) {
-        // Set a default to pass back.
-        var favIconUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gEVFSYuu6K2kgAAAMxJREFUOMu9UssOgjAQnK0PYvw35M4Nvwmu6IJ8oikm7HpQkFIeQRMn2WS3mU5mugV+BLVNURQ6RYrj+AjAvvkbY8zDIzGzWmu9yrJMmVlF5CAiOxHZ9e+ZthF5GbC27qpFGJ7AXNwBNAB0VEBVZ7NGUYTrlZt+bADYfhwIAAIReU9UVbfuJM8vj77IdslBkpyduSxLzDhwUde1MwdB4PEcASLASTDcOWFeYPA1RjEUMHMRVgksrXGK50UgWudgsEbCfh9860CRphn+jifEvoLrs8T+3wAAAABJRU5ErkJggg==';
-
-
-
-        // Send either the URL or the default.
-        sendResponse({'favIconUrl': favIconUrl});
-    }*/
+if (favicon_params) {
+    if (favicon_params.DEV) {
+        console.log('* TYPO3 Switcher: set FAVICON / setFavicon.js successfully injected');
+    }
+    Favicon.setFavicon();
+}

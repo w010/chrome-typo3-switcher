@@ -80,6 +80,7 @@ var Env = {
     findAndApplyProjectConfigForCurrentTabUrl : function(options, projectsAll, _debugEventTriggered, tabId) {
 
         Env.lock = true;
+        var loadFavicon = _debugEventTriggered === 'onUpdated';
         console.group('Project context setup');
         console.info('--------------- PROJECT CONTEXT SETUP begin - find project for current url & clear menu [LOCK]');
 
@@ -149,8 +150,10 @@ var Env = {
                                         Env.setupBadge( context, project, tab, _debugEventTriggered );
 
                                     // todo: make sure, if options can be read simply or with typeof to not cause errors after update ext and no such option saved yet
-                                    if ( typeof options.env_favicon === 'undefined'  ||  options.env_favicon === true )
+                                    if ( ( typeof options.env_favicon === 'undefined'  ||  options.env_favicon === true )  &&  loadFavicon )    {
+                                        console.log('%%% FAVICON %%% = event ' + _debugEventTriggered);
                                         Env.setupFavicon( context, project, tab, _debugEventTriggered );
+                                    }
 
                                     // stop searching projects, without releasing the lock (release in setup callback)
                                     return;
