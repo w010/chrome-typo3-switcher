@@ -19,7 +19,9 @@ var Badge = {
         var params = badge_params;
 
         if (Badge.DEV) {
-            console.log('TYPO3 Switcher - SET BADGE with params:');
+            console.groupCollapsed('BADGE');
+            console.log('- from event: ' + params._debugEventTriggered);
+            console.log('- params:');
             console.log(params);
         }
 
@@ -63,6 +65,7 @@ var Badge = {
             });
         }
         document.getElementsByTagName( 'body' )[0].appendChild( badgeContainer );
+        console.groupEnd();
     },
 
 
@@ -74,6 +77,9 @@ var Badge = {
 };
 
 
+if (badge_params.DEV) {
+    console.log('* TYPO3 Switcher: set BADGE / setBadge.js successfully injected');
+}
 
 Badge.setBadge();
 
