@@ -81,103 +81,7 @@ var Favicon = {
 
         originalIconImageObject.onload = function() {
 
-            // put original icon onto canvas
-            var canvas = document.createElement( 'canvas' );
-            canvas.width = originalIconImageObject.width;
-            canvas.height = originalIconImageObject.height;
-            // get canvas 2d drawing context
-            var context = canvas.getContext( '2d' );
-            context.drawImage( originalIconImageObject, 0, 0 );
-            context.fillStyle = params.contextColor;
-
-            if (Favicon.DEV)    {
-                //console.log(canvas);
-                //console.log(context);
-                console.log('favicon / canvas size: ' + originalIconImageObject.width + 'x' + originalIconImageObject.height);
-            }
-
-            // todo: configurable
-            var alpha = 0.75;
-            var fillRectCoverRatio = 0.6;
-            var position = 'bottom-right';
-            var compositeOperation = 'source-atop';    // source-over (default), source-in, source-atop, destination-over, xor
-
-            context.globalAlpha = alpha;
-            context.globalCompositeOperation = compositeOperation;
-
-
-            switch (position)   {
-                case 'left':
-                    context.fillRect(
-                        0,
-                        0,
-                        Math.floor( canvas.width - canvas.width * (1 - fillRectCoverRatio) ),
-                        canvas.height   );
-                    break;
-
-                case 'right':
-                    context.fillRect(
-                        Math.floor( canvas.width * (1 - fillRectCoverRatio) ),
-                        0,
-                        canvas.width,
-                        canvas.height   );
-                    break;
-
-                case 'top':
-                    context.fillRect(
-                        0,
-                        0,
-                        canvas.width,
-                        Math.floor( canvas.height - canvas.height * (1 - fillRectCoverRatio) )   );
-                    break;
-
-                case 'bottom':
-                default:
-                    context.fillRect(
-                        0,
-                        Math.floor( canvas.height * (1 - fillRectCoverRatio) ),
-                        canvas.width,
-                        canvas.height   );
-                    break;
-
-                case 'bottom-left':
-                    // triangle drawn from its top-left angle
-                    context.beginPath();
-                    context.moveTo( 0,      Math.floor( canvas.height - canvas.height * (1 - fillRectCoverRatio) ) );
-                    context.lineTo( Math.floor( canvas.width * (1 - fillRectCoverRatio) ),      canvas.height );
-                    context.lineTo( 0,      canvas.height );
-                    context.fill();
-                    break;
-
-                case 'bottom-right':
-                    // triangle drawn from its top-right angle
-                    context.beginPath();
-                    context.moveTo( canvas.width,       Math.floor( canvas.height * (1 - fillRectCoverRatio) ) );
-                    context.lineTo( canvas.width,       canvas.height );
-                    context.lineTo( Math.floor( canvas.width * (1 - fillRectCoverRatio) ),      canvas.width );
-                    context.fill();
-                    break;
-
-                case 'top-left':
-                    // triangle drawn from its bottom-left angle
-                    context.beginPath();
-                    context.moveTo( 0,      Math.floor( canvas.height * fillRectCoverRatio) );
-                    context.lineTo( 0,      0 );
-                    context.lineTo( Math.floor( canvas.width * (fillRectCoverRatio) ),      0 );
-                    context.fill();
-                    break;
-
-                case 'top-right':
-                    // triangle drawn from its bottom-right angle
-                    // debugger;
-                    context.beginPath();
-                    context.moveTo( canvas.width,      Math.floor( canvas.height * fillRectCoverRatio) );
-                    context.lineTo( Math.floor( canvas.width * (1 - fillRectCoverRatio) ),       0 );
-                    context.lineTo( canvas.width,       0 );
-                    context.fill();
-                    break;
-            }
-
+            var canvas = Favicon.renderFaviconWithOverlay( originalIconImageObject, params );
 
             // make new favicon element
             /*var newFavicon = document.createElement( 'link' );
@@ -202,14 +106,126 @@ var Favicon = {
                 console.groupEnd();
             }
         }
+    },
+
+
+    /**
+     *
+     * @param originalIconImageObject - Image object with current favicon
+     * @param params - array with configuration: fill, position, alpha, composite, contextColor
+     * @returns canvas object
+     */
+    renderFaviconWithOverlay : function ( originalIconImageObject, params ) {
+
+        // put original icon onto canvas
+        var canvas = document.createElement( 'canvas' );
+        canvas.width = originalIconImageObject.width;
+        canvas.height = originalIconImageObject.height;
+        // get canvas 2d drawing context
+        var context = canvas.getContext( '2d' );
+        context.drawImage( originalIconImageObject, 0, 0 );
+        context.fillStyle = params.contextColor;
+
+        if (Favicon.DEV)    {
+            console.log(params);
+            //console.log(canvas);
+            //console.log(context);
+            console.log('favicon / canvas size: ' + originalIconImageObject.width + 'x' + originalIconImageObject.height);
+        }
+
+        // var position = 'bottom';
+        // var fillShapeCoverRatio = 0.6;
+        // context.globalAlpha = 0.75;
+        // context.globalCompositeOperation = 'source-over';    // source-over (default), source-in, source-atop, destination-over, xor
+        var fillShapeCoverRatio = params.fill;
+        var position = params.position;
+
+        context.globalAlpha = params.alpha;
+        context.globalCompositeOperation = params.composite;
+
+
+        switch (position)   {
+            case 'left':
+                context.fillRect(
+                    0,
+                    0,
+                    Math.floor( canvas.width - canvas.width * (1 - fillShapeCoverRatio) ),
+                    canvas.height   );
+                break;
+
+            case 'right':
+                context.fillRect(
+                    Math.floor( canvas.width * (1 - fillShapeCoverRatio) ),
+                    0,
+                    canvas.width,
+                    canvas.height   );
+                break;
+
+            case 'top':
+                context.fillRect(
+                    0,
+                    0,
+                    canvas.width,
+                    Math.floor( canvas.height - canvas.height * (1 - fillShapeCoverRatio) )   );
+                break;
+
+            case 'bottom':
+            default:
+                context.fillRect(
+                    0,
+                    Math.floor( canvas.height * (1 - fillShapeCoverRatio) ),
+                    canvas.width,
+                    canvas.height   );
+                break;
+
+            case 'bottom-left':
+                // triangle drawn from its top-left angle
+                context.beginPath();
+                context.moveTo( 0,      Math.floor( canvas.height - canvas.height * (1 - fillShapeCoverRatio) ) );
+                context.lineTo( Math.floor( canvas.width * (1 - fillShapeCoverRatio) ),      canvas.height );
+                context.lineTo( 0,      canvas.height );
+                context.fill();
+                break;
+
+            case 'bottom-right':
+                // triangle drawn from its top-right angle
+                context.beginPath();
+                context.moveTo( canvas.width,       Math.floor( canvas.height * (1 - fillShapeCoverRatio) ) );
+                context.lineTo( canvas.width,       canvas.height );
+                context.lineTo( Math.floor( canvas.width * (1 - fillShapeCoverRatio) ),      canvas.width );
+                context.fill();
+                break;
+
+            case 'top-left':
+                // triangle drawn from its bottom-left angle
+                context.beginPath();
+                context.moveTo( 0,      Math.floor( canvas.height * fillShapeCoverRatio) );
+                context.lineTo( 0,      0 );
+                context.lineTo( Math.floor( canvas.width * (fillShapeCoverRatio) ),      0 );
+                context.fill();
+                break;
+
+            case 'top-right':
+                // triangle drawn from its bottom-right angle
+                // debugger;
+                context.beginPath();
+                context.moveTo( canvas.width,      Math.floor( canvas.height * fillShapeCoverRatio) );
+                context.lineTo( Math.floor( canvas.width * (1 - fillShapeCoverRatio) ),       0 );
+                context.lineTo( canvas.width,       0 );
+                context.fill();
+                break;
+        }
+
+        return canvas;
     }
 };
 
 
 
-if (favicon_params) {
+if ( typeof favicon_params !== 'undefined' ) {
     if (favicon_params.DEV) {
         console.log('* TYPO3 Switcher: set FAVICON / setFavicon.js successfully injected');
     }
+    // this runs also in options preview. for now doesn't look like a problem, but in future it may check in params if should autorun
     Favicon.setFavicon();
 }

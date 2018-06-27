@@ -33,7 +33,7 @@ var ExtOptions = {
             'switch_fe_openSelectedPageUid' :   $( '#switch_fe_openSelectedPageUid' ).is( ':checked' ),
             'switch_be_useBaseHref' :           $( '#switch_be_useBaseHref' ).is( ':checked' ),
             'env_enable' :                      $( '#env_enable' ).is( ':checked' ),
-            'env_switching' :                   $( '#env_switching' ).is( ':checked' ),
+            //'env_switching' :                   $( '#env_switching' ).is( ':checked' ),
             'env_menu_show_allprojects' :       $( '#env_menu_show_allprojects' ).is( ':checked' ),
             'env_menu_show_installtool' :       $( '#env_menu_show_installtool' ).is( ':checked' ),
             'env_badge' :                       $( '#env_badge' ).is( ':checked' ),
@@ -41,6 +41,10 @@ var ExtOptions = {
             'env_badge_position' :              $( '#env_badge_position_right' ).is( ':checked' )  ?  'right'  :  'left',
             'env_badge_scale' :                 $( '#env_badge_scale' ).val(),
             'env_favicon' :                     $( '#env_favicon' ).is( ':checked' ),
+            'env_favicon_alpha' :               $( '#env_favicon_alpha' ).val(),
+            'env_favicon_fill' :                $( '#env_favicon_fill' ).val(),
+            'env_favicon_position' :            $( '#env_favicon_position' ).val(), // todo - from select?
+            'env_favicon_composite' :           $( '#env_favicon_composite' ).val(), // todo - from select?
             'ext_debug' :                       $( '#ext_debug' ).is( ':checked' )
 
         }, function() {
@@ -77,7 +81,7 @@ var ExtOptions = {
                             'env_projects_count' : Object.keys(projects).length     // this is the way to read number of elements of an object (like array length)
                             //'env_projects' :    // remove old-way saved projects from storage (uncomment in few versions, to cleanup. now leave for keeping backup)
                         }, function() {
-                            //console.log('env_projects_count: ' + Object.keys(projects).length);
+                            console.log('save env_projects_count: ' + Object.keys(projects).length);
                             // if settings + projects was saved successfully, we can assume this was too. so no need to check again
                             // reload extension to reapply settings
                             chrome.extension.getBackgroundPage().window.location.reload();
@@ -104,7 +108,7 @@ var ExtOptions = {
             'env_projects' :                    [],     // leave for compatibility - must try to read old projects array to migrate
             'env_projects_count' :              0,      // new project store way saves projects counter, so it means it's after migration
             'env_enable' :                      true,
-            'env_switching' :                   true,
+            //'env_switching' :                   true,
             'env_menu_show_allprojects' :       true,
             'env_menu_show_installtool' :       true,
             'env_badge' :                       true,
@@ -112,14 +116,21 @@ var ExtOptions = {
             'env_badge_position' :              'left',
             'env_badge_scale' :                 '1.0',
             'env_favicon' :                     false,  // for now when testing disable by default
+            'env_favicon_alpha' :               'TEST1',    // doesn't set this default
+            'env_favicon_fill' :                'TEST2',    // doesn't set this default
+            'env_favicon_position' :            'bottom',
+            'env_favicon_composite' :           'source-over',
             'ext_debug' :                       false
 
         }, function(options) {
+            // due to some weird problems with reading+set default values to some of options, define some defaults manually... chrome.
+            if ( !options.env_favicon_alpha )   options.env_favicon_alpha = '0.85';
+            if ( !options.env_favicon_fill )   options.env_favicon_fill = '0.25';
 
             $( '#switch_fe_openSelectedPageUid' ).attr( 'checked',  options.switch_fe_openSelectedPageUid );
             $( '#switch_be_useBaseHref' ).attr( 'checked',          options.switch_be_useBaseHref );
             $( '#env_enable' ).attr( 'checked',                     options.env_enable );
-            $( '#env_switching' ).attr( 'checked',                  options.env_switching );
+            //$( '#env_switching' ).attr( 'checked',                  options.env_switching );
             $( '#env_menu_show_allprojects' ).attr( 'checked',      options.env_menu_show_allprojects );
             $( '#env_menu_show_installtool' ).attr( 'checked',      options.env_menu_show_installtool );
             $( '#env_badge' ).attr( 'checked',                      options.env_badge );
@@ -127,11 +138,20 @@ var ExtOptions = {
             $( '#env_badge_position_left' ).attr( 'checked',        options.env_badge_position === 'left' );
             $( '#env_badge_position_right' ).attr( 'checked',       options.env_badge_position === 'right' );
             $( '#env_badge_scale' ).val(                            options.env_badge_scale );
-            $( '#ext_debug' ).attr( 'checked',                      options.ext_debug );
+            $( '#env_badge_scale__range' ).val(                     options.env_badge_scale );
             $( '#env_favicon' ).attr( 'checked',                    options.env_favicon );
+            $( '#env_favicon_alpha' ).val(                          options.env_favicon_alpha );
+            $( '#env_favicon_alpha__range' ).val(                   options.env_favicon_alpha );
+            $( '#env_favicon_fill' ).val(                           options.env_favicon_fill );
+            $( '#env_favicon_fill__range' ).val(                    options.env_favicon_fill );
+            $( '#env_favicon_position' ).val(                       options.env_favicon_position );
+            $( '#env_favicon_composite' ).val(                      options.env_favicon_composite );
+            $( '#ext_debug' ).attr( 'checked',                      options.ext_debug );
 
             ExtOptions.DEV = options.ext_debug;
             ExtOptions.options = options;
+
+            ExtOptions.setFaviconPreview();
 
             // if count is saved, it means the separated projects save method is used / after migration
             if (options.env_projects_count) {
@@ -371,7 +391,7 @@ var ExtOptions = {
     collectEnvSettings : function()   {
         var projects = {};
         var counter = 0;
-        $( '.settings-block.projects .projects-container .projectItem' ).each( function()  {
+        $( '.projects-container .projectItem' ).each( function()  {
             var projectItem = {};
             projectItem['name'] = $(this).find( "[name='project[name]']" ).val();
             projectItem['hidden'] = $(this).find( "[name='project[hidden]']" ).is( ':checked' );
@@ -707,10 +727,75 @@ var ExtOptions = {
             //console.log(options);
             $( '#debug' ).html( 'storage content: \n' + JSON.stringify( options, null, 4 ) );
         });
-    }
+    },
 
+    /**
+     * link range inputs with their text fields
+     */
+    linkRangeInputs : function()    {
+        $( 'input[type=range]' ).each(function(){
+            // take range input and find its text input by id
+            var range = $(this);
+            var text = $( '#' + range.prop('id').replace('__range', '') );
+            text.on( 'keyup', function(){
+                // prevent typing beyond range's scope
+                var value = Math.min(Math.max(text.val(), range.prop('min')), range.prop('max'));
+                text.val( value );
+                range.val( value );
+            });
+            range.on( 'input', function(){
+                text.val( range.val() );
+            });
+        });
+    },
+
+    /**
+     * Favicon preview - replace src of image with fresh generated using current configuration
+     */
+    setFaviconPreview : function()  {
+
+        Favicon.DEV = ExtOptions.DEV;
+
+        var faviconUrl = 'Icons/favicon-options-test.ico';
+        var newFaviconSrc = '';
+        var params = {
+            'contextColor' :    '#dd0000',     // preview using red. do we need this configurable?
+            'alpha' :           $( '#env_favicon_alpha' ).val(),
+            'fill' :            $( '#env_favicon_fill' ).val(),
+            'position' :        $( '#env_favicon_position' ).val(),
+            'composite' :       $( '#env_favicon_composite' ).val()
+        };
+
+        var originalIconImageObject = new Image();
+        originalIconImageObject.src = faviconUrl;
+
+        originalIconImageObject.onload = function() {
+
+            var canvas = Favicon.renderFaviconWithOverlay( originalIconImageObject, params );
+            newFaviconSrc = canvas.toDataURL();
+
+            $('#favicon-preview').prop('src', newFaviconSrc);
+        };
+    },
+
+    /**
+     * Make any use of favicon config controls auto refresh preview
+     */
+    bindFaviconControlsForPreview : function()  {
+        $('.settings-block-section.__favicon input, .settings-block-section.__favicon select').each(function(){
+            $(this).on('input', function(){
+                console.log('changed');
+                ExtOptions.setFaviconPreview();
+            });
+        });
+    }
 };
 
+
+// needed for favicon preview using code from setFavicon.js
+favicon_params = {
+    'DEV' : false
+};
 
 
 
@@ -722,6 +807,8 @@ var ExtOptions = {
 $(function() {
     ExtOptions.optionsRestore();
     ExtOptions.updateStorageInfo();
+    ExtOptions.linkRangeInputs();
+    ExtOptions.bindFaviconControlsForPreview();
 });
 
 // bind basic buttons

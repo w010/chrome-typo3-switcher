@@ -1,0 +1,335 @@
+
+*   {
+	box-sizing: border-box;
+}
+body {
+	padding: 10px;
+	width: 990px;
+}
+h1  {
+	font-weight: 600;
+}
+h2  {
+	margin: .1em 0 .7em;
+}
+h3  {
+	margin: 1em 0 .7em;
+}
+h4  {
+	margin: 10px 0;
+}
+.settings-block  {
+	margin-bottom: 15px;
+	padding-bottom: 15px;
+	border-bottom: 1px solid lightgray;
+}
+/* default inputs & labels */
+label   {
+	margin-right: 15px;
+	margin-bottom: 8px;
+}
+label span  {
+	display: inline-block;
+}
+label.check,
+label.radio,
+label.radio-item {
+	cursor: pointer;
+	padding: 0;
+}
+label.radio span    {
+	margin-right: 16px;
+}
+input[type="checkbox"]    {
+	margin-right: 8px;
+	cursor: pointer;
+	vertical-align: top;
+	margin-top: 2px;
+}
+input[type="radio"]    {
+	margin-right: 8px;
+	cursor: pointer;
+	vertical-align: top;
+}
+input[type="text"]    {
+	width: 260px;
+	min-height: 2em;
+	background-color: transparent;
+	border-color: transparent;
+	transition: background-color 0.3s;
+	font-size: 1.2em;
+}
+input[type="text"]:focus,
+input[type="text"]:hover    {
+	background-color: #fff;
+	border-color: #bfbfbf;
+}
+input[type="text"].required:placeholder-shown {
+	border-bottom-color: #ff8700;
+}
+input[name="context[name]"],
+input[name="link[name]"] {
+	width: 150px;
+}
+input[name="context[url]"]  {
+	width: 300px;
+}
+input[name="link[url]"] {
+	width: 500px;
+}
+input[type="color"] {
+	vertical-align: top;    /* middle doesn't work well here */
+	margin-top: 2px;
+	height: 1.9em;
+	margin-left: 8px;
+	cursor: pointer;
+}
+input.color-text    {
+	width: 64px;
+	margin-left: 8px;
+}
+input[type=range]   {
+	margin: 0;
+	vertical-align: middle;
+	position: relative;
+	top: -3px;
+}
+
+label.hide  {
+	position: absolute;
+	padding: 3px 0 0 0 !important;
+	top: 13px;
+	right: 60px;
+	cursor: pointer;
+}
+label.text input[type="text"]    {
+	border: 1px solid #bbb;
+}
+label.text span    {
+	margin-right: 8px;
+}
+
+label.select span:nth-child(1)  {
+	width: 190px;
+}
+label.select select {
+	min-width: 130px;
+}
+
+label.range span:nth-child(1)    {
+	width: 130px;
+}
+label.range input[type="range"]    {
+	margin-left: 10px;
+}
+label.range input.range-text    {
+	border-color: #ddd;
+	width: 34px;
+}
+	label.range input.range-text:hover    {
+		border-color: #bbb;
+	}
+
+/* buttons */
+button  {
+	/*margin-bottom: 8px !important;*/
+	cursor: pointer;
+	/*border: none !important;*/
+}
+.btn {
+	display: inline-block;
+	margin-bottom: 0;
+	font-weight: normal;
+	text-align: center;
+	vertical-align: middle;
+	background-image: none !important;
+	background-color: #dedede;
+	border: 1px solid #c4c4c4;
+	white-space: nowrap;
+	padding: 6px 6px;
+	line-height: 0.9;
+	border-radius: 2px;
+	user-select: none;
+	box-shadow: none !Important;
+	min-width: 28px;
+	min-height: 28px;
+	transition: background-color .1s, border-color .1s;
+}
+	.btn:hover {
+		color: #333333;
+		background-color: #c4c4c4;
+		border-color: #a6a6a6;
+	}
+	.btn .icon  {
+		width: 16px;    height: 16px;
+		display: inline-block;
+		background: transparent no-repeat 0 0;
+	}
+	.btn .text {
+		display: inline-block;
+		line-height: 1.35em;
+		vertical-align: top;
+	}
+
+button.remove   {
+	position: absolute;
+	top: 10px;  right: 10px;
+	/*background-size: 60% 60%;*/
+}
+button.remove .icon  {  background-image: url(/Icons/Options/Delete.svg);   }
+button.add .icon  {     background-image: url(/Icons/Options/Add.svg);  }
+button.save .icon  {    background-image: url(/Icons/Options/Save.svg);  }
+button.import .icon  {  background-image: url(/Icons/Options/Import.svg);  }
+button.export .icon  {  background-image: url(/Icons/Options/Export.svg);  }
+
+button.env_contextAddDefaultSet {
+	display: none;
+}
+
+.projectItem    {
+	position: relative;
+	border: 1px solid transparent;
+	background: #eee;
+	border-radius: 3px;
+	padding: 10px;
+	margin-bottom: 10px;
+	transition: opacity 0.4s;
+}
+.projectItem:hover,
+.projectItem:focus    {
+	border: 1px solid lightgray;
+}
+.projectItem > label  {
+	display: block;
+}
+.contextItem, .linkItem    {
+	position: relative;
+	border: 1px solid lightgray;
+	background: #ddd;
+	border-radius: 3px;
+	padding: 10px;
+	margin-bottom: 10px;
+	transition: opacity 0.4s;
+}
+._template  {
+	display: none;
+}
+.toggle {
+	position: absolute;
+	top: 0;
+	right: 150px;
+	width: 530px;   height: 49px;
+	cursor: pointer;
+	/*background: red;*/
+}
+	.toggle .icon   {
+		display: block;
+		width: 16px;    height: 16px;
+		position: absolute;
+		top: 17px;
+		right: 10px;
+		background: transparent url(Icons/Options/Expand.svg) no-repeat 0 0;
+		opacity: 0;
+		transition: opacity 0.4s;
+	}
+	.projectItem:hover > .toggle .icon    {
+		opacity: 0.2;
+	}
+	.projectItem.collapse > .toggle .icon    {
+		background: transparent url(Icons/Options/Collapse.svg) no-repeat 0 0;
+	}
+.contextItem .toggle {
+	width: 100px;
+	/*background: green;*/
+}
+	.contextItem:hover > .toggle .icon    {
+		opacity: 0.2;
+	}
+	.contextItem.collapse > .toggle .icon    {
+		background: transparent url(Icons/Options/Collapse.svg) no-repeat 0 0;
+	}
+
+.projectItem.collapse .contexts,
+.projectItem.collapse .links,
+.contextItem.collapse .moreSettings    {
+	display: none;
+}
+
+.projectItem.hidden,
+.contextItem.hidden,
+.linkItem.hidden    {
+	opacity: .4;
+}
+
+label.primary   {
+	display: block;
+	padding-left: 20px;
+}
+	label.primary:hover {
+		background: #f8f8f8;
+	}
+	label.primary i   {
+		opacity: .6;
+	}
+
+.status-save, .status-import {
+	color: #ff8700;
+	display: inline-block;
+	vertical-align: middle;
+	padding-left: 10px;
+}
+
+.dialog-overlay {
+	position: fixed;
+	top: 0; left: 0;
+	width: 100%;    height: 100%;
+	background: #fff;
+	opacity: 0.7;
+}
+.dialog {
+	position: fixed;
+	top: 0; left: 0;
+	width: 100%;    height: 100%;
+	text-align: center;
+}
+.dialog-inner {
+	margin: 10% auto;
+	background: #eee;
+	padding: 15px;
+	width: 50%;
+}
+.dialog button  {
+	margin: 2px 5px;
+}
+
+.ui-sortable    {
+	cursor: move;
+}
+.ui-sortable-helper {
+}
+.ui-state-highlight {
+	min-height: 51px;
+	padding: 10px;
+	margin-bottom: 10px;
+	background: #eaf5e0;
+	border: 1px dashed #ccc !important;
+}
+
+.to-left    {   float: left;    }
+.to-right   {   float: right;   }
+
+.row    {
+	display: flex;
+}
+.col-6  {
+	width: 50%;
+}
+
+.flashContainer    {
+	animation: flash linear 0.5s 1;
+}
+@keyframes flash {
+	0% { background-color: #fff; }
+	20% { background-color: #8fffae; }
+	100% { background-color: #fff; }
+}

@@ -2,319 +2,12 @@
 <html>
 <head>
     <title>TYPO3 - Backend-Frontend Handy Switcher</title>
-    <style>
-        *   {
-            box-sizing: border-box;
-        }
-        body {
-            padding: 10px;
-            width: 990px;
-        }
-        h1  {
-            font-weight: 600;
-        }
-        h2  {
-            margin: .1em 0 .7em;
-        }
-        h3  {
-            margin: 1em 0 .7em;
-        }
-        h4  {
-            margin: 10px 0;
-        }
-        .settings-block  {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid lightgray;
-        }
-        /* default inputs & labels */
-        label   {
-            margin-right: 15px;
-            margin-bottom: 8px;
-        }
-        label span  {
-            display: inline-block;
-        }
-        label.check,
-        label.radio,
-        label.radio-item {
-            cursor: pointer;
-        }
-        input[type="checkbox"]    {
-            margin-right: 8px;
-            cursor: pointer;
-            vertical-align: top;
-            margin-top: 2px;
-        }
-        input[type="radio"]    {
-            margin-right: 8px;
-            cursor: pointer;
-            vertical-align: top;
-        }
-        input[type="text"]    {
-            width: 260px;
-            min-height: 2em;
-            background-color: transparent;
-            border-color: transparent;
-            transition: background-color 0.3s;
-            font-size: 1.2em;
-        }
-        input[type="text"]:focus,
-        input[type="text"]:hover    {
-            background-color: #fff;
-            border-color: #bfbfbf;
-        }
-        input[type="text"].required:placeholder-shown {
-            border-bottom-color: #ff8700;
-        }
-        input[name="context[name]"],
-        input[name="link[name]"] {
-            width: 150px;
-        }
-        input[name="context[url]"]  {
-            width: 300px;
-        }
-        input[name="link[url]"] {
-            width: 500px;
-        }
-        input[type="color"] {
-            vertical-align: top;    /* middle doesn't work well here */
-            margin-top: 2px;
-            height: 1.9em;
-            margin-left: 8px;
-            cursor: pointer;
-        }
-        input.color-text    {
-            width: 64px;
-            margin-left: 8px;
-        }
-
-        label.hide  {
-            position: absolute;
-            padding: 3px 0 0 0 !important;
-            top: 13px;
-            right: 60px;
-            cursor: pointer;
-        }
-        label.text input    {
-            border: 1px solid #bbb;
-        }
-        label.text span    {
-            margin-right: 8px;
-        }
-        input#env_badge_scale   {
-            width: 35px;
-        }
-
-        /* buttons */
-        button  {
-            /*margin-bottom: 8px !important;*/
-            cursor: pointer;
-            /*border: none !important;*/
-        }
-        .btn {
-            display: inline-block;
-            margin-bottom: 0;
-            font-weight: normal;
-            text-align: center;
-            vertical-align: middle;
-            background-image: none !important;
-            background-color: #dedede;
-            border: 1px solid #c4c4c4;
-            white-space: nowrap;
-            padding: 6px 6px;
-            line-height: 0.9;
-            border-radius: 2px;
-            user-select: none;
-            box-shadow: none !Important;
-            min-width: 28px;
-            min-height: 28px;
-            transition: background-color .1s, border-color .1s;
-        }
-            .btn:hover {
-                color: #333333;
-                background-color: #c4c4c4;
-                border-color: #a6a6a6;
-            }
-            .btn .icon  {
-                width: 16px;    height: 16px;
-                display: inline-block;
-                background: transparent no-repeat 0 0;
-            }
-            .btn .text {
-                display: inline-block;
-                line-height: 1.35em;
-                vertical-align: top;
-            }
-
-        button.remove   {
-            position: absolute;
-            top: 10px;  right: 10px;
-            /*background-size: 60% 60%;*/
-        }
-        button.remove .icon  {  background-image: url(/Icons/Options/Delete.svg);   }
-        button.add .icon  {     background-image: url(/Icons/Options/Add.svg);  }
-        button.save .icon  {    background-image: url(/Icons/Options/Save.svg);  }
-        button.import .icon  {  background-image: url(/Icons/Options/Import.svg);  }
-        button.export .icon  {  background-image: url(/Icons/Options/Export.svg);  }
-
-        button.env_contextAddDefaultSet {
-            display: none;
-        }
-
-        .projectItem    {
-            position: relative;
-            border: 1px solid transparent;
-            background: #eee;
-            border-radius: 3px;
-            padding: 10px;
-            margin-bottom: 10px;
-            transition: opacity 0.4s;
-        }
-        .projectItem:hover,
-        .projectItem:focus    {
-            border: 1px solid lightgray;
-        }
-        .projectItem > label  {
-            display: block;
-        }
-        .contextItem, .linkItem    {
-            position: relative;
-            border: 1px solid lightgray;
-            background: #ddd;
-            border-radius: 3px;
-            padding: 10px;
-            margin-bottom: 10px;
-            transition: opacity 0.4s;
-        }
-        ._template  {
-            display: none;
-        }
-        .toggle {
-            position: absolute;
-            top: 0;
-            right: 150px;
-            width: 530px;   height: 49px;
-            cursor: pointer;
-            /*background: red;*/
-        }
-            .toggle .icon   {
-                display: block;
-                width: 16px;    height: 16px;
-                position: absolute;
-                top: 17px;
-                right: 10px;
-                background: transparent url(Icons/Options/Expand.svg) no-repeat 0 0;
-                opacity: 0;
-                transition: opacity 0.4s;
-            }
-            .projectItem:hover > .toggle .icon    {
-                opacity: 0.2;
-            }
-            .projectItem.collapse > .toggle .icon    {
-                background: transparent url(Icons/Options/Collapse.svg) no-repeat 0 0;
-            }
-        .contextItem .toggle {
-            width: 100px;
-            /*background: green;*/
-        }
-            .contextItem:hover > .toggle .icon    {
-                opacity: 0.2;
-            }
-            .contextItem.collapse > .toggle .icon    {
-                background: transparent url(Icons/Options/Collapse.svg) no-repeat 0 0;
-            }
-
-        .projectItem.collapse .contexts,
-        .projectItem.collapse .links,
-        .contextItem.collapse .moreSettings    {
-            display: none;
-        }
-
-        .projectItem.hidden,
-        .contextItem.hidden,
-        .linkItem.hidden    {
-            opacity: .5;
-        }
-
-        .settings-block > label,
-        .settings-block > .settings-block-section  > label {
-            display: block;
-            padding-left: 20px;
-        }
-        .settings-block > label:hover,
-        .settings-block > .settings-block-section > label:hover {
-            background: #f8f8f8;
-        }
-
-        .status-save, .status-import {
-            color: #ff8700;
-            display: inline-block;
-            vertical-align: middle;
-            padding-left: 10px;
-        }
-
-        .dialog-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%;    height: 100%;
-            background: #fff;
-            opacity: 0.7;
-        }
-        .dialog {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%;    height: 100%;
-            text-align: center;
-        }
-        .dialog-inner {
-            margin: 10% auto;
-            background: #eee;
-            padding: 15px;
-            width: 50%;
-        }
-        .dialog button  {
-            margin: 2px 5px;
-        }
-
-        .ui-sortable    {
-            cursor: move;
-        }
-        .ui-sortable-helper {
-        }
-        .ui-state-highlight {
-            min-height: 51px;
-            padding: 10px;
-            margin-bottom: 10px;
-            background: #eaf5e0;
-            border: 1px dashed #ccc !important;
-        }
-        .row    {
-            clear: both;
-        }
-        .to-left    {
-            float: left;
-        }
-        .to-right   {
-            float: right;
-        }
-
-        .flashContainer    {
-            /*animation: flash linear 1s infinite;*/
-            animation: flash linear 0.5s 1;
-        }
-        @keyframes flash {
-            0% { background-color: #fff; }
-            20% { background-color: #8fffae; }
-            100% { background-color: #fff; }
-        }
-
-    </style>
+    <link href="options.css" rel="stylesheet" type="text/css">
 </head>
 
 <body>
 
-    <div class="settings-block saveblock">
+    <div class="settings-block __saveblock">
         <button class="btn save"><span class="icon"></span> <span class="text">Save</span></button>
         <span class="status-save"></span>
         <br>
@@ -322,108 +15,183 @@
     </div>
 
 
-    <div class="settings-block general">
+    <div class="settings-block __general">
 
         <h1>Switching</h1>
 
-        <h3>to Frontend:</h3>
-        <label class="check">
-            <input type="checkbox" id="switch_fe_openSelectedPageUid">
-            <span>Open current pagetree selected page uid <br>
-                (disabled = open homepage)</span>
-        </label>
+        <div class="row">
+            <div class="col-6">
 
-        <h3>to Backend:</h3>
-        <label class="check">
-            <input type="checkbox" id="switch_be_useBaseHref">
-            <span>Use &lt;base href&gt; to recognize backend url <br>
-                (disabled = use current domain)</span>
-        </label>
+                <h3>to Frontend:</h3>
+                <label class="primary check">
+                    <input type="checkbox" id="switch_fe_openSelectedPageUid">
+                    <span>Open current pagetree selected page uid <br>
+                        <i>(disabled = open homepage)</i></span>
+                </label>
 
+            </div>
+            <div class="col-6">
+
+                <h3>to Backend:</h3>
+                <label class="primary check">
+                    <input type="checkbox" id="switch_be_useBaseHref">
+                    <span>Use &lt;base href&gt; to recognize backend url <br>
+                        <i>(disabled = use current domain)</i></span>
+                </label>
+
+            </div>
+        </div>
     </div>
 
 
-    <div class="settings-block environments">
+    <div class="settings-block __environments">
 
         <h1>Environment</h1>
 
-        <label class="check">
-            <input type="checkbox" id="env_enable">
-            <span>Use this whole Contexts / Environments functionality <br>
-                (disabled = no env menu, no badges, no nothing. only FE/BE switching)</span>
-        </label>
+        <div class="row">
+            <div class="col-6 settings-block-section __contexts">
 
-        <div class="settings-block-section">
-            <h3>Context switch:</h3>
+                <h3>Context switch:</h3>
 
-            <label class="check">
-                <input type="checkbox" id="env_switching">
-                <span>Enable right-click menu context switching</span>
-            </label>
-            <label class="check">
-                <input type="checkbox" id="env_menu_show_allprojects">
-                <span>Show all projects in menu (icon / action menu only)</span>
-            </label>
-            <label class="check">
-                <input type="checkbox" id="env_menu_show_installtool">
-                <span>Show Install tool</span>
-            </label>
+                <label class="primary check">
+                    <input type="checkbox" id="env_enable">
+                    <span>Use this whole Contexts / Environments functionality <br>
+                        <i>(disabled = no env menu, no badges, no favicon. only FE/BE switching)</i></span>
+                </label>
+
+            </div>
+            <div class="col-6 settings-block-section __contextmenu">
+
+                <h3>Menu:</h3>
+
+                <!--<label class="primary check">
+                    <input type="checkbox" id="env_switching">
+                    <span>Enable right-click menu context switching</span>
+                </label>-->
+                <label class="primary check">
+                    <input type="checkbox" id="env_menu_show_allprojects">
+                    <span>Show All projects in menu (icon / action menu only)</span>
+                </label>
+                <label class="primary check">
+                    <input type="checkbox" id="env_menu_show_installtool">
+                    <span>Show Install tool</span>
+                </label>
+
+            </div>
         </div>
 
-        <div class="settings-block-section">
-            <h3>Badge:</h3>
 
-            <label class="check">
-                <input type="checkbox" id="env_badge">
-                <span>Display badge on page to identify current context</span>
-            </label>
-            <label class="check">
-                <input type="checkbox" id="env_badge_projectname">
-                <span>Show also project name on badge <br>
-                    (disabled = show only context name)</span>
-            </label>
-            <label class="radio">
-                <span>Position:</span>
-            </label>
-            <label class="radio-item">
-                <input type="radio" class="env_badge_position" id="env_badge_position_left" value="left" name="badge_position">
-                On left corner</label>
-            <label class="radio-item">
-                <input type="radio" class="env_badge_position" id="env_badge_position_right" value="right" name="badge_position">
-                On right corner</label>
+        <div class="row">
+            <div class="col-6 settings-block-section __badge">
 
-            <label class="text">
-                <span>Badge scale:</span>
-                <input type="text" id="env_badge_scale">
-                <span> (0.5 - 1.5 recommended, other may cause unexpected results)</span>
-            </label>
-        </div>
+                <h3>Badge:</h3>
 
-        <div class="settings-block-section">
-            <h3>Favicon overlay:</h3>
+                <label class="primary check">
+                    <input type="checkbox" id="env_badge">
+                    <span>Display badge on page to identify current context</span>
+                </label>
+                <label class="primary check">
+                    <input type="checkbox" id="env_badge_projectname">
+                    <span>Show also project name on badge <br>
+                        <i>(disabled = show only context name)</i></span>
+                </label>
+                <label class="primary radio">
+                    <span>Position: </span>
+                    <label class="radio-item">
+                        <input type="radio" class="env_badge_position" id="env_badge_position_left" value="left" name="badge_position">
+                        On left corner</label>
+                    <label class="radio-item">
+                        <input type="radio" class="env_badge_position" id="env_badge_position_right" value="right" name="badge_position">
+                        On right corner</label>
+                </label>
+                <label class="primary text range">
+                    <span>Scale:</span>
+                    <input type="text" id="env_badge_scale" class="range-text">
+                    <input type="range" id="env_badge_scale__range" min="0.2" max="2" step="0.1">
+                    <span><i>(0.6 - 1.6 recommended, other may cause weird result)</i></span>
+                </label>
 
-            <label class="check">
-                <input type="checkbox" id="env_favicon">
-                <span>Show color overlay on favicon<br>
-                    (this is test feature, it seems to not show always when it should)</span>
-            </label>
+            </div>
+
+            <div class="col-6 settings-block-section __favicon">
+
+                <h3>Favicon overlay:</h3>
+
+                <label class="primary check">
+                    <input type="checkbox" id="env_favicon">
+                    <span>Show color overlay on favicon<br>
+                        <i>(this is a test feature, it seems to not show always when it should)</i></span>
+                </label>
+
+                <label class="primary text range">
+                    <span>Alpha / opacity:</span>
+                    <input type="text" id="env_favicon_alpha" class="range-text">
+                    <input type="range" id="env_favicon_alpha__range" min="0" max="1" step="0.05">
+                </label>
+
+                <label class="primary text range">
+                    <span>Overlay shape fill ratio:</span>
+                    <input type="text" id="env_favicon_fill" class="range-text">
+                    <input type="range" id="env_favicon_fill__range" min="0" max="1" step="0.05">
+                    <span><i>(how much of favicon is covered)</i></span>
+                </label>
+
+                <label class="primary select">
+                    <span>Position & shape:</span>
+                    <select id="env_favicon_position">
+                        <optgroup label="Rectangle">
+                            <option value="top">Top</option>
+                            <option value="right">Right</option>
+                            <option value="bottom">Bottom</option>
+                            <option value="left">Left</option>
+                        </optgroup>
+                        <optgroup label="Triangle">
+                            <option value="top-right">Top - Right</option>
+                            <option value="bottom-right">Bottom - Right</option>
+                            <option value="bottom-left">Bottom - Left</option>
+                            <option value="top-left">Top - Left</option>
+                        </optgroup>
+                    </select>
+                </label>
+
+                <label class="primary select">
+                    <span>Overlay composite operation:</span>
+                    <select id="env_favicon_composite">
+                        <option value="source-over">source-over</option>
+                        <option value="source-atop">source-atop</option>
+                        <option value="source-in">source-in</option>
+                        <option value="destination-over">destination-over</option>
+                        <option value="xor">xor</option>
+                    </select>
+                    <span><i>(way it blends into icon / transparency)</i></span>
+                </label>
+
+                <br>
+                Preview:
+                <br>
+
+                <div class="image">
+                    <img id="favicon-preview">
+                </div>
+
+            </div>
         </div>
     </div>
 
 
-    <div class="settings-block miscoptions">
+    <div class="settings-block __miscoptions">
 
         <h1>Misc options</h1>
 
-        <label class="check">
+        <label class="primary check">
             <input type="checkbox" id="ext_debug">
             <span>Debug info <br>
-                (shows some console messages and vars values)</span>
+                (show some console messages and vars values)</span>
         </label>
     </div>
 
 
-    <div class="settings-block projects">
+    <div class="settings-block __projects">
 
         <h1>Projects</h1>
 
@@ -490,7 +258,7 @@
     </div>
 
 
-    <div class="settings-block saveblock">
+    <div class="settings-block __saveblock">
         <br>
         <button class="btn save"><span class="icon"></span> <span class="text">Save</span></button>
         <span class="status-save"></span>
@@ -499,7 +267,7 @@
     </div>
 
 
-    <div class="settings-block importexport">
+    <div class="settings-block __importexport">
 
         <h2>Import / export</h2>
         <h3>Backup projects or share with your team</h3>
@@ -561,5 +329,6 @@
     <script src="Vendor/jquery-3.3.1.min.js"></script>
     <script src="Vendor/jquery-ui-1.12.1-custom.min.js"></script>
     <script src="options.js"></script>
+    <script src="setFavicon.js"></script>
 </body>
 </html>
