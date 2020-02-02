@@ -166,28 +166,13 @@
                     <span><i>(way it blends into icon / transparency)</i></span>
                 </label>
 
-                <br>
-                Preview:
-                <br>
-
-                <div class="image">
+                <label class="primary select">
+                    <span>Preview:</span>
                     <img id="favicon-preview">
-                </div>
+                </label>
 
             </div>
         </div>
-    </div>
-
-
-    <div class="settings-block __miscoptions">
-
-        <h1>Misc options</h1>
-
-        <label class="primary check">
-            <input type="checkbox" id="ext_debug">
-            <span>Debug info <br>
-                (show some console messages and vars values)</span>
-        </label>
     </div>
 
 
@@ -202,7 +187,7 @@
 
             <div class="contexts">
 
-                <h4>Env contexts</h4>
+                <h4>Environments / contexts</h4>
 
                 <div class="contexts-container"></div>
                 <div class="contextItem collapse _template">
@@ -226,13 +211,13 @@
                     <button class="btn remove env_contextRemove" title="Remove"><span class="icon"></span></button>
                 </div>
 
-                <button class="btn add env_contextAdd"><span class="icon"></span> <span class="text">Env context</span></button>
-                <button class="btn add env_contextAddDefaultSet" title="Adds some default predefined contexts"><span class="icon"></span> <span class="text">Add standard context set</span></button>
+                <button class="btn add env_contextAdd"><span class="icon"></span> <span class="text">Add Env Context</span></button>
+                <button class="btn add env_contextAddDefaultSet"><span class="icon"></span> <span class="text">Add standard <abbr title="Adds some default predefined environments">Contexts set</abbr></span></button>
             </div>
 
             <div class="links">
 
-                <h4>Links</h4>
+                <h4>External links</h4>
 
                 <div class="links-container"></div>
                 <div class="linkItem _template">
@@ -244,7 +229,8 @@
                     <button class="btn remove env_linkRemove" title="Remove"><span class="icon"></span></button>
                 </div>
 
-                <button class="btn add env_linkAdd"><span class="icon"></span> <span class="text">Link</span></button>
+                <button class="btn export env_projectExport to-right"><span class="icon"></span> <span class="text">Download <abbr title="Export json with only this one project">Project config</abbr></span></button>
+                <button class="btn add env_linkAdd"><span class="icon"></span> <span class="text">Add Link</span></button>
             </div>
 
             <div class="toggle project"><span class="icon"></span></div>
@@ -269,58 +255,78 @@
 
     <div class="settings-block __importexport">
 
-        <h2>Import / export</h2>
-        <h3>Backup projects or share with your team</h3>
+        <h1>Import / export projects</h1>
+        <h3>Backup or share with your team</h3>
 
-        <h4>Import: paste JSON into textbox and press Import</h4>
-        <textarea placeholder="paste json" id="env_importexport-data" cols="80" rows="5"></textarea>
+        <div class="row">
+            <div class="col-6">
 
-        <br>
-        <br>
-        <button id="env_import" class="btn import"><span class="icon"></span> <span class="text">Import from textbox</span></button>
+                <h4>Import: paste JSON into textbox and press Import OR upload file</h4>
 
-        <p>...OR upload file</p>
-        <input type="file" id="env_import_file">
+                <div class="textarea-holder">
+                    <textarea placeholder="paste json" id="env_importexport-data" cols="70" rows="5"></textarea>
+                    <div class="textarea-cover"></div>
+                </div>
 
-        <br>
-        <br>
-        <br>
+                <br>
+                <br>
+                <button id="env_import" class="btn import"><span class="icon"></span> <span class="text">Import from textbox</span></button>
 
-        <label class="check">
-            <input type="checkbox" id="env_import_overwrite">
-            <span>Overwrite all projects (!)<br>
-                (disabled = add to existing)</span>
-        </label>
-        <label class="check">
-            <input type="checkbox" id="env_import_test">
-            <span>No autosave / Test import<br>
-                (see the imported projects, you can tune them and save, or not.<br>
-                disabled / default = autosave right after import)</span>
-        </label>
-
-        <p>Import projects from <abbr title="Treat import data structure as exported from selected extension (json or base64 json)">other extension</abbr>: &nbsp;
-
-            <select id="env_import_extension">
-                <option value=""></option>
-                <option value="environment_switcher">Environment switcher</option>
-                <option value="environment_switcher2">Environment switcher (other)</option>
-                <option value="environment_marker">Environment marker</option>
-            </select>
-        </p>
-
-        <br>
-
-        <h4>Export: copy JSON from textbox OR download</h4>
-
-        <button id="env_export_download" class="btn export"><span class="icon"></span> <span class="text">Export - download</span></button>
-
-        <br>
-        <br>
+                <br>
+                <br>
+                <p class="file">Import from file: <input type="file" id="env_import_file"></p>
+                <br>
 
 
-        <span class="status-import"></span>
+                <label class="primary check">
+                    <input type="checkbox" id="env_import_overwrite">
+                    <span>Overwrite all projects (!)<br>
+                        <i>(disabled = add to existing)</i></span>
+                </label>
+                <label class="primary check">
+                    <input type="checkbox" id="env_import_test">
+                    <span>No autosave / Test import<br>
+                        <i>(see the imported projects, you can tune them and save, or not.<br>
+                            disabled / default = autosave right after import)</i></span>
+                </label>
+
+                <label class="primary select">Interpret as projects from <abbr title="Treat imported data structure as exported from selected extension (json or base64 json)">other extension</abbr>: &nbsp;
+                    <br>
+                    <br>
+                    <select id="env_import_extension">
+                        <option value=""></option>
+                        <option value="environment_switcher">Environment switcher</option>
+                        <option value="environment_switcher2">Environment switcher (other) [base64]</option>
+                        <option value="environment_marker">Environment marker</option>
+                    </select>
+                </label>
+
+                <span class="status-import"></span>
+
+            </div>
+            <div class="col-6">
+
+                <h4>Export: copy JSON from textbox OR download</h4>
+
+                <button id="env_export_download" class="btn export"><span class="icon"></span> <span class="text">Export - download</span></button>
+
+                <p><i>Don't forget to save before exporting, to update json data!</i></p>
+            </div>
+        </div>
+
     </div>
 
+
+    <div class="settings-block __miscoptions">
+
+        <h1>Misc options</h1>
+
+        <label class="primary check">
+            <input type="checkbox" id="ext_debug">
+            <span>Debug info <br>
+                (show some console messages and vars values)</span>
+        </label>
+    </div>
 
 
     <div id="storageInfo"></div>

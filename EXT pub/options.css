@@ -129,6 +129,23 @@ label.range input.range-text    {
 	label.range input.range-text:hover    {
 		border-color: #bbb;
 	}
+.textarea-holder    {
+	position: relative;
+	margin-right: 20px;
+}
+	.textarea-holder textarea   {
+		width: 100%;
+	}
+	.textarea-cover    {
+		position: absolute;
+		left: 1px;        bottom: 4px;
+		height: 20px;   width: 96%;
+		pointer-events: none;
+		box-shadow: inset -20px -20px 30px -10px rgba(255,255,255,1);
+	}
+abbr    {
+	cursor: help;
+}
 
 /* buttons */
 button  {
@@ -189,11 +206,14 @@ button.env_contextAddDefaultSet {
 .projectItem    {
 	position: relative;
 	border: 1px solid transparent;
-	background: #eee;
+	background: #ddd;
 	border-radius: 3px;
 	padding: 10px;
 	margin-bottom: 10px;
 	transition: opacity 0.4s;
+}
+.projectItem.collapse    {
+	background: #eee;
 }
 .projectItem:hover,
 .projectItem:focus    {
@@ -205,7 +225,7 @@ button.env_contextAddDefaultSet {
 .contextItem, .linkItem    {
 	position: relative;
 	border: 1px solid lightgray;
-	background: #ddd;
+	background: #eee;
 	border-radius: 3px;
 	padding: 10px;
 	margin-bottom: 10px;
@@ -297,6 +317,7 @@ label.primary   {
 	background: #eee;
 	padding: 15px;
 	width: 50%;
+	box-shadow: 10px 10px 20px -3px #666;
 }
 .dialog button  {
 	margin: 2px 5px;

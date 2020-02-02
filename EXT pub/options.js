@@ -43,8 +43,8 @@ var ExtOptions = {
             'env_favicon' :                     $( '#env_favicon' ).is( ':checked' ),
             'env_favicon_alpha' :               $( '#env_favicon_alpha' ).val(),
             'env_favicon_fill' :                $( '#env_favicon_fill' ).val(),
-            'env_favicon_position' :            $( '#env_favicon_position' ).val(), // todo - from select?
-            'env_favicon_composite' :           $( '#env_favicon_composite' ).val(), // todo - from select?
+            'env_favicon_position' :            $( '#env_favicon_position' ).val(),
+            'env_favicon_composite' :           $( '#env_favicon_composite' ).val(),
             'ext_debug' :                       $( '#ext_debug' ).is( ':checked' )
 
         }, function() {
@@ -115,7 +115,7 @@ var ExtOptions = {
             'env_badge_projectname' :           true,
             'env_badge_position' :              'left',
             'env_badge_scale' :                 '1.0',
-            'env_favicon' :                     false,  // for now when testing disable by default
+            'env_favicon' :                     true,
             'env_favicon_alpha' :               'TEST1',    // doesn't set this default
             'env_favicon_fill' :                'TEST2',    // doesn't set this default
             'env_favicon_position' :            'bottom',
@@ -206,9 +206,7 @@ var ExtOptions = {
                 ExtOptions.insertContextItem( project, contextItem );
             });
         }
-        else    {
-            project.find( '.env_contextAddDefaultSet' ).css( 'display', 'inline-block' );
-        }
+        project.find( '.env_contextAddDefaultSet' ).css( 'display', 'inline-block' );
 
         if ( typeof projectItem.links !== 'undefined' &&  projectItem.links.length ) {
             $.each( projectItem.links, function (i, linkItem) {
@@ -239,7 +237,20 @@ var ExtOptions = {
         project.find( '.toggle.project' ).click( function() {
             project.toggleClass( 'collapse' );
         });
+        project.find( 'button.env_projectExport' ).click( function() {
+            ExtOptions.exportProjectsDownloadFile( projectItem );
+        });
+        // if no name, probably not read from options, but just inserted - hide download button for now
+        if ( !projectItem.name )
+            project.find( 'button.env_projectExport' ).hide();
 
+        // bind inputs
+        project.find( 'input[type=text]' ).keypress( function(e) {
+            // save settings on enter hit
+            if ( e.which === 13 )       ExtOptions.optionsSave();
+        });
+
+        // make elements inside sortable
         project.find( '.contexts-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer' });
         project.find( '.links-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer' });
 
@@ -623,18 +634,27 @@ var ExtOptions = {
     },
 
 
-    exportProjectsDownloadFile : function() {
+    exportProjectsDownloadFile : function( project ) {
         //var data = new Blob( [ JSON.stringify( ExtOptions.options.env_projects, null, 4 ) ], {type: 'text/json'} );
         //var url = window.URL.createObjectURL( data );
-        // var url = 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify( projectsAll, null, 4 ) + '\n');
-        var url = 'data:text/plain;charset=utf-8,' + encodeURIComponent( $( '#env_importexport-data' ).val() );
-        //console.log(data);
+        var exportData;
+        var filename;
+        if ( project )  {
+            exportData = JSON.stringify( project, null, 4 ) + '\n';
+            filename = 't3switcher-project--'+project.name+'.json';
+        }
+        else    {
+            exportData = $( '#env_importexport-data' ).val();
+            filename = 't3switcher-projects.json';
+        }
+
+        var url = 'data:text/plain;charset=utf-8,' + encodeURIComponent( exportData );
         //console.log(url);
         var a = document.createElement( "a" );
         document.body.appendChild( a );
         a.style = "display: none";
         a.href = url;
-        a.download = 't3switcher-projects.json';
+        a.download = filename;
         a.click();
         a.remove();
         //window.URL.revokeObjectURL( url );

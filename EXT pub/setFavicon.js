@@ -78,6 +78,7 @@ var Favicon = {
 
         var originalIconImageObject = new Image();
         originalIconImageObject.src = faviconUrl;
+        originalIconImageObject.crossOrigin = "Anonymous";
 
         originalIconImageObject.onload = function() {
 
@@ -181,8 +182,8 @@ var Favicon = {
             case 'bottom-left':
                 // triangle drawn from its top-left angle
                 context.beginPath();
-                context.moveTo( 0,      Math.floor( canvas.height - canvas.height * (1 - fillShapeCoverRatio) ) );
-                context.lineTo( Math.floor( canvas.width * (1 - fillShapeCoverRatio) ),      canvas.height );
+                context.moveTo( 0,      Math.floor( canvas.height * (1 - fillShapeCoverRatio) ) );
+                context.lineTo( Math.floor( canvas.width - canvas.width * (1 - fillShapeCoverRatio) ),      canvas.height );
                 context.lineTo( 0,      canvas.height );
                 context.fill();
                 break;
