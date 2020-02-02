@@ -249,9 +249,8 @@ var ExtOptions = {
             link.find( '[name="link[name]"]' ).focus();
         });
         project.find( 'button.env_projectRemove' ).click( function() {
-            var trigger = $(this);
-            ExtOptions.confirmDialog( 'Delete project - are you sure?', function() {
-                ExtOptions.deleteProjectItem( trigger.closest('.projectItem') );
+			var trigger = $(this);
+            ExtOptions.confirmDialog( 'Delete project - Are you sure?', function() {                ExtOptions.deleteProjectItem( trigger.closest('.projectItem') );
                 //ExtOptions.optionsSave(); // probably is problematic to call it right after
             });
         });
@@ -292,7 +291,7 @@ var ExtOptions = {
 
         // bind buttons
         context.find( 'button.env_contextRemove' ).click( function() {
-            ExtOptions.confirmDialog( 'Delete context - are you sure?', function() {
+            ExtOptions.confirmDialog( 'Delete context', 'Are you sure?', function() {
                 ExtOptions.deleteContextItem( context, project );
                 ExtOptions.optionsSave();
             });
@@ -342,7 +341,7 @@ var ExtOptions = {
 
         // bind buttons
         link.find( 'button.env_linkRemove' ).click( function() {
-            ExtOptions.confirmDialog( 'Delete link - are you sure?', function() {
+            ExtOptions.confirmDialog( 'Delete link', 'Are you sure?', function() {
                 ExtOptions.deleteLinkItem( link, project );
             });
         });
@@ -799,29 +798,46 @@ var ExtOptions = {
      * @param callbackConfirm function
      * @param callbackDecline function
      */
-    confirmDialog : function(message, callbackConfirm, callbackDecline)   {
+    confirmDialog : function(title, message, callbackConfirm, callbackDecline)   {
         if ( typeof callbackConfirm !== 'function' )  callbackConfirm = function(){};
         if ( typeof callbackDecline !== 'function' )  callbackDecline = function(){};
 
+        let content = $( '<h3>' ).html( message )
+            .add( $( '<button class="confirm">' ).click( function() {
+                callbackConfirm();
+                ExtOptions.closeDialog();
+            }).html( 'Yes' ) )
+            .add( $( '<button class="decline">' ).click( function() {
+                callbackDecline();
+                ExtOptions.closeDialog();
+            }).html( 'No' ) );
+
+        ExtOptions.openDialog(title, content);
+    },
+
+    /**
+     * Open simple modal dialog
+     * @param title string
+     * @param content string
+     */
+    openDialog : function(title, content)   {
         var dialog_overlay = $( '<div class="dialog-overlay">' );
         var dialog = $( '<div class="dialog">' );
         $( 'body' ).append( dialog_overlay ).append( dialog );
-        var dialog_inner = $( '<div class="dialog-inner">' )
-            .append( $( '<h3>' ).html( message ) )
-            .append( $( '<button class="confirm">' ).click( function() {
-                callbackConfirm();
-                ExtOptions.closeDialog( dialog );
-            }).html( 'Yes' ) )
-            .append( $( '<button class="decline">' ).click( function() {
-                callbackDecline();
-                ExtOptions.closeDialog( dialog );
-            }).html( 'No' ) )
+        
+        $( '<div class="dialog-inner">' )
+            .append( $( '<h2>' ).html( title ) )
+            .append( $( '<span class="dialog-close" title="Close">' ).html( 'X' ) ).on('click', function(){ ExtOptions.closeDialog(); })
+            .append( content )
             .appendTo( dialog );
     },
 
-    closeDialog : function(dialog)  {
-        $( dialog ).remove();
-        $( '.dialog-overlay' ).remove();
+    /**
+     * Close dialog / remove modal object
+     */
+    closeDialog : function()  {
+        $( 'body > .dialog' ).remove();
+        $( 'body > .dialog-overlay' ).remove();
     },
 
 
@@ -1033,7 +1049,11 @@ $(function() {
     ExtOptions.bindFaviconControlsForPreview();
     ExtOptions.bindBadgeControlsForPreview();
     ExtOptions.bindAutosave();
-});
+	$(document).on('keydown',function(e) {
+        if (e.keyCode === 27) {
+            ExtOptions.closeDialog();
+        }
+    });});
 
 // bind basic buttons
 $( 'button.save' ).click( function () {

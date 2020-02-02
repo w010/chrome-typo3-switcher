@@ -336,11 +336,19 @@ label.primary   {
 	text-align: center;
 }
 .dialog-inner {
+	position: relative;
 	margin: 10% auto;
 	background: #eee;
 	padding: 15px;
 	width: 50%;
 	box-shadow: 10px 10px 20px -3px #666;
+}
+.dialog-close  {
+	position: absolute;
+	top: 4px;
+	right: 10px;
+	cursor: pointer;
+	font-size: 20px;
 }
 .dialog button  {
 	margin: 2px 5px;
