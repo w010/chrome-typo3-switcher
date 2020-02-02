@@ -152,6 +152,7 @@ var ExtOptions = {
             ExtOptions.options = options;
 
             ExtOptions.setFaviconPreview();
+            ExtOptions.setBadgePreview();
 
             // if count is saved, it means the separated projects save method is used / after migration
             if (options.env_projects_count) {
@@ -799,13 +800,46 @@ var ExtOptions = {
     },
 
     /**
+     * Badge preview - show badge like on normal page to see how it looks
+     */
+    setBadgePreview : function()    {
+
+        //console.log('refresh badge - remove before setting new one');
+        $('.chrome-typo3switcher-badge').remove();
+
+        var badge_params = {
+            'DEV' :                 ExtOptions.DEV,
+            'projectLabel' :        'Badge',
+            'contextLabel' :        'Preview',
+            'contextColor' :        '#ff8000',
+            'projectLabelDisplay' : $( '#env_badge_projectname' ).prop('checked'),
+            'scale' :               parseFloat( $( '#env_badge_scale' ).val() ),
+            'position' :            $( 'input[name=badge_position]:checked' ).val(),
+        };
+
+        Badge.setBadge(badge_params);
+    },
+
+    /**
      * Make any use of favicon config controls auto refresh preview
      */
     bindFaviconControlsForPreview : function()  {
         $('.settings-block-section.__favicon input, .settings-block-section.__favicon select').each(function(){
             $(this).on('input', function(){
-                console.log('changed');
+                //console.log('favicon settings changed');
                 ExtOptions.setFaviconPreview();
+            });
+        });
+    },
+
+    /**
+     * Make any use of badge config controls auto refresh badge
+     */
+    bindBadgeControlsForPreview : function()  {
+        $('.settings-block-section.__badge input, .settings-block-section.__badge select').each(function(){
+            $(this).on('input', function(){
+                //console.log('badge settings changed');
+                ExtOptions.setBadgePreview();
             });
         });
     }
@@ -829,6 +863,7 @@ $(function() {
     ExtOptions.updateStorageInfo();
     ExtOptions.linkRangeInputs();
     ExtOptions.bindFaviconControlsForPreview();
+    ExtOptions.bindBadgeControlsForPreview();
 });
 
 // bind basic buttons
