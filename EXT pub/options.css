@@ -198,6 +198,7 @@ button.add .icon  {     background-image: url(/Icons/Options/Add.svg);  }
 button.save .icon  {    background-image: url(/Icons/Options/Save.svg);  }
 button.import .icon  {  background-image: url(/Icons/Options/Import.svg);  }
 button.export .icon  {  background-image: url(/Icons/Options/Export.svg);  }
+button.fetch .icon  {   background-image: url(/Icons/Options/Fetch.svg);  }
 
 button.env_contextAddDefaultSet {
 	display: none;
@@ -384,4 +385,62 @@ label.primary   {
 	0% { background-color: #fff; }
 	30% { background-color: #f6ffe2; }
 	100% { background-color: #fff; }
+}
+
+/* ajax */
+.ajaxloader-size-default {
+    height: 32px;
+    width: 32px;
+    line-height: 32px;
+}
+.ajaxloader {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    vertical-align: -22%;
+}
+
+.ajaxloader-spin .ajaxloader-markup {
+    -webkit-animation: ajaxloader-spin 2s infinite linear;
+    animation: ajaxloader-spin 2s infinite linear;
+}
+.ajaxloader-markup {
+    position: absolute;
+    display: block;
+    text-align: center;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+.ajaxloader * {
+    display: block;
+    line-height: inherit;
+}
+.ajaxloader img, .ajaxloader svg {
+    display: block;
+    height: 100%;
+    width: 100%;
+    transform: translate3d(0,0,0);
+}
+@-webkit-keyframes ajaxloader-spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg);
+    }
+}
+@keyframes ajaxloader-spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg);
+    }
 }

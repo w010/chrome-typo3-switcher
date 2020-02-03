@@ -814,22 +814,40 @@ var ExtOptions = {
 
         ExtOptions.openDialog(title, content);
     },
+    
+    /**
+     * Dialog about fetching projects from repo
+     * @param title string
+     * @param message string
+     */
+    fetchDialog : function(title, message)   {
+
+        let content = $( '<h3>' ).html( message );
+
+
+        ExtOptions.openDialog(title, content, function(caller)    {
+            RepoHelper.fetchProjects(caller);
+        });
+    },
 
     /**
      * Open simple modal dialog
      * @param title string
      * @param content string
+     * @param callback function
      */
-    openDialog : function(title, content)   {
+    openDialog : function(title, content, callback)   {
         var dialog_overlay = $( '<div class="dialog-overlay">' );
         var dialog = $( '<div class="dialog">' );
         $( 'body' ).append( dialog_overlay ).append( dialog );
         
         $( '<div class="dialog-inner">' )
-            .append( $( '<h2>' ).html( title ) )
+            .append( $( '<h2 class="dialog-head">' ).html( title ) )
             .append( $( '<span class="dialog-close" title="Close">' ).html( 'X' ) ).on('click', function(){ ExtOptions.closeDialog(); })
-            .append( content )
+            .append( $( '<div class="dialog-body">' ).html( content ) )
             .appendTo( dialog );
+
+        callback( dialog );
     },
 
     /**
@@ -840,6 +858,15 @@ var ExtOptions = {
         $( 'body > .dialog-overlay' ).remove();
     },
 
+    /**
+     * Add loader image into ajax container
+     * @param element object
+     */
+    ajaxAddLoaderImage : function(element)    {
+        element.append(
+            $('<span class="ajaxloader ajaxloader-size-default ajaxloader-state-default ajaxloader-spin"><span class="ajaxloader-markup"><img src="Images/ajax-loader.svg">')
+        );
+    },
 
     /**
      * Show storage usage
@@ -1066,7 +1093,9 @@ $( 'button.env_projectAdd' ).click( function () {
     newProject.removeClass( 'collapse' );
     newProject.find( '[name="project[name]"]' ).focus();
 });
-
+$( 'button.env_projectFetch' ).click( function () {
+    ExtOptions.fetchDialog('Fetch projects from repository');
+});
 $( 'button#env_import' ).click( function () {
     ExtOptions.importProjectsFromTextarea( {} )
     $('html,body').animate({scrollTop: $("#settings_block_importexport").offset().top}, 300);
