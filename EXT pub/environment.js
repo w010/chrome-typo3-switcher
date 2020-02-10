@@ -81,6 +81,8 @@ var Env = {
 
         Env.lock = true;
         var loadFavicon = _debugEventTriggered === 'onUpdated';
+        var loadBadge = _debugEventTriggered === 'onUpdated';
+
         console.group('Project context setup');
         console.info('--------------- PROJECT CONTEXT SETUP begin - find project for current url & clear menu [LOCK]');
 
@@ -147,7 +149,7 @@ var Env = {
                                     //if ( options.env_switching !== false )  {
                                     Env.setupContextMenu( context, p, project, _debugEventTriggered );
 
-                                    if ( options.env_badge !== false )  {
+                                    if ( options.env_badge !== false  &&  loadBadge )  {
                                         Env.setupBadge( context, project, tab, _debugEventTriggered );
                                     }
 
