@@ -3,7 +3,7 @@ TYPO3 - BE/FE/Env Handy Switcher
 
 
 wolo.pl '.' studio
-2017-2018
+2017-2020
 wolo.wolski(at)gmail.com
 http://wolo.pl/
 
@@ -94,6 +94,22 @@ A: No, this extension doesn't do anything with the urls it reads. All it does it
 
 **
 Changelog:
+
+v1.0.0
+...2020
+Changes & news:
+- env: page favicon color overlay finally kind of works (beta feature - sometimes on some pages it just doesn't show for some reason)
+- projects are now stored in separated Chrome Storage items (due to single item size limit in Chrome) - major underhood change, but should migrate transparently
+- options: favicon configuration + preview
+- options: import from / export to file, import projects from some other extensions (let me know if you need import for some specific) 
+- options: quota exceeded info on save (you must have many projects for this to be a problem, but if, blame Chrome limitations)
+Fixes & tune:
+- env: All Projects menu now is displayed always - handy shortcut, no reason to hide this
+- env: context menu layout tuned for better readability
+- env: show badge also in links
+- env: stop reloading badge on every tab refocus and on other unnecessary events
+- options: css & tmpl tune, project export improved, panels and order slightly reorganized
+- env: better action icon
 
 v0.9.999
 16.04.2018
