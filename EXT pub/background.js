@@ -169,6 +169,31 @@ var Switcher = {
                 'index':    _currentTab.index + 1
             });
         });
+    },
+    
+    
+    
+    openDump : function (siteUrl) {
+        // if base tag cannot be read / no url found, try only a domain
+        if ( !siteUrl  &&  Switcher._currentTab  &&  Switcher._url ) {
+
+            // extract scheme + domain
+            var parts = Switcher._url.split( '/' );
+            siteUrl = parts[0] + '//' + parts[2];
+        }
+
+        // strip trailing slash, if present
+        var newTabUrl = siteUrl.replace( /\/$/, '' )
+            + '/DUMP/';
+
+        console.info('newTabUrl: ' + newTabUrl);
+
+        chrome.tabs.getSelected( null, function (_currentTab) {
+            chrome.tabs.create({
+                'url':      newTabUrl,
+                'index':    _currentTab.index + 1
+            });
+        });
     }
 
 };

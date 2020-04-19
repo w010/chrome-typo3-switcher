@@ -323,6 +323,23 @@ var Env = {
                 id :    'project-' + p + '-installtool-'
             });
         }
+        
+                
+        // -- DUMP
+        if ( typeof options.env_menu_show_dump !== 'undefined'  &&  options.env_menu_show_dump === true  &&  p > -1 ) {
+
+            contextMenuItems.push({
+                title :             '_separator-dump',
+                id :                '_separator-dump',
+                type :              'separator',
+                showForMenuType:    'rightClickOnly'
+            });
+
+            contextMenuItems.push({
+                title : 'DUMP',
+                id :    'project-' + p + '-dump-'
+            });
+        }
 
 
         // -- ALL PROJECTS
@@ -730,7 +747,7 @@ chrome.storage.sync.get( null, function(options) {
             var newContext = project.contexts[ itemIndex ];
             //console.log(newContext);
 
-            if ( typeof newContext === 'undefined'  &&  itemType !== 'installtool') {
+            if ( typeof newContext === 'undefined'  &&  itemType !== 'installtool'  &&  itemType !== 'dump') {
                 console.warn('error - no such context set in menu? context index: ' + itemIndex);
                 console.groupEnd();
                 return;
@@ -757,6 +774,11 @@ chrome.storage.sync.get( null, function(options) {
 
                 if (itemType === 'installtool') {
                     Switcher.openInstallTool( activeContext.url );
+                    return;
+                }
+                
+                if (itemType === 'dump') {
+                    Switcher.openDump( activeContext.url );
                     return;
                 }
 
