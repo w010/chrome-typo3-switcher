@@ -6,10 +6,23 @@
 
 var Badge = {
 
-    DEV: badge_params.DEV,
+    DEV: false,
 
 
-    setBadge : function() {
+    setBadge : function( custom_params ) {
+
+        // replace incoming parameters with custom set (used for options preview) - they don't pass global var badge_params
+        if ( typeof custom_params !== 'undefined' )  {
+            badge_params = custom_params;
+        }
+        
+        // if still no params available, exit
+        if ( typeof badge_params === 'undefined' )  {
+            console.log ('Env switcher: Badge: no params given - exiting');
+            return;
+        }
+
+        this.DEV = (typeof badge_params.DEV === 'boolean') ? badge_params.DEV : false;
 
         //console.log('badge from event: ' + badge_params._debugEventTriggered);
 
@@ -77,7 +90,7 @@ var Badge = {
 };
 
 
-if (badge_params.DEV) {
+if (Badge.DEV) {
     console.log('* TYPO3 Switcher: set BADGE / setBadge.js successfully injected');
 }
 
