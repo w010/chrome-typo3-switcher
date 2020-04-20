@@ -235,10 +235,11 @@ var Env = {
             for ( c;  c < project.contexts.length;  c++ ) {
 
                 var context = project.contexts[c];
-                mark = activeContext.name === context.name && activeContext.url === context.url  ?  '-> '  :  '     ';
 
-                if ( context.hidden )
+                if ( context.hidden || !context.url )
                     continue;
+
+                mark = activeContext.name === context.name && activeContext.url === context.url  ?  '-> '  :  '     ';
 
                 contextMenuItems.push({
                     title : mark + context.name,
@@ -271,10 +272,11 @@ var Env = {
             for ( l;  l < project.links.length;  l++ ) {
 
                 var link = project.links[l];
-                mark = activeContext.name === link.name && activeContext.url === link.url  ?  '-> '  :  '     ';
 
-                if ( link.hidden )
+                if ( link.hidden || !link.url)
                     continue;
+
+                mark = activeContext.name === link.name && activeContext.url === link.url  ?  '-> '  :  '     ';
 
                 // add separator on first (not hidden) item
                 if ( !separatorAdded ) {
@@ -373,32 +375,45 @@ var Env = {
                     if ( typeof _project.contexts !== 'undefined' ) {
                         for ( var _c = 0;  _c < _project.contexts.length;  _c++ ) {
                             var _context = _project.contexts[_c];
-                            if ( _context.hidden )
+                            if ( _context.hidden || !_context.url )
                                 continue;
-                            if ( _context.url ) {
-                                contextMenuItems.push({
-                                    title :             _context.name,
-                                    id :                '_allprojects_project-' + _p + '-env-' + _c,
-                                    parentId :          'parent_allprojects_project-' + _p,
-                                    showForMenuType :   'actionMenuOnly'
-                                });
-                            }
+                            
+                            contextMenuItems.push({
+                                title :             _context.name,
+                                id :                '_allprojects_project-' + _p + '-env-' + _c,
+                                parentId :          'parent_allprojects_project-' + _p,
+                                showForMenuType :   'actionMenuOnly'
+                            });
                         }
                     }
-                    /*if ( typeof _project.links !== 'undefined' ) {
+
+                    if ( typeof _project.links !== 'undefined' ) {
+                        separatorAdded = false;
                         for ( var _l = 0;  _l < _project.links.length;  _l++ ) {
-                            var _link = _project.links[l];
-                            if ( _link.hidden )
+                            var _link = _project.links[_l];
+                            if ( _link.hidden || !_link.url )
                                 continue;
-                            if ( _link.url ) {
+                            
+                            // add separator on first (not hidden) item
+                            if ( !separatorAdded ) {
                                 contextMenuItems.push({
-                                    title : _link.name,
-                                    id :    'project-' + _p + '-link-' + _l,
-                                    parentId :  'parent-allprojects'
+                                    title :             '_separator-links',
+                                    id :                '_allprojects_project-' + _p + '-separator-links',
+                                    parentId :          'parent_allprojects_project-' + _p,
+                                    type :              'separator',
+                                    showForMenuType:    'actionMenuOnly'
                                 });
+                                separatorAdded = true;
                             }
+
+                            contextMenuItems.push({
+                                title :             _link.name,
+                                id :                '_allprojects_project-' + _p + '-link-' + _l,
+                                parentId :          'parent_allprojects_project-' + _p,
+                                showForMenuType :   'actionMenuOnly'
+                            });
                         }
-                    }*/
+                    }
                 }
             }
 
