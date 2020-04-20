@@ -292,12 +292,35 @@ label.primary   {
 		opacity: .6;
 	}
 
-.status-save, .status-import {
-	color: #ff8700;
-	display: inline-block;
+.status-notice, .status-import {
+    position: absolute;
+	color: rgba(34, 34, 34, 0.61);
+	display: none;
 	vertical-align: middle;
-	padding-left: 10px;
+	padding: 16px;
+	font-size: 110%;
+    left: 430px;
+	top: 10px;
+	background: rgb(192, 192, 192);
+	opacity: 0.95;
+	z-index: 99;
 }
+.status-import  {
+	position: relative;
+	left: auto;
+	top: auto;
+	margin: 10px 0;
+}
+.show   {
+	display: inline-block;
+}
+.settings-block.__importexport {
+	position: relative; /* to show import notifications there */
+}
+.status-notice.info, .status-import.info        {background: rgb(140, 218, 233);} 
+.status-notice.success, .status-import.success  {background: rgb(156, 233, 144);} 
+.status-notice.warn, .status-import.warn        {background: rgb(233, 232, 160);} 
+.status-notice.error, .status-import.error      {background: rgb(233, 151, 127);} 
 
 .dialog-overlay {
 	position: fixed;
@@ -347,10 +370,10 @@ label.primary   {
 }
 
 .flashContainer    {
-	animation: flash linear 0.5s 1;
+	animation: flash ease-in-out 0.5s 1;
 }
 @keyframes flash {
 	0% { background-color: #fff; }
-	20% { background-color: #8fffae; }
+	30% { background-color: #f6ffe2; }
 	100% { background-color: #fff; }
 }

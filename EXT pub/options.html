@@ -9,7 +9,7 @@
 
     <div class="settings-block __saveblock">
         <button class="btn save"><span class="icon"></span> <span class="text">Save</span></button>
-        <span class="status-save"></span>
+        <span class="status-notice"></span>
         <br>
         <br>
     </div>
@@ -261,6 +261,8 @@
 
         <h1>Import / export projects</h1>
         <h3>Backup or share with your team</h3>
+        
+        <span class="status-import"></span>
 
         <div class="row">
             <div class="col-6">
@@ -283,12 +285,12 @@
 
 
                 <label class="primary check">
-                    <input type="checkbox" id="env_import_overwrite">
+                    <input type="checkbox" id="env_import_overwrite" class="no-autosave">
                     <span>Overwrite all projects (!)<br>
                         <i>(disabled = add to existing)</i></span>
                 </label>
                 <label class="primary check">
-                    <input type="checkbox" id="env_import_test">
+                    <input type="checkbox" id="env_import_test" class="no-autosave">
                     <span>No autosave / Test import<br>
                         <i>(see the imported projects, you can tune them and save, or not.<br>
                             disabled / default = autosave right after import)</i></span>
@@ -297,15 +299,13 @@
                 <label class="primary select">Interpret as projects from <abbr title="Treat imported data structure as exported from selected extension (json or base64 json)">other extension</abbr>: &nbsp;
                     <br>
                     <br>
-                    <select id="env_import_extension">
+                    <select id="env_import_extension" class="no-autosave">
                         <option value=""></option>
                         <option value="environment_switcher">Environment switcher</option>
                         <option value="environment_switcher2">Environment switcher (other) [base64]</option>
                         <option value="environment_marker">Environment marker</option>
                     </select>
                 </label>
-
-                <span class="status-import"></span>
 
             </div>
             <div class="col-6">
@@ -326,7 +326,7 @@
         <h1>Misc options</h1>
 
         <label class="primary check">
-            <input type="checkbox" id="ext_debug">
+            <input type="checkbox" id="ext_debug" class="no-autosave">
             <span>Debug info <br>
                 (show some console messages and vars values)</span>
         </label>

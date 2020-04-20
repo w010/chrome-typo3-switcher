@@ -52,7 +52,7 @@ var ExtOptions = {
 
             // in case of problems show info and end operation
             if (chrome.runtime.lastError)   {
-                ExtOptions.displayMessage( 'Options save problem -  ' + chrome.runtime.lastError.message, null, 100000 );
+                ExtOptions.displayMessage( 'Options save problem -  ' + chrome.runtime.lastError.message, 'error', null, 100000 );
             }
             // if options saved ok, now save projects
             else    {
@@ -68,10 +68,10 @@ var ExtOptions = {
                     ExtOptions.fillExportData( projects );
                     // update status message and show error if any
                     if (chrome.runtime.lastError)   {
-                        ExtOptions.displayMessage( 'Options save problem -  ' + chrome.runtime.lastError.message, null, 100000 );
+                        ExtOptions.displayMessage( 'Options save problem -  ' + chrome.runtime.lastError.message, 'error', null, 100000 );
                     }
                     else    {
-                        ExtOptions.displayMessage( 'Options saved.' );
+                        ExtOptions.displayMessage( 'Options saved.', 'success' );
                         // blink window after save
                         $('body').addClass('flashContainer');
                         setTimeout(function() { $('body').removeClass('flashContainer'); }, 1000);
@@ -233,6 +233,7 @@ var ExtOptions = {
         project.find( 'button.env_projectRemove' ).click( function() {
             ExtOptions.confirmDialog( 'Delete project - are you sure?', function() {
                 ExtOptions.deleteProjectItem( project );
+                ExtOptions.optionsSave();
             });
         });
         project.find( '> .hide input' ).on( 'change', function() {
@@ -247,12 +248,6 @@ var ExtOptions = {
         // if no name, probably not read from options, but just inserted - hide download button for now
         if ( !projectItem.name )
             project.find( 'button.env_projectExport' ).hide();
-
-        // bind inputs
-        project.find( 'input[type=text]' ).keypress( function(e) {
-            // save settings on enter hit
-            if ( e.which === 13 )       ExtOptions.optionsSave();
-        });
 
         // make elements inside sortable
         project.find( '.contexts-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer' });
@@ -283,6 +278,7 @@ var ExtOptions = {
         context.find( 'button.env_contextRemove' ).click( function() {
             ExtOptions.confirmDialog( 'Delete context - are you sure?', function() {
                 ExtOptions.deleteContextItem( context, project );
+                ExtOptions.optionsSave();
             });
         });
         context.find( '> .hide input' ).on( 'change', function() {
@@ -507,16 +503,16 @@ var ExtOptions = {
 
             if ( !$( '#env_import_test' ).is( ':checked' ) ) {
                 ExtOptions.optionsSave();
-                ExtOptions.displayMessage( 'Environments / projects imported', '.status-import', 99999 );
+                ExtOptions.displayMessage( 'Environments / projects imported', 'success', '.status-import', -1 );
             }
             else    {
-                ExtOptions.displayMessage( 'Environments / projects imported - TEST IMPORT - not autosaved', '.status-import', 99999 );
+                ExtOptions.displayMessage( 'Environments / projects imported - TEST IMPORT - not autosaved', 'warn', '.status-import', -1 );
             }
 
         } catch(e)   {
             if ( ExtOptions.DEV )
                 console.log(e);
-            ExtOptions.displayMessage( 'JSON parsing problem. Message: <br>' + e.message, '.status-import', 99999 );
+            ExtOptions.displayMessage( 'JSON parsing problem. Message: <br>' + e.message, 'error', '.status-import', -1 );
         }
 
         if ( ExtOptions.DEV )
@@ -533,7 +529,7 @@ var ExtOptions = {
         var file = files[0];
 
         if ( !file || !window.FileReader )  {
-            ExtOptions.displayMessage( 'File reader problem', '.status-import', 99999 );
+            ExtOptions.displayMessage( 'File reader problem', 'error', '.status-import', -1 );
             return;
         }
 
@@ -673,18 +669,25 @@ var ExtOptions = {
     /**
      * Display a notice
      * @param msg string
+     * @param errorLevel string - info, success, warn, error
      * @param target string - element selector
      * @param time integer - displaying time of the message
      */
-    displayMessage : function(msg, target, time)   {
+    displayMessage : function(msg, errorLevel, target, time)   {
         if ( typeof time !== 'number' )   time = 2000;
-        if ( typeof target !== 'string' )  target = '.status-save';
+        if ( typeof target !== 'string' )  target = '.status-notice';
+        if ( typeof errorLevel !== 'string' )  errorLevel = 'info';
 
         var status = $( target );
+        status.removeClass( 'info success warn error' );
+        status.addClass( errorLevel );
         status.html( msg );
-        setTimeout( function() {
-            status.html('');
-        }, time);
+        status.addClass( 'show' );
+        if (time >= 0)
+            setTimeout( function() {
+                status.html('');
+                status.removeClass( 'show' );
+            }, time);
     },
 
 
@@ -845,6 +848,54 @@ var ExtOptions = {
                 ExtOptions.setBadgePreview();
             });
         });
+    },
+
+    /**
+     * Make editing any field autosave after use
+     */
+    bindAutosave : function () {
+        
+        $( '.settings-block' )
+            
+            // prepare text inputs to check state
+            .on( 'change', 'input[type=text]:not(.no-autosave)', function(e) {
+                // create custom property - can't check this out-of-the-box
+                $(this).data('hasChanged', true);
+            })
+            
+            
+            // text: on enter key pressed in text input
+            .on( 'keypress', 'input[type=text]:not(.no-autosave)', function(e) {
+                if ( e.which === 13 )       ExtOptions.optionsSave();
+            })
+            // text: on input loose focus 
+            .on( 'blur', 'input[type=text]:not(.no-autosave)', function(e) {
+                if ($(this).data('hasChanged')) {
+                    ExtOptions.optionsSave();
+                    $(this).data('hasChanged', false);
+                }
+            })
+            // checkbox: click
+            .on( 'click', 'input[type=checkbox]:not(.no-autosave)', function(e) {
+                ExtOptions.optionsSave();
+            })
+            // radio: change
+            .on( 'change', 'input[type=radio]:not(.no-autosave)', function(e) {
+                ExtOptions.optionsSave();
+            })
+            // select: change
+            .on( 'change', 'select:not(.no-autosave)', function(e) {
+                ExtOptions.optionsSave();
+            })
+            // range: change
+            .on( 'change', 'input[type=range]:not(.no-autosave)', function(e) {
+                ExtOptions.optionsSave();
+            })
+            // color: change
+            .on( 'change', 'input[type=color]:not(.no-autosave)', function(e) {
+                ExtOptions.optionsSave();
+            })
+            ;
     }
 };
 
@@ -867,6 +918,7 @@ $(function() {
     ExtOptions.linkRangeInputs();
     ExtOptions.bindFaviconControlsForPreview();
     ExtOptions.bindBadgeControlsForPreview();
+    ExtOptions.bindAutosave();
 });
 
 // bind basic buttons
