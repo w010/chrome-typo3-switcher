@@ -26,7 +26,7 @@ var ExtOptions = {
      */
     optionsSave : function() {
 
-        var projects = ExtOptions.collectEnvSettings();
+        var projects = ExtOptions.collectProjects();
     
         chrome.storage.sync.set({
     
@@ -258,11 +258,8 @@ var ExtOptions = {
             project.toggleClass( 'collapse' );
         });
         project.find( 'button.env_projectExport' ).click( function() {
-            ExtOptions.exportProjectsDownloadFile( projectItem );
+            ExtOptions.exportProjectsDownloadFile( project );
         });
-        // if no name, probably not read from options, but just inserted - hide download button for now
-        if ( !projectItem.name )
-            project.find( 'button.env_projectExport' ).hide();
 
         // make elements inside sortable
         project.find( '.contexts-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer' });
@@ -431,44 +428,55 @@ var ExtOptions = {
     /**
      * Iterate projects / environments elements and build an array
      */
-    collectEnvSettings : function()   {
+    collectProjects : function() {
         var projects = {};
-
-        $( '.projects-container .projectItem' ).each( function()  {
-            var projectItem = {};
-            projectItem['name'] = $(this).find( "[name='project[name]']" ).val();
-            projectItem['hidden'] = $(this).find( "[name='project[hidden]']" ).is( ':checked' );
-            projectItem['contexts'] = [];
-            projectItem['links'] = [];
-
-            $(this).find( '.contexts-container .contextItem' ).each( function() {
-                var contextItem = {};
-                contextItem['name'] = $(this).find( "[name='context[name]']" ).val();
-                contextItem['url'] = $(this).find( "[name='context[url]']" ).val();
-                contextItem['color'] = $(this).find( "[name='context[color]']" ).val();
-                contextItem['hidden'] = $(this).find( "[name='context[hidden]']" ).is( ':checked' );
-
-                projectItem['contexts'].push( contextItem );
-            });
-
-            $(this).find( '.links-container .linkItem' ).each( function() {
-                var linkItem = {};
-                linkItem['name'] = $(this).find( "[name='link[name]']" ).val();
-                linkItem['url'] = $(this).find( "[name='link[url]']" ).val();
-                linkItem['hidden'] = $(this).find( "[name='link[hidden]']" ).is( ':checked' );
-
-                projectItem['links'].push( linkItem );
-            });
- 
-            var uuid = $(this).attr( "id" ).toString().replace(/^project_+/g, '');
-            if (!uuid)
-                uuid = makeRandomUuid(6);
-
-            projectItem.uuid = uuid;
-            projects[ 'project_' + uuid ] = projectItem;
+        $( '.projects-container .projectItem' ).each( function() {
+            var project = ExtOptions.readProjectData( $(this) );
+            projects[ 'project_' + project.uuid ] = project
         });
-        console.info('collectEnvSettings - projects: ', projects);
+        console.info('collectProjects - projects: ', projects);
         return projects;
+    },
+
+    /**
+     * Extract project settings from html representation
+     * @param project html object
+     * @returns array
+     */
+    readProjectData : function(project)   {
+        var projectItem = {};
+        projectItem['name'] = project.find( "[name='project[name]']" ).val();
+        projectItem['hidden'] = project.find( "[name='project[hidden]']" ).is( ':checked' );
+        projectItem['contexts'] = [];
+        projectItem['links'] = [];
+
+        project.find( '.contexts-container .contextItem' ).each( function() {
+            var context = $(this);
+            var contextItem = {};
+            contextItem['name'] = context.find( "[name='context[name]']" ).val();
+            contextItem['url'] = context.find( "[name='context[url]']" ).val();
+            contextItem['color'] = context.find( "[name='context[color]']" ).val();
+            contextItem['hidden'] = context.find( "[name='context[hidden]']" ).is( ':checked' );
+
+            projectItem['contexts'].push( contextItem );
+        });
+
+        project.find( '.links-container .linkItem' ).each( function() {
+            var link = $(this);
+            var linkItem = {};
+            linkItem['name'] = link.find( "[name='link[name]']" ).val();
+            linkItem['url'] = link.find( "[name='link[url]']" ).val();
+            linkItem['hidden'] = link.find( "[name='link[hidden]']" ).is( ':checked' );
+
+            projectItem['links'].push( linkItem );
+        });
+
+        var uuid = project.attr( "id" ).toString().replace(/^project_+/g, '');
+        if (!uuid)
+            uuid = makeRandomUuid(6);
+
+        projectItem.uuid = uuid;
+        return projectItem;
     },
 
 
@@ -681,8 +689,10 @@ var ExtOptions = {
         //var url = window.URL.createObjectURL( data );
         var exportData;
         var filename;
+
         if ( project )  {
-            exportData = JSON.stringify( project, null, 4 ) + '\n';
+            var projectItem = ExtOptions.readProjectData( project );
+            exportData = JSON.stringify( projectItem, null, 4 ) + '\n';
             filename = 't3switcher-project--'+project.name+'.json';
         }
         else    {
@@ -783,7 +793,7 @@ var ExtOptions = {
     debugSaveEnv : function() {
         if ( !ExtOptions.DEV )    return;
         console.log('called: ExtOptions.debugSaveEnv');
-        var envSettings = ExtOptions.collectEnvSettings();
+        var envSettings = ExtOptions.collectProjects();
         $( '#debug' ).html( JSON.stringify( envSettings, null, 4 ) );
     },
 
