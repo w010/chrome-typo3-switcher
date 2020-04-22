@@ -77,12 +77,18 @@ var ExtOptions = {
                         setTimeout(function() { $('body').removeClass('flashContainer'); }, 1000);
 
 
-                        // store projects number
+                        // store project storing method version
                         chrome.storage.sync.set({
-                            'env_projects_count' : Object.keys(projects).length     // this is the way to read number of elements of an object (like array length)
-                            //'env_projects' :    // remove old-way saved projects from storage (uncomment in few versions, to cleanup. now leave for keeping backup)
+                            'env_projects_storing_version' : 3     // projects as item_[unique id]
                         }, function() {
-                            console.log('save env_projects_count: ' + Object.keys(projects).length);
+                            // cleanup projects saved with storing version 2
+                            /*for (let i = 0; i < 99; i++) {
+                                chrome.storage.sync.remove('proj_' + i);
+                            }*/
+                            // remove old-way saved projects from storage (uncomment in few versions, to cleanup. now leave for keeping backup)
+                            // cleanup projects saved with storing version 1
+                            //chrome.storage.sync.remove('env_projects');
+
                             // if settings + projects was saved successfully, we can assume this was too. so no need to check again
                             // reload extension to reapply settings
                             chrome.extension.getBackgroundPage().window.location.reload();
@@ -107,7 +113,7 @@ var ExtOptions = {
             'switch_fe_openSelectedPageUid' :   true,
             'switch_be_useBaseHref' :           true,
             'env_projects' :                    [],     // leave for compatibility - must try to read old projects array to migrate
-            'env_projects_count' :              0,      // new project store way saves projects counter, so it means it's after migration
+            'env_projects_storing_version' :    0,      // new project store way is 3, so it means it's after migration. should be 0 by default to make sure the migration will be done
             'env_enable' :                      true,
             //'env_switching' :                   true,
             'env_menu_show_allprojects' :       true,
@@ -157,16 +163,21 @@ var ExtOptions = {
             ExtOptions.setFaviconPreview();
             ExtOptions.setBadgePreview();
 
-            // if count is saved, it means the separated projects save method is used / after migration
-            if (options.env_projects_count) {
+            // version 2 means projects stored in separated items, with index. version 3 is items with unique id
+            if (options.env_projects_storing_version === 3) {
                 // read all options and extract projects
                 // read them separately from above, to keep possibility to set defaults on read
                 chrome.storage.sync.get(null, function(allOptions)    {
-                    var i;
                     var projects = [];
-                    for (i = 0; i < options.env_projects_count; i++)    {
-                        projects.push(allOptions['proj_'+i]);
-                    }
+                    
+                    $.each(allOptions, function(key, value)    {
+                        if (key.match(/^project_/g)) {
+                            // if, for some reason, project doesn't have a uuid, take it from key
+                            if (typeof allOptions[key].uuid === 'undefined')
+                                allOptions[key].uuid = key.replace(/^project_+/g, '');
+                            projects.push(allOptions[key]);
+                        }
+                    });
 
                     ExtOptions.populateEnvSettings( projects );
                     ExtOptions.fillExportData( projects );
@@ -197,7 +208,10 @@ var ExtOptions = {
         var project = $( '.projectItem._template' ).clone().removeClass( '_template' )
             .appendTo( $( '.projects-container' ) );
 
-        //project.prop( 'id', hashCode( projectItem.name ) );
+        if (typeof projectItem.uuid === 'undefined' || !projectItem.uuid)
+            projectItem.uuid = makeRandomUuid(6);
+        
+        project.attr('id', 'project_' + projectItem.uuid);
 
         // populate data
         project.find( '[name="project[name]"]' ).val( projectItem.name );
@@ -231,9 +245,10 @@ var ExtOptions = {
             link.find( '[name="link[name]"]' ).focus();
         });
         project.find( 'button.env_projectRemove' ).click( function() {
+            var trigger = $(this);
             ExtOptions.confirmDialog( 'Delete project - are you sure?', function() {
-                ExtOptions.deleteProjectItem( project );
-                ExtOptions.optionsSave();
+                ExtOptions.deleteProjectItem( trigger.closest('.projectItem') );
+                //ExtOptions.optionsSave(); // probably is problematic to call it right after
             });
         });
         project.find( '> .hide input' ).on( 'change', function() {
@@ -367,7 +382,24 @@ var ExtOptions = {
      * @param project element
      */
     deleteProjectItem : function(project)   {
+        var uuid = $(project).attr( "id" ).replace(/^project_+/g, '');
         $( project ).remove();
+        chrome.storage.sync.remove( 'project_' + uuid );
+    },
+    
+    
+    /**
+     * Delete all projects
+     */
+    deleteAllProjectItems : function()  {
+        chrome.storage.sync.get( null, function(allOptions) {
+            // find every option which is a project
+            $.each(allOptions, function(key, value)    {
+                if (key.match(/^project_/g)) {
+                    chrome.storage.sync.remove( key );    
+                }
+            });
+        });
     },
 
     /**
@@ -401,7 +433,7 @@ var ExtOptions = {
      */
     collectEnvSettings : function()   {
         var projects = {};
-        var counter = 0;
+
         $( '.projects-container .projectItem' ).each( function()  {
             var projectItem = {};
             projectItem['name'] = $(this).find( "[name='project[name]']" ).val();
@@ -427,9 +459,13 @@ var ExtOptions = {
 
                 projectItem['links'].push( linkItem );
             });
+ 
+            var uuid = $(this).attr( "id" ).toString().replace(/^project_+/g, '');
+            if (!uuid)
+                uuid = makeRandomUuid(6);
 
-            projects['proj_'+counter] = projectItem;
-            counter++;
+            projectItem.uuid = uuid;
+            projects[ 'project_' + uuid ] = projectItem;
         });
         console.info('collectEnvSettings - projects: ', projects);
         return projects;
@@ -442,7 +478,7 @@ var ExtOptions = {
      */
     populateEnvSettings : function(projects)   {
         // console.info('called: ExtOptions.populateEnvSettings');
-        // console.info('projects from conf:', projects);
+        console.info('projects from conf:', projects);
 
         $.each( projects, function(i, projectItem)    {
 
@@ -497,6 +533,12 @@ var ExtOptions = {
 
             if ( $( '#env_import_overwrite' ).is( ':checked' ) )  {
                 $( '.projects-container' ).empty();
+                ExtOptions.deleteAllProjectItems();
+            }
+            
+            // allow importing single project as object (without []) - don't throw error and just make it an array here  
+            if (!$.isArray(importData))  {
+                importData = [importData];
             }
 
             ExtOptions.populateEnvSettings( importData );
@@ -959,6 +1001,16 @@ $( 'button#env_export_download' ).click( function() {
                 storageChange.newValue);
         }
     });*/
+
+
+/**
+ * Random id string generator
+ * @returns string
+ * @param length int
+ */
+function makeRandomUuid(length) {
+    return Math.random().toString(36).replace(/[^a-z,A-Z,0-9]+/g, '').substr(1, length+1)
+}
 
 
 /**

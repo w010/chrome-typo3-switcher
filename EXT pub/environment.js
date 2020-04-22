@@ -38,8 +38,6 @@ var Env = {
      */
     initProject : function()   {
 
-        console.log('options.env_projects_count', Env.options.env_projects_count);
-
         // switch tab
         chrome.tabs.onHighlighted.addListener( function () {
             console.log(': EVENT: tabs.onHighlighted');
@@ -691,22 +689,26 @@ chrome.storage.sync.get( null, function(options) {
 
         Env.options = options;     // store to use in onclick
         Env.DEV = options.ext_debug;
-        var projectsAll = [];
+        var projects = [];
 
-        // if count is saved, it means the separated projects save method is used / after migration
-        if (options.env_projects_count) {
-            // extract projects
-            var i;
-            for (i = 0; i < options.env_projects_count; i++) {
-                projectsAll.push(options['proj_' + i]);
-            }
+        // version 2 means projects stored in separated items, with index. version 3 is items with unique id
+        if (options.env_projects_storing_version === 3) {
+            // recent raw js method to foreach
+            Object.entries(options).forEach(function([key, value])    {
+                if (key.match(/^project_/g)) {
+                    // if, for some reason, project doesn't have a uuid, take it from key (probably uuid is not needed here, but keep the code in sync with Options) 
+                    if (typeof options[key].uuid === 'undefined')
+                        options[key].uuid = key.replace(/^project_+/g, '');
+                    projects.push(options[key]);
+                }
+            });
         }
-        // old for compatibility
+        // old for compatibility (version 1)
         else    {
-            projectsAll = options.env_projects;
+            projects = options.env_projects;
         }
 
-        Env.projectsAll = projectsAll;
+        Env.projectsAll = projects;
         Env.initProject();
 
 
