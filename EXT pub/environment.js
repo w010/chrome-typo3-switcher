@@ -99,8 +99,8 @@ var Env = {
             // chrome.storage.sync.set({'_currentLink': {}});
 
             // gets current tab with details (tab from events only returns id)
-            chrome.tabs.getSelected( null, function (tab) {
-                //console.log(tab);
+            chrome.tabs.query({active: true, lastFocusedWindow: true}, function (tabs) {
+                let tab = tabs[0];
                 if (typeof tab === 'undefined') {
                     console.log('-- can\'t read tab (system?) - exit [ LOCK RELEASE ] ');
                     Env.lock = false;
@@ -129,7 +129,9 @@ var Env = {
                                 if ( context.hidden )
                                     continue;
 
-                                if ( context.url  &&  tab.url.match( context.url ) ) {
+                                // compare ignoring schema (& trailing slash in configured url)
+                                if ( context.url  &&  tab.url.replace( /^https?:\/\//, '')
+                                        .match( context.url.replace( /^https?:\/\//, '').replace( /\/$/, '') ) ) {
 
                                     isProjectFound = true;
 
