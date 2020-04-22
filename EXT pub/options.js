@@ -430,9 +430,11 @@ var ExtOptions = {
      */
     collectProjects : function() {
         var projects = {};
+        var i = 0; 
         $( '.projects-container .projectItem' ).each( function() {
             var project = ExtOptions.readProjectData( $(this) );
-            projects[ 'project_' + project.uuid ] = project
+            project.sorting = i++;
+            projects[ 'project_' + project.uuid ] = project;
         });
         console.info('collectProjects - projects: ', projects);
         return projects;
@@ -487,9 +489,21 @@ var ExtOptions = {
     populateEnvSettings : function(projects)   {
         // console.info('called: ExtOptions.populateEnvSettings');
         console.info('projects from conf:', projects);
+        
+        // put them in right order
+        projects.sort(function(a, b){
+            if (a.sorting > b.sorting)  return 1;
+            if (a.sorting < b.sorting)  return -1;
+            return 0;
+        });
+        
+        // debugger;
+        // console.info('projects from conf:', projects);
 
         $.each( projects, function(i, projectItem)    {
 
+            // no need to show or export this anywhere. so cleanup
+            delete(projectItem.sorting);
             ExtOptions.insertProjectItem( projectItem );
 
             if ( this.DEV )

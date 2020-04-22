@@ -702,6 +702,12 @@ chrome.storage.sync.get( null, function(options) {
                     projects.push(options[key]);
                 }
             });
+            // put them in right order
+            projects.sort(function(a, b){
+                if (a.sorting > b.sorting)  return 1;
+                if (a.sorting < b.sorting)  return -1;
+                return 0;
+            });
         }
         // old for compatibility (version 1)
         else    {
