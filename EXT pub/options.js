@@ -1001,16 +1001,26 @@ $( 'button.env_projectAdd' ).click( function () {
 
 $( 'button#env_import' ).click( function () {
     ExtOptions.importProjectsFromTextarea( {} )
+    $('html,body').animate({scrollTop: $("#settings_block_importexport").offset().top}, 300);
 });
 
 $( 'input#env_import_file' ).change( function() {
     ExtOptions.importProjectsFromUpload( this.files );
+    $('html,body').animate({scrollTop: $("#settings_block_importexport").offset().top}, 300);
 });
 
 $( 'button#env_export_download' ).click( function() {
     ExtOptions.exportProjectsDownloadFile();
 });
 
+$( 'textarea#env_importexport-data' ).on( 'dblclick', function() {
+    $('#env_importexport-data').animate({width: 600, height: 800}, 200);
+}).on( 'paste', function(){
+    $('#env_importexport-data').animate({height: 600}, 200);
+}).on( 'blur', function(){
+    $('#env_importexport-data').animate({width: 457, height: 80}, 200);
+    $('html,body').animate({scrollTop: $("#settings_block_importexport").offset().top}, 300);
+});
 
 
     // some debug. should be disabled later
