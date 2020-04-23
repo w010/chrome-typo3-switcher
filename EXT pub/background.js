@@ -275,7 +275,7 @@ chrome.runtime.onInstalled.addListener(function() {
 
         var version = chrome.runtime.getManifest().version;
 
-        if ( options.internal_installVersion.split( '.' )[1] !== version.split( '.' )[1]  ||  !options.internal_installVersion ) {
+        if ( typeof options.internal_installVersion === 'undefined' || options.internal_installVersion === '' || options.internal_installVersion.split( '.' )[1] !== version.split( '.' )[1] ) {
             chrome.tabs.create({ url: "http://wolo.pl/chrome/#whats-new" });
             chrome.storage.sync.set({ internal_installVersion: version });
         }

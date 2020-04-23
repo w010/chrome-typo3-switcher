@@ -831,7 +831,9 @@ var ExtOptions = {
     updateStorageInfo : function()    {
         //if ( !ExtOptions.DEV )    return;
         chrome.storage.sync.getBytesInUse(null, function (bytes) {
-            $( '#storageInfo' ).text( 'Bytes in storage: ' + bytes );
+            $( '#storageInfo' ).html(
+                '<h4> Storage info: </h4>' +
+                '<p> Bytes in storage: ' + bytes + '</p>');
         });
 
         //chrome.storage.sync.clear();
@@ -854,7 +856,16 @@ var ExtOptions = {
         if ( !ExtOptions.DEV )  return;
         chrome.storage.sync.get( null, function(options) {
             //console.log(options);
-            $( '#debug' ).html( 'storage content: (note that you may need to refresh the page to see the content up-to-date) \n' + JSON.stringify( options, null, 4 ) );
+            $( '#debugExtInfo' ).html(
+                '<h4> Extension info: </h4>' +
+                '<p> Version: ' + chrome.runtime.getManifest().version + '<br>' +
+                'Id: ' + chrome.runtime.id + '</p><br>'
+            );
+            $( '#debugStorageContent' ).html(
+                '<p> Storage contents: <br>' +
+                '<i>(you may want to refresh the page to be 100% sure this content is up-to-date)</i></p>' + 
+                '<pre>' + JSON.stringify( options, null, 4 ) + '</pre>'
+            );
         });
     },
 
@@ -1017,6 +1028,7 @@ favicon_params = {
 $(function() {
     ExtOptions.optionsRestore();
     ExtOptions.updateStorageInfo();
+    ExtOptions.debugStorageData();
     ExtOptions.linkRangeInputs();
     ExtOptions.bindFaviconControlsForPreview();
     ExtOptions.bindBadgeControlsForPreview();
