@@ -65,7 +65,7 @@ var ExtOptions = {
                     // update storage info
                     ExtOptions.updateStorageInfo();
                     ExtOptions.debugStorageData();
-                    ExtOptions.fillExportData( projects );
+                    ExtOptions.fillExportData();
                     // update status message and show error if any
                     if (chrome.runtime.lastError)   {
                         ExtOptions.displayMessage( 'Options save problem -  ' + chrome.runtime.lastError.message, 'error', null, 100000 );
@@ -182,14 +182,13 @@ var ExtOptions = {
                     });
 
                     ExtOptions.populateEnvSettings( projects );
-                    ExtOptions.fillExportData( projects );
+                    ExtOptions.fillExportData();
                 });
             }
             // for migration, try to read projects using method 1 (omit version 2, it was only used for tests in unpublished version) 
             else    {
-            	// todo: check if the key exists/ is array. also validate param in method itself
                 ExtOptions.populateEnvSettings( options.env_projects );
-                ExtOptions.fillExportData( options.env_projects );
+                ExtOptions.fillExportData();
             }
 
             ExtOptions.debugStorageData();
@@ -266,8 +265,8 @@ var ExtOptions = {
         });
 
         // make elements inside sortable
-        project.find( '.contexts-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer' });
-        project.find( '.links-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer' });
+        project.find( '.contexts-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer', update: function() { ExtOptions.sortDropCallback(); } });
+        project.find( '.links-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer', update: function() { ExtOptions.sortDropCallback() } });
 
         return project;
     },
@@ -386,6 +385,8 @@ var ExtOptions = {
         var uuid = $(project).attr( "id" ).replace(/^project_+/g, '');
         $( project ).remove();
         chrome.storage.sync.remove( 'project_' + uuid );
+        // no global save options here, so refresh export textarea manually
+        ExtOptions.fillExportData();
     },
     
     
@@ -424,13 +425,21 @@ var ExtOptions = {
         $( link ).remove();
     },
 
+    /**
+     * After sorting / dropping element 
+     */
+    sortDropCallback : function()   {
+       ExtOptions.fillExportData();
+    },
 
 
 
     // ENV SETTINGS: READ / WRITE
 
     /**
-     * Iterate projects / environments elements and build an array
+     * Get projects as object of objects. Used only for storage save.
+     * Iterate projects / environments and collect data elements.
+     * @return object
      */
     collectProjects : function() {
         var projects = {};
@@ -442,6 +451,14 @@ var ExtOptions = {
         });
         console.info('collectProjects - projects: ', projects);
         return projects;
+    },
+
+     /**
+     * Get projects as an array (most cases)
+     * @return array 
+     */
+    getProjectsArray : function() {
+        return Object.values( ExtOptions.collectProjects() );
     },
 
     /**
@@ -492,8 +509,9 @@ var ExtOptions = {
      */
     populateEnvSettings : function(projects)   {
         // console.info('called: ExtOptions.populateEnvSettings');
-        // todo: validate param
         console.info('projects from conf:', projects);
+        if ( !Array.isArray( projects ) )
+            projects = [];
         
         // put them in right order
         projects.sort(function(a, b){
@@ -502,8 +520,6 @@ var ExtOptions = {
             return 0;
         });
         
-        // debugger;
-        // console.info('projects from conf:', projects);
 
         $.each( projects, function(i, projectItem)    {
 
@@ -517,7 +533,7 @@ var ExtOptions = {
 
 
         // init drag & drop
-        $( '.projects-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer' });
+        $( '.projects-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer', update: function() { ExtOptions.sortDropCallback(); } });
 
 
         // scroll to last set project on load
@@ -538,10 +554,23 @@ var ExtOptions = {
     // IMPORT / EXPORT
 
 
+    /**
+     * Put json with projects into textarea
+     * @param projects array 
+     */
     fillExportData : function ( projects ) {
-        // todo: validate it's an array. don't put lonely brackets when empty
+        if ( !Array.isArray( projects ) )
+            projects = [];
+
+        // in most cases we don't pass here anything, just get all projects here
+        if ( !projects.length )
+            projects = ExtOptions.getProjectsArray();
+
+        // don't put lonely brackets into textarea, when array is empty 
+        let exportData = projects.length ? JSON.stringify( projects, null, 4 ) : null;
+
         $( '#env_importexport-data' ).html(
-            JSON.stringify( projects, null, 4 )
+            exportData
         ).focus( function() {
             this.select();
         });
@@ -813,7 +842,7 @@ var ExtOptions = {
     debugSaveEnv : function() {
         if ( !ExtOptions.DEV )    return;
         console.log('called: ExtOptions.debugSaveEnv');
-        var envSettings = ExtOptions.collectProjects();
+        var envSettings = ExtOptions.getProjectsArray();
         $( '#debug' ).html( JSON.stringify( envSettings, null, 4 ) );
     },
 
