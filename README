@@ -17,16 +17,27 @@ What does it do?
 Simple yet advanced
 This extension adds button to the Chrome's toolbar that opens a tab with TYPO3 Backend of current site (base href-based),
 or a Frontend, if detects it is in Backend.
-Also, it provides configuration for various work environments (contexts) to fast jump between them.
-It displays info badge on each one to easy recognize on which one you are.
-Additionally, you can add some project-related links (like, to task manager) to the context menu (displayed only on that project).
-Project configuration may be exported to share with your team.
 
-Note, that you may disable all environment-related functionality, to use only BE/FE switching and keep the ext lightweight.
+Now you can quickly jump between project live/dev/staging instances (contexts) keeping current url path, also you can
+add set of project's helper links like its task manager, wiki, etc. to quick navigate between all of them. Also jump
+to install tool and a very handy menu with all projects with all contexts.
+All of this within one right-click.
+
+It displays info badge and favicon overlay of chosen color to visually distinguish between a number of open instances during
+everyday integrations.
+
+Project configurations may be exported (all or separately) to share with your team. Easy json importing.
+(in current development is a project-repository functionality, to make the exchange much faster)  
+
+Note, that you may disable all environment-related functionality, to use only BE/FE switching and keep the ext more
+lightweight. But why give up all these wonderful features?!
 
 Switching to Frontend opens last selected page in backend page tree (works similar as View webpage button in backend,
 but works even if currently some module without page tree /or such button/ is open).
-(tested in versions 6.2, 7.6 and 8.7. any between should work as well)
+(tested in versions 6.2, 7.6, 8.7, 9.5. any between should work as well)
+(Also, I would like to make it expand the pagetree and select current page, best will be basing on url, when switching 
+to backend - but current TYPO3 architecture doesn't allow such trick. I hope to achieve this state one day. It would be
+excellent productivity boost. Have to push some change requests to TYPO3 source...)   
 
 Security Trust:
 See FAQ
@@ -96,20 +107,28 @@ A: No, this extension doesn't do anything with the urls it reads. All it does it
 Changelog:
 
 v1.0.0
-...2020
+
+	...2020
+
 Changes & news:
-- env: page favicon color overlay finally kind of works (beta feature - sometimes on some pages it just doesn't show for some reason)
-- projects are now stored in separated Chrome Storage items (due to single item size limit in Chrome) - major underhood change, but should migrate transparently
-- options: favicon configuration + preview
-- options: import from / export to file, import projects from some other extensions (let me know if you need import for some specific) 
-- options: quota exceeded info on save (you must have many projects for this to be a problem, but if, blame Chrome limitations)
+- env: page favicon color overlay finally works (beta feature, still testing)
+- major underhood change - projects are now stored in separated Chrome Storage items (due to single item size limit in Chrome) - but should migrate transparently
+- options: favicon overlay configuration + preview, badge preview
+- options: import / export to file, download json config of single project
+- options: import projects from other extensions (let me know if you need import for some specific) 
+- options: notification when quota exceeded on save (you must have many, many projects for this to be a problem, but if, blame Chrome stupid limitations)
+- env: jump to Install tool, DUMP dir now can also be shown in menu (hidden by default) - this will be replaced with custom input label + url in the future
 Fixes & tune:
-- env: All Projects menu now is displayed always - handy shortcut, no reason to hide this
+- env: optional All projects / all instances url & related links, now can be there always, not only when project no match
+- env: url schema is now ignored when matching
 - env: context menu layout tuned for better readability
-- env: show badge also in links
+- env: display badge also on pages from project Links
+- env: contexts & links without url are now ignored
 - env: stop reloading badge on every tab refocus and on other unnecessary events
-- options: css & tmpl tune, project export improved, panels and order slightly reorganized
-- env: better action icon
+- env: better action icon gfx
+- options: export now items always up to date when edited, no need to reload 
+- options: css & tmpl tune, panels and order slightly reorganized
+- options: autosave reworked, now saves on almost every change (only on sorting it does not. I'm still not sure if it should)
 
 v0.9.999
 16.04.2018
