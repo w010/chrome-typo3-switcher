@@ -81,7 +81,8 @@ var ExtOptions = {
                         // empty array may mean that importing of old items failed - better keep them in storage, there's always a chance to retrieve them
                         if ( Object.keys(projects).length > 0 )   {
                             // remove old (method 1) projects key from storage
-                            chrome.storage.sync.remove( 'env_projects');
+                            chrome.storage.sync.remove( 'env_projects' );
+                            console.log( 'update: project storing method migrated to method version 3' )
                         }
                         
 
