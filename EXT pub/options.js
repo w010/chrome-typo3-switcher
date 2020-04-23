@@ -1,7 +1,7 @@
 /**
  * TYPO3 Backend-Frontend Handy Switcher - Chrome extension
  *
- * wolo.pl '.' studio 2017
+ * wolo.pl '.' studio 2017-2020
  * Adam wolo Wolski
  * wolo.wolski+t3becrx@gmail.com
  */
@@ -77,17 +77,22 @@ var ExtOptions = {
                         setTimeout(function() { $('body').removeClass('flashContainer'); }, 1000);
 
 
-                        // store project storing method version
+                        // finish migration - try to make sure it's ready to cleanup - proceed if some current projects exists.
+                        // empty array may mean that importing of old items failed - better keep them in storage, there's always a chance to retrieve them
+                        if ( Object.keys(projects).length > 0 )   {
+                            // remove old (method 1) projects key from storage
+                            chrome.storage.sync.remove( 'env_projects');
+                        }
+                        
+
                         chrome.storage.sync.set({
+                            // store project storing method version
                             'env_projects_storing_version' : 3     // projects as item_[unique id]
                         }, function() {
                             // cleanup projects saved with storing version 2
                             /*for (let i = 0; i < 99; i++) {
                                 chrome.storage.sync.remove('proj_' + i);
                             }*/
-                            // remove old-way saved projects from storage (uncomment in few versions, to cleanup. now leave for keeping backup)
-                            // cleanup projects saved with storing version 1
-                            //chrome.storage.sync.remove('env_projects');
 
                             // if settings + projects was saved successfully, we can assume this was too. so no need to check again
                             // reload extension to reapply settings
@@ -113,7 +118,7 @@ var ExtOptions = {
             'switch_fe_openSelectedPageUid' :   true,
             'switch_be_useBaseHref' :           true,
             'env_projects' :                    [],     // leave for compatibility - must try to read old projects array to migrate
-            'env_projects_storing_version' :    0,      // new project store way is 3, so it means it's after migration. should be 0 by default to make sure the migration will be done
+            'env_projects_storing_version' :    1,      // version 1 is original all-projects-one-key method. version 2 means projects stored in separated items, with index and counter. version 3 is items with unique id
             'env_enable' :                      true,
             //'env_switching' :                   true,
             'env_menu_show_allprojects' :       true,
@@ -121,19 +126,16 @@ var ExtOptions = {
             'env_menu_show_dump' :              false,
             'env_badge' :                       true,
             'env_badge_projectname' :           true,
-            'env_badge_position' :              'left',
+            'env_badge_position' :              'right',
             'env_badge_scale' :                 '1.0',
             'env_favicon' :                     true,
-            'env_favicon_alpha' :               'TEST1',    // doesn't set this default
-            'env_favicon_fill' :                'TEST2',    // doesn't set this default
+            'env_favicon_alpha' :               '0.85',
+            'env_favicon_fill' :                '0.25', 
             'env_favicon_position' :            'bottom',
             'env_favicon_composite' :           'source-over',
             'ext_debug' :                       false
 
         }, function(options) {
-            // due to some weird problems with reading+set default values to some of options, define some defaults manually... chrome.
-            if ( !options.env_favicon_alpha )   options.env_favicon_alpha = '0.85';
-            if ( !options.env_favicon_fill )   options.env_favicon_fill = '0.25';
 
             $( '#switch_fe_openSelectedPageUid' ).attr( 'checked',  options.switch_fe_openSelectedPageUid );
             $( '#switch_be_useBaseHref' ).attr( 'checked',          options.switch_be_useBaseHref );
@@ -163,7 +165,7 @@ var ExtOptions = {
             ExtOptions.setFaviconPreview();
             ExtOptions.setBadgePreview();
 
-            // version 2 means projects stored in separated items, with index. version 3 is items with unique id
+            // new project store way is 3, so it means it's after migration
             if (options.env_projects_storing_version === 3) {
                 // read all options and extract projects
                 // read them separately from above, to keep possibility to set defaults on read
@@ -183,7 +185,9 @@ var ExtOptions = {
                     ExtOptions.fillExportData( projects );
                 });
             }
+            // for migration, try to read projects using method 1 (omit version 2, it was only used for tests in unpublished version) 
             else    {
+            	// todo: check if the key exists/ is array. also validate param in method itself
                 ExtOptions.populateEnvSettings( options.env_projects );
                 ExtOptions.fillExportData( options.env_projects );
             }
@@ -488,6 +492,7 @@ var ExtOptions = {
      */
     populateEnvSettings : function(projects)   {
         // console.info('called: ExtOptions.populateEnvSettings');
+        // todo: validate param
         console.info('projects from conf:', projects);
         
         // put them in right order
@@ -534,6 +539,7 @@ var ExtOptions = {
 
 
     fillExportData : function ( projects ) {
+        // todo: validate it's an array. don't put lonely brackets when empty
         $( '#env_importexport-data' ).html(
             JSON.stringify( projects, null, 4 )
         ).focus( function() {
@@ -818,7 +824,7 @@ var ExtOptions = {
         if ( !ExtOptions.DEV )  return;
         chrome.storage.sync.get( null, function(options) {
             //console.log(options);
-            $( '#debug' ).html( 'storage content: \n' + JSON.stringify( options, null, 4 ) );
+            $( '#debug' ).html( 'storage content: (note that you may need to refresh the page to see the content up-to-date) \n' + JSON.stringify( options, null, 4 ) );
         });
     },
 
