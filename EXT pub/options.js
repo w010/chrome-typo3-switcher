@@ -385,7 +385,7 @@ var ExtOptions = {
         var uuid = $(project).attr( "id" ).replace(/^project_+/g, '');
         $( project ).remove();
         chrome.storage.sync.remove( 'project_' + uuid );
-        // no global save options here, so refresh export textarea manually
+        // as long this removing works this way, I mean individual remove() and no global save options, textarea is not refreshing after deleting. so we have to do this manually
         ExtOptions.fillExportData();
     },
     
@@ -1048,12 +1048,22 @@ $( 'button#env_export_download' ).click( function() {
     ExtOptions.exportProjectsDownloadFile();
 });
 
-$( 'textarea#env_importexport-data' ).on( 'dblclick', function() {
-    $('#env_importexport-data').animate({width: 600, height: 800}, 200);
-}).on( 'paste', function(){
-    $('#env_importexport-data').animate({height: 600}, 200);
-}).on( 'blur', function(){
-    $('#env_importexport-data').animate({width: 457, height: 80}, 200);
+$( 'textarea#env_importexport-data' )
+    .on( 'focus', function() {
+        $(this).select();
+        $(this).animate({height: 600}, 200);
+    })
+    .on( 'dblclick', function() {
+        $(this).animate({width: 600, height: 800}, 200);
+    })
+    .on( 'paste', function(){
+        $(this).animate({height: 600}, 200);
+    })
+    .on( 'blur', function(){
+        $(this).animate({width: 457, height: 80}, 200);
+
+        // scroll to only if we are lower than textarea begin
+    if ( $(document).scrollTop() > $("#settings_block_importexport").offset().top ) 
     $('html,body').animate({scrollTop: $("#settings_block_importexport").offset().top}, 300);
 });
 
