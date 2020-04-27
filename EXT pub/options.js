@@ -743,7 +743,7 @@ var ExtOptions = {
         if ( project )  {
             var projectItem = ExtOptions.readProjectData( project );
             exportData = JSON.stringify( projectItem, null, 4 ) + '\n';
-            filename = 't3switcher-project--'+project.name+'.json';
+            filename = 't3switcher-project--'+projectItem.name+'.json';
         }
         else    {
             exportData = $( '#env_importexport-data' ).val();

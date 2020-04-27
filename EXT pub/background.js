@@ -270,12 +270,12 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
 
 chrome.runtime.onInstalled.addListener(function() {
 
-    // store install version. if minor (second) number has changed, open webpage with changelog.
+    // store install version. if major (first) number has changed, open webpage with changelog.
     chrome.storage.sync.get( 'internal_installVersion', function(options)  {
 
         var version = chrome.runtime.getManifest().version;
 
-        if ( typeof options.internal_installVersion === 'undefined' || options.internal_installVersion === '' || options.internal_installVersion.split( '.' )[1] !== version.split( '.' )[1] ) {
+        if ( typeof options.internal_installVersion === 'undefined' || options.internal_installVersion === '' || options.internal_installVersion.split( '.' )[0] !== version.split( '.' )[0] ) {
             chrome.tabs.create({ url: "http://wolo.pl/chrome/#whats-new" });
             chrome.storage.sync.set({ internal_installVersion: version });
         }
