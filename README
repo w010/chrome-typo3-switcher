@@ -18,7 +18,7 @@ Simple yet advanced
 This extension adds button to the Chrome's toolbar that opens a tab with TYPO3 Backend of current site (base href-based),
 or a Frontend, if detects it is in Backend.
 
-Now you can quickly jump between project live/dev/staging instances (contexts) keeping current url path, also you can
+Second thing is you can quickly jump between project live/dev/staging instances (contexts) keeping current url path, also you can
 add set of project's helper links like its task manager, wiki, etc. to quick navigate between all of them. Also jump
 to install tool and a very handy menu with all projects with all contexts.
 All of this within one right-click.
@@ -107,9 +107,7 @@ A: No, this extension doesn't do anything with the urls it reads. All it does it
 Changelog:
 
 v1.0.0
-
-	...2020
-
+28.04.2020
 Changes & news:
 - env: page favicon color overlay finally works (beta feature, still testing)
 - major underhood change - projects are now stored in separated Chrome Storage items (due to single item size limit in Chrome) - but should migrate transparently
