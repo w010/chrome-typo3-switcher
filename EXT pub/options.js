@@ -20,6 +20,7 @@ var ExtOptions = {
     DEV : false,
     options : {},
 
+    dialogToCloseOnGlobalEvents : null,
     
     /**
      * Saves options to chrome.storage.sync.
@@ -252,7 +253,7 @@ var ExtOptions = {
         });
         project.find( 'button.env_projectRemove' ).click( function() {
 			var trigger = $(this);
-			ExtOptions.confirmDialog( 'Delete project - Are you sure?', function() {
+			ExtOptions.confirmDialog( 'Delete project', 'Are you sure?',function() {
 				ExtOptions.deleteProjectItem( trigger.closest('.projectItem') );
                 //ExtOptions.optionsSave(); // probably is problematic to call it right after
             });
@@ -806,17 +807,24 @@ var ExtOptions = {
         if ( typeof callbackConfirm !== 'function' )  callbackConfirm = function(){};
         if ( typeof callbackDecline !== 'function' )  callbackDecline = function(){};
 
+        // bind buttons after creating dialog - we need to have dialog instance to pass to callback
         let content = $( '<h3>' ).html( message )
-            .add( $( '<button class="btn confirm">' ).click( function() {
-                callbackConfirm();
-                ExtOptions.closeDialog();
-            }).html( 'Yes' ) )
-            .add( $( '<button class="btn decline">' ).click( function() {
-                callbackDecline();
-                ExtOptions.closeDialog();
-            }).html( 'No' ) );
+            .add( $( '<button class="btn confirm">' ).html( 'Yes' ) )
+            .add( $( '<button class="btn decline">' ).html( 'No' ) );
 
-        ExtOptions.openDialog(title, content);
+        let dialog = ExtOptions.openDialog(title, content);
+
+        dialog.find('.confirm').click( function() {
+            callbackConfirm();
+            ExtOptions.closeDialog( dialog );
+        });
+
+        dialog.find('.decline').click( function() {
+            callbackDecline();
+            ExtOptions.closeDialog( dialog );
+        });
+
+        return dialog;
     },
     
     /**
@@ -824,25 +832,25 @@ var ExtOptions = {
      * @param title string
      * @param message string
      */
-    fetchDialog : function(title, message)   {
+    repoDialog : function(title, message)   {
         
         // help info displayed if no repo url set
         let info_repo_default = '';
 
         if ( !ExtOptions.options.repo_url ) {
             info_repo_default = '<p><a id="repo_test" href="#">Test how it works using example dummy repo</a><br>' +
-                'You may easily host your own project repo, <a href="https://chrome.wolo.pl/projectrepo/">see details how</a>.</p>';
+                'You may easily host your own project repo, <a class="external" href="https://chrome.wolo.pl/projectrepo/">see details how</a>.</p>';
         }
 
         let content = $( '<div class="repo-config">' +
-                '<input type="text" id="repo_url" placeholder="Repo url"> <input type="text" id="repo_key" placeholder="Repo key">' +
+                '<label>Repo url:</label> <input type="text" id="repo_url"> <label>Key:</label> <input type="text" id="repo_key">' +
                 '<button class="btn save" id="repo_config_save"><span class="icon"></span> <span class="text">Save</span></button>' +
                 '<div class="notice"></div>' +
             '</div>' +
             '<div class="fetch-inner">' +
                 info_repo_default +
                 '<div class="fetch-controls">' +
-                    '<input type="text" id="repo_fetch_filter" placeholder="Filter by name"> <button class="btn fetch" id="repo_fetch" disabled><span class="icon"></span> <span class="text">Fetch</span></button>' +
+                    '<input type="text" id="repo_fetch_filter" placeholder="Filter by name"> <button class="btn fetch" id="repo_fetch" disabled><span class="icon"></span> <span class="text">Fetch available items list</span></button>' +
                 '</div>' +
                 '<div class="fetched-projects ajax-target"></div>' +
             '</div>'
@@ -887,6 +895,11 @@ var ExtOptions = {
             content.find('#repo_fetch').on('click', function() {
                 RepoHelper.fetchProjects(caller);
             });
+            
+            // on enter key pressed in filter input
+            content.find('#repo_fetch_filter').on( 'keypress', function(e) {
+                if ( e.which === 13 )       RepoHelper.fetchProjects(caller);
+            })
     
             // bind additional test link
             content.find('#repo_test').on('click', function() {
@@ -906,27 +919,35 @@ var ExtOptions = {
      * @param callback function
      */
     openDialog : function(title, content, classname, callback)   {
-        var dialog_overlay = $( '<div class="dialog-overlay">' );
+
+        if ( $( 'body > .dialog' ).length === 0 )
+            var dialog_overlay = $( '<div class="dialog-overlay">' );
         var dialog = $( '<div class="dialog '+(classname ?? '')+'">' );
         $( 'body' ).append( dialog_overlay ).append( dialog );
         
         $( '<div class="dialog-inner">' )
             .append( $( '<h2 class="dialog-head">' ).html( title ) )
-            .append( $( '<span class="dialog-close" title="Close">' ).html( 'X' ).on('click', function(){ ExtOptions.closeDialog(); }) )
+            .append( $( '<span class="dialog-close" title="Close">' ).html( 'X' ).on('click', function(){ ExtOptions.closeDialog( dialog ); }) )
             .append( $( '<div class="dialog-body">' ).html( content ) )
             .appendTo( dialog );
 
         if (callback instanceof Function) {
             callback( dialog );
         }
+        
+        ExtOptions.dialogToCloseOnGlobalEvents = dialog; 
+        
+        return dialog;
     },
 
     /**
      * Close dialog / remove modal object
      */
-    closeDialog : function()  {
-        $( 'body > .dialog' ).remove();
-        $( 'body > .dialog-overlay' ).remove();
+    closeDialog : function(dialog)  {
+        $( dialog ).remove();
+        // sometimes there's more dialogs at once (ie. confirmation popup but called in modal) so remove overlay when there's no more left
+        if ( $( 'body > .dialog' ).length === 0 )
+            $( 'body > .dialog-overlay' ).remove();
     },
 
     /**
@@ -1149,9 +1170,10 @@ $(function() {
     ExtOptions.bindAutosave();
 	$(document).on('keydown',function(e) {
         if (e.keyCode === 27) {
-            ExtOptions.closeDialog();
+            ExtOptions.closeDialog( ExtOptions.dialogToCloseOnGlobalEvents );
         }
-    });});
+    });
+});
 
 // bind basic buttons
 $( 'button.save' ).click( function () {
@@ -1164,8 +1186,8 @@ $( 'button.env_projectAdd' ).click( function () {
     newProject.removeClass( 'collapse' );
     newProject.find( '[name="project[name]"]' ).focus();
 });
-$( 'button.env_projectFetch' ).click( function () {
-    ExtOptions.fetchDialog('Fetch projects from repository');
+$( 'button.env_projectRepo' ).click( function () {
+    ExtOptions.repoDialog('Get projects from repository');
 });
 $( 'button#env_import' ).click( function () {
     ExtOptions.importProjectsFromTextarea( {} )
@@ -1244,3 +1266,23 @@ function hashCode(str)  {
     }
     return hash;
 }
+
+
+/**
+ * Different one, maybe better - testing in array comparison
+ * @param str
+ * @param seed
+ * @return {number}
+ */
+const cyrb53 = function(str, seed = 0) {
+    let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+    for (let i = 0, ch; i < str.length; i++) {
+        ch = str.charCodeAt(i);
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1>>>16), 2246822507) ^ Math.imul(h2 ^ (h2>>>13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2>>>16), 2246822507) ^ Math.imul(h1 ^ (h1>>>13), 3266489909);
+    return 4294967296 * (2097151 & h2) + (h1>>>0);
+};
+

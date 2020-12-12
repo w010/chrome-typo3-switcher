@@ -22,7 +22,7 @@ h4  {
 p   {
 	font-size: 1.1em;
 }
-a[href^="http"]:before {
+a.external:before {
 	content: "\2197\0020";
 	white-space: nowrap;
 }
@@ -206,8 +206,11 @@ button.add .icon  {     background-image: url(/Icons/Options/Add.svg);  }
 button.save .icon  {    background-image: url(/Icons/Options/Save.svg);  }
 button.import .icon  {  background-image: url(/Icons/Options/Import.svg);  }
 button.export .icon  {  background-image: url(/Icons/Options/Export.svg);  }
-button.fetchdialog .icon  {   background-image: url(/Icons/Options/Fetch.svg);  }
-button.fetch .icon  {   background-image: url(/Icons/Options/Fetch.svg);  }
+button.repodialog .icon  {   background-image: url(/Icons/Options/Repository.svg);  }
+button.fetch .icon  {   background-image: url(/Icons/Options/Refresh.svg);  }
+button.getAll .icon  {   background-image: url(/Icons/Options/GetWholePack.svg);  }
+button.compare .icon  { background-image: url(/Icons/Options/Compare.svg);  }
+button.replace .icon  { background-image: url(/Icons/Options/Replace.svg);  }
 
 button.env_contextAddDefaultSet {
 	display: none;
@@ -228,6 +231,11 @@ button.env_contextAddDefaultSet {
 .projectItem:hover,
 .projectItem:focus    {
 	border: 1px solid lightgray;
+}
+.projectItem input[name="project[name]"],
+.projectItem input[name="context[name]"]  {
+	font-weight: 600;
+	font-size: 1.25em;
 }
 .projectItem > label  {
 	display: block;
@@ -352,7 +360,7 @@ label.primary   {
 }
 .dialog-inner {
 	position: relative;
-	margin: 10% auto;
+	margin: 8% auto;
 	background: #eee;
 	padding: 15px;
 	width: 50%;
@@ -364,6 +372,10 @@ label.primary   {
 	right: 10px;
 	cursor: pointer;
 	font-size: 20px;
+}
+.dialog-close:hover {
+	color: #000;
+    text-shadow: 2px 1px 3px #888;
 }
 .dialog-head    {
 	font-size: 1.5em;
@@ -478,10 +490,10 @@ label.primary   {
 /* repo fetch projects */
 
 input#repo_url  {
-	width: 65%; 
+	width: 50%; 
 }
 input#repo_key  {
-	width: 25%; 
+	width: 15%; 
 }
 .dialog.dialog-fetch   {
 	text-align: left;
@@ -489,4 +501,170 @@ input#repo_key  {
 .dialog-fetch .fetch-controls   {
 	margin: 20px 0;
 }
+.dialog-fetch button.fetch:hover  {
+	background: rgb(140, 218, 233);
+}
+.dialog-fetch button.getAll:hover  {
+	background: rgb(156, 233, 144);
+}
+.dialog-fetch .fetch-inner  {
+	position: relative;
+}
 
+.fetched-projects   {
+	max-height: 65vh;
+	overflow-y: scroll;
+	position: relative;
+	/*transition: height ease-in 0.1s; doesn't work*/
+}
+
+.project-item-preview   {
+	position: relative;
+	background: #fafafa;
+	margin: 20px 0;
+	padding: 20px;
+	font-size: 14px;
+	border: 1px solid #ddd;
+}
+.project-item-preview:hover {
+	background: #fff;
+	border: 1px solid #999;
+}
+.project-item-preview h3   {
+	font-weight: bold;
+	display: inline-block;
+	margin-top: 0;
+	font-size: 18px;
+}
+.project-item-preview h4   {
+	font-weight: bold;
+	display: inline-block;
+	margin: 2px 0 8px;
+	color: #666;
+}
+.project-item-preview p   {
+	margin: 2px 0;
+	font-style: italic;
+}
+
+.project-item-preview .contexts,
+.project-item-preview .links    {
+	padding-left: 20px;
+}
+.project-item-preview .context-item,
+.project-item-preview .link-item    {
+	padding-left: 30px;
+	position: relative;
+}
+
+.project-item-preview .context-item .name,
+.project-item-preview .link-item .name   {
+	width: 25%;
+}
+.project-item-preview .context-item .url,
+.project-item-preview .link-item .url   {
+	display: inline-block;
+}
+.project-item-preview .url a    {
+	color: inherit;
+	text-decoration: none;
+}
+.project-item-preview .url a:hover    {
+	text-decoration: underline;
+}
+.project-item-preview .context-item .color {
+	width: 8px;
+    height: 8px;
+    display: inline-block;
+    left: 12px;
+	top: 8px;
+	border-radius: 4px;
+    position: absolute;
+}
+
+.project-item-preview .buttons  {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+}
+.project-item-preview.local-exists > h3  {
+}
+
+.project-item-preview.local-exists > h3 .infoicon   {
+    display: inline-block;
+	margin-left: 80px;
+}
+.project-item-preview.differs > h3    {
+	color: #ff8700;
+}
+.project-item-preview.differs > h3 .infoicon:before    {
+	content: '\0021';
+}
+.project-item-preview.differs > h3 .infoicon:after    {
+	content: 'Already exist, some differences detected';
+	font-size: 13px;
+    margin-left: 10px;
+    font-weight: normal;
+}
+
+.project-item-preview.identical > h3    {
+	color: #2ca545;
+}
+.project-item-preview.identical > h3 .infoicon:before   {
+	content: '\2714';
+}
+.project-item-preview.identical > h3 .infoicon:after  {
+	content: 'Already exist, looks the same';
+	font-size: 13px;
+    margin-left: 10px;
+    font-weight: normal;
+}
+
+
+.project-item-preview button.replace,
+.project-item-preview button.compare,
+.project-item-preview.local-exists button.get    {
+	display: none;
+}
+.project-item-preview.local-exists button.replace,
+.project-item-preview.local-exists button.compare    {
+	display: inline-block;
+}
+
+.project-item-preview button.add:hover {
+	background: rgb(156, 233, 144);
+}
+.project-item-preview button.replace:hover {
+	background: rgb(233, 151, 127);
+}
+.project-item-preview button.compare:hover {
+	background: rgb(140, 218, 233);
+}
+
+.dialog.dialog-compare .dialog-inner  {
+    margin: 7% auto;
+    background: #ddd;
+    width: 75%;
+	text-align: left;
+}
+
+.dialog.dialog-compare .compare-diff    {
+    font-family: Courier New, monospace;
+    white-space: pre;
+    background: #eee;
+    padding: 6px;
+    margin: 0 10px;
+}
+.dialog.dialog-compare .dialog-body    {
+	max-height: 65vh;
+	overflow-y: scroll;
+}
+.dialog.dialog-compare .compare-diff .inserted   {
+	color: #2ca545;
+	background: #c5f8b8;
+}
+
+.dialog.dialog-compare .compare-diff .deleted   {
+	color: #a52c2c;
+	background: #f8b8b8;
+}
