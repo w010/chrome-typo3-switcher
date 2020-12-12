@@ -134,7 +134,9 @@ var ExtOptions = {
             'env_favicon_fill' :                '0.25', 
             'env_favicon_position' :            'bottom',
             'env_favicon_composite' :           'source-over',
-            'ext_debug' :                       false
+            'ext_debug' :                       false,
+            'repo_url' :                        '',
+            'repo_key' :                        '',
 
         }, function(options) {
 
@@ -250,7 +252,8 @@ var ExtOptions = {
         });
         project.find( 'button.env_projectRemove' ).click( function() {
 			var trigger = $(this);
-            ExtOptions.confirmDialog( 'Delete project - Are you sure?', function() {                ExtOptions.deleteProjectItem( trigger.closest('.projectItem') );
+			ExtOptions.confirmDialog( 'Delete project - Are you sure?', function() {
+				ExtOptions.deleteProjectItem( trigger.closest('.projectItem') );
                 //ExtOptions.optionsSave(); // probably is problematic to call it right after
             });
         });
@@ -794,6 +797,7 @@ var ExtOptions = {
 
     /**
      * Simple modal dialog with Yes / No buttons
+     * @param title string
      * @param message string
      * @param callbackConfirm function
      * @param callbackDecline function
@@ -803,11 +807,11 @@ var ExtOptions = {
         if ( typeof callbackDecline !== 'function' )  callbackDecline = function(){};
 
         let content = $( '<h3>' ).html( message )
-            .add( $( '<button class="confirm">' ).click( function() {
+            .add( $( '<button class="btn confirm">' ).click( function() {
                 callbackConfirm();
                 ExtOptions.closeDialog();
             }).html( 'Yes' ) )
-            .add( $( '<button class="decline">' ).click( function() {
+            .add( $( '<button class="btn decline">' ).click( function() {
                 callbackDecline();
                 ExtOptions.closeDialog();
             }).html( 'No' ) );
@@ -821,12 +825,76 @@ var ExtOptions = {
      * @param message string
      */
     fetchDialog : function(title, message)   {
+        
+        // help info displayed if no repo url set
+        let info_repo_default = '';
 
-        let content = $( '<h3>' ).html( message );
+        if ( !ExtOptions.options.repo_url ) {
+            info_repo_default = '<p><a id="repo_test" href="#">Test how it works using example dummy repo</a><br>' +
+                'You may easily host your own project repo, <a href="https://chrome.wolo.pl/projectrepo/">see details how</a>.</p>';
+        }
+
+        let content = $( '<div class="repo-config">' +
+                '<input type="text" id="repo_url" placeholder="Repo url"> <input type="text" id="repo_key" placeholder="Repo key">' +
+                '<button class="btn save" id="repo_config_save"><span class="icon"></span> <span class="text">Save</span></button>' +
+                '<div class="notice"></div>' +
+            '</div>' +
+            '<div class="fetch-inner">' +
+                info_repo_default +
+                '<div class="fetch-controls">' +
+                    '<input type="text" id="repo_fetch_filter" placeholder="Filter by name"> <button class="btn fetch" id="repo_fetch" disabled><span class="icon"></span> <span class="text">Fetch</span></button>' +
+                '</div>' +
+                '<div class="fetched-projects ajax-target"></div>' +
+            '</div>'
+        );
 
 
-        ExtOptions.openDialog(title, content, function(caller)    {
-            RepoHelper.fetchProjects(caller);
+        ExtOptions.openDialog(title, content, 'dialog-fetch', function(caller)    {
+ 
+            // set variables from storage, control fetch button de/activation
+            $('#repo_url')
+                .on('change paste keyup', function(){
+                    if ($(this).val()) {
+                        $('#repo_fetch').attr('disabled', false);
+                    }
+                    else    {
+                        $('#repo_fetch').attr('disabled', true);
+                    }
+                })
+                .val( ExtOptions.options.repo_url )
+                .trigger('change');
+            $('#repo_key').val( ExtOptions.options.repo_key );
+            
+            // bind save repo settings button
+            content.find('#repo_config_save').on('click', function() {
+                chrome.storage.sync.set({
+                    'repo_url' :   $( '#repo_url' ).val(),
+                    'repo_key' :   $( '#repo_key' ).val(),
+                }, function() {
+                    if (chrome.runtime.lastError)   {
+                        ExtOptions.displayMessage( 'Options save problem -  ' + chrome.runtime.lastError.message, 'level-error', '.dialog-fetch .repo-config .notice', 100000 );
+                    }
+                    else    {
+                        ExtOptions.displayMessage( 'Saved', 'level-info', '.dialog-fetch .repo-config .notice', 2000 );
+                        // have to be set in case of reopen modal to show up-to-date state
+                        ExtOptions.options.repo_url = $( '#repo_url' ).val();
+                        ExtOptions.options.repo_key = $( '#repo_key' ).val();
+                    }
+                });
+            });
+
+            // bind fetch button
+            content.find('#repo_fetch').on('click', function() {
+                RepoHelper.fetchProjects(caller);
+            });
+    
+            // bind additional test link
+            content.find('#repo_test').on('click', function() {
+                $('#repo_url')
+                    .val('https://chrome.wolo.pl/repoexample/')
+                    .trigger('change');
+                return false;
+            });
         });
     },
 
@@ -834,20 +902,23 @@ var ExtOptions = {
      * Open simple modal dialog
      * @param title string
      * @param content string
+     * @param classname
      * @param callback function
      */
-    openDialog : function(title, content, callback)   {
+    openDialog : function(title, content, classname, callback)   {
         var dialog_overlay = $( '<div class="dialog-overlay">' );
-        var dialog = $( '<div class="dialog">' );
+        var dialog = $( '<div class="dialog '+(classname ?? '')+'">' );
         $( 'body' ).append( dialog_overlay ).append( dialog );
         
         $( '<div class="dialog-inner">' )
             .append( $( '<h2 class="dialog-head">' ).html( title ) )
-            .append( $( '<span class="dialog-close" title="Close">' ).html( 'X' ) ).on('click', function(){ ExtOptions.closeDialog(); })
+            .append( $( '<span class="dialog-close" title="Close">' ).html( 'X' ).on('click', function(){ ExtOptions.closeDialog(); }) )
             .append( $( '<div class="dialog-body">' ).html( content ) )
             .appendTo( dialog );
 
-        callback( dialog );
+        if (callback instanceof Function) {
+            callback( dialog );
+        }
     },
 
     /**

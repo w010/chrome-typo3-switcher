@@ -11,12 +11,20 @@ h1  {
 }
 h2  {
 	margin: .1em 0 .7em;
+	font-size: 1.1em;
 }
 h3  {
 	margin: 1em 0 .7em;
 }
 h4  {
 	margin: 10px 0;
+}
+p   {
+	font-size: 1.1em;
+}
+a[href^="http"]:before {
+	content: "\2197\0020";
+	white-space: nowrap;
 }
 .settings-block  {
 	margin-bottom: 15px;
@@ -198,6 +206,7 @@ button.add .icon  {     background-image: url(/Icons/Options/Add.svg);  }
 button.save .icon  {    background-image: url(/Icons/Options/Save.svg);  }
 button.import .icon  {  background-image: url(/Icons/Options/Import.svg);  }
 button.export .icon  {  background-image: url(/Icons/Options/Export.svg);  }
+button.fetchdialog .icon  {   background-image: url(/Icons/Options/Fetch.svg);  }
 button.fetch .icon  {   background-image: url(/Icons/Options/Fetch.svg);  }
 
 button.env_contextAddDefaultSet {
@@ -323,6 +332,11 @@ label.primary   {
 .status-notice.warn, .status-import.warn        {background: rgb(233, 232, 160);} 
 .status-notice.error, .status-import.error      {background: rgb(233, 151, 127);} 
 
+.level-info       { color: rgb(140, 218, 233);}
+.level-success    { color: rgb(156, 233, 144);}
+.level-warn       { color: rgb(233, 232, 160);}
+.level-error      { color: rgb(233, 151, 127);}
+
 .dialog-overlay {
 	position: fixed;
 	top: 0; left: 0;
@@ -351,8 +365,23 @@ label.primary   {
 	cursor: pointer;
 	font-size: 20px;
 }
+.dialog-head    {
+	font-size: 1.5em;
+}
+.dialog-body input[type=text]   {
+	background: #fff;
+	margin: 3px;
+}
 .dialog button  {
-	margin: 2px 5px;
+	margin: 3px 5px;
+	vertical-align: top;
+}
+.btn.confirm,
+.btn.decline    {
+	padding: 6px 16px;
+}
+.btn.confirm    {
+	background: rgba(233, 151, 127, .5);
 }
 
 .ui-sortable    {
@@ -392,6 +421,7 @@ label.primary   {
     height: 32px;
     width: 32px;
     line-height: 32px;
+	margin-left: calc(50% - 16px);
 }
 .ajaxloader {
     position: relative;
@@ -444,3 +474,19 @@ label.primary   {
         transform: rotate(359deg);
     }
 }
+
+/* repo fetch projects */
+
+input#repo_url  {
+	width: 65%; 
+}
+input#repo_key  {
+	width: 25%; 
+}
+.dialog.dialog-fetch   {
+	text-align: left;
+}
+.dialog-fetch .fetch-controls   {
+	margin: 20px 0;
+}
+
