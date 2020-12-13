@@ -45,8 +45,8 @@ var ExtOptions = {
             'env_enable' :                      $( '#env_enable' ).is( ':checked' ),
             //'env_switching' :                   $( '#env_switching' ).is( ':checked' ),
             'env_menu_show_allprojects' :       $( '#env_menu_show_allprojects' ).is( ':checked' ),
-            'env_menu_show_installtool' :       $( '#env_menu_show_installtool' ).is( ':checked' ),
-            'env_menu_show_dump' :              $( '#env_menu_show_dump' ).is( ':checked' ),
+            'env_menu_short_custom1' :          $( '#env_menu_short_custom1' ).val(),
+            'env_menu_short_custom2' :          $( '#env_menu_short_custom2' ).val(),
             'env_badge' :                       $( '#env_badge' ).is( ':checked' ),
             'env_badge_projectname' :           $( '#env_badge_projectname' ).is( ':checked' ),
             'env_badge_position' :              $( '#env_badge_position_right' ).is( ':checked' )  ?  'right'  :  'left',
@@ -135,8 +135,8 @@ var ExtOptions = {
             'env_enable' :                      true,
             //'env_switching' :                   true,
             'env_menu_show_allprojects' :       true,
-            'env_menu_show_installtool' :       true,
-            'env_menu_show_dump' :              false,
+            'env_menu_short_custom1' :          '/typo3/install.php',
+            'env_menu_short_custom2' :          '',
             'env_badge' :                       true,
             'env_badge_projectname' :           true,
             'env_badge_position' :              'right',
@@ -157,8 +157,8 @@ var ExtOptions = {
             $( '#env_enable' ).attr( 'checked',                     options.env_enable );
             //$( '#env_switching' ).attr( 'checked',                  options.env_switching );
             $( '#env_menu_show_allprojects' ).attr( 'checked',      options.env_menu_show_allprojects );
-            $( '#env_menu_show_installtool' ).attr( 'checked',      options.env_menu_show_installtool );
-            $( '#env_menu_show_dump' ).attr( 'checked',             options.env_menu_show_dump );
+            $( '#env_menu_short_custom1' ).val('' +                    options.env_menu_short_custom1 );
+            $( '#env_menu_short_custom2' ).val('' +                    options.env_menu_short_custom2 );
             $( '#env_badge' ).attr( 'checked',                      options.env_badge );
             $( '#env_badge_projectname' ).attr( 'checked',          options.env_badge_projectname );
             $( '#env_badge_position_left' ).attr( 'checked',        options.env_badge_position === 'left' );

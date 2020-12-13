@@ -21,6 +21,7 @@ h2  {
 }
 h3  {
 	margin: 1em 0 .7em;
+	font-size: 1.25em;
 }
 h4  {
 	margin: 10px 0;
@@ -40,19 +41,24 @@ a.external:before {
 .heading    {
 	position: relative;
 }
-.heading h1 {
+.heading header {
 	position: absolute;
 	top: 0;
 	right: 0;
+	text-align: right;
+}
+.heading h1 {
 	margin-top: 0px;
 }
 .heading h2 {
-	position: absolute;
-	top: 35px;
-	right: 0;
 	font-size: 1.3em;
 	color: #666;
 	font-weight: normal;
+}
+.heading a.link-block {
+	position: absolute;
+	width: 100%;    height: 100%;
+	top: 0; left: 0;
 }
 .clear  {
 	clear: both;
@@ -88,15 +94,9 @@ input[type="radio"]    {
 input[type="text"]    {
 	width: 260px;
 	min-height: 2em;
-	background-color: transparent;
-	border-color: transparent;
 	transition: background-color 0.3s;
 	font-size: 1.2em;
-}
-input[type="text"]:focus,
-input[type="text"]:hover    {
-	background-color: #fff;
-	border-color: #bfbfbf;
+	border-color: #ddd;
 }
 input[type="text"].required:placeholder-shown {
 	border-bottom-color: #ff8700;
@@ -127,6 +127,7 @@ input[type=range]   {
 	vertical-align: middle;
 	position: relative;
 	top: -3px;
+	width: 50%;
 }
 
 label.hide  {
@@ -136,22 +137,21 @@ label.hide  {
 	right: 60px;
 	cursor: pointer;
 }
-label.text input[type="text"]    {
-	border: 1px solid #bbb;
-}
 label.text span    {
 	margin-right: 8px;
 }
-
+label.text.short span   {
+	width: calc(100% - 274px);
+}
 label.select span:nth-child(1)  {
-	width: 190px;
+	width: 230px;
 }
 label.select select {
-	min-width: 130px;
+	min-width: 150px;
 }
 
 label.range span:nth-child(1)    {
-	width: 130px;
+	width: 100px;
 }
 label.range input[type="range"]    {
 	margin-left: 10px;
@@ -247,6 +247,16 @@ button.env_contextAddDefaultSet {
 	padding: 0 8px;
 }
 
+.projects-container input[type="text"]    { /* possibly also all other text-like modern inputs */
+	background-color: transparent;
+	border-color: transparent;
+}
+.projects-container input[type="text"]:focus,
+.projects-container input[type="text"]:hover    {
+	background-color: #fff;
+	border-color: #bfbfbf;
+}
+
 .contexts,
 .links {
 	padding-top: 16px;
@@ -316,7 +326,6 @@ button.env_contextAddDefaultSet {
 	right: 150px;
 	width: 530px;   height: 49px;
 	cursor: pointer;
-	/*background: red;*/
 }
 	.toggle .icon   {
 		display: block;
@@ -336,7 +345,6 @@ button.env_contextAddDefaultSet {
 	}
 .contextItem .toggle {
 	width: 100px;
-	/*background: green;*/
 }
 	.contextItem:hover > .toggle .icon    {
 		opacity: 0.2;
@@ -361,6 +369,8 @@ label.primary   {
 	display: block;
 	padding-left: 20px;
 	font-size: 110%;
+	font-weight: 500;
+	margin-bottom: 20px;
 }
 	label.primary:hover {
 		background: #f8f8f8;
@@ -368,6 +378,10 @@ label.primary   {
 	label.primary i   {
 		opacity: .6;
 	}
+label.primary input,
+label.primary span  {
+	font-weight: revert;
+}
 
 .status-notice, .status-import {
     position: absolute;

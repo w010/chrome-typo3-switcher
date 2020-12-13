@@ -143,23 +143,38 @@ var Switcher = {
     },
 
 
+    /**
+     * 
+     * @param siteUrl
+     * @param shortcutValue
+     * @param customShortcutNumber
+     */
+    openCustomShortcut : function( siteUrl, shortcutValue, customShortcutNumber ) {
 
-    openInstallTool : function(siteUrl) {
-        // if base tag cannot be read / no url found, try only a domain
-        if ( !siteUrl  &&  Switcher._currentTab  &&  Switcher._url ) {
+        let newTabUrl = '';
 
-            // extract scheme + domain
-            var parts = Switcher._url.split( '/' );
-            siteUrl = parts[0] + '//' + parts[2];
+        // if begins with slash, treat as path segment and attach to base/domain
+        if ( shortcutValue.charAt(0) === '/' )    {
 
-            /*console.log('url: ' + _url);
-             console.log(parts);
-             console.log(siteUrl);*/
+            // if base tag cannot be read / no url found, try only a domain
+            if ( !siteUrl  &&  Switcher._currentTab  &&  Switcher._url ) {
+
+                // extract scheme + domain
+                let parts = Switcher._url.split( '/' );
+                siteUrl = parts[0] + '//' + parts[2];
+
+                /*console.log('url: ' + _url);
+                console.log(parts);
+                console.log(siteUrl);*/
+            }
+            
+            // strip trailing slash
+            newTabUrl = siteUrl.replace( /\/$/, '' )
+                + shortcutValue;
         }
-
-        // strip trailing slash, if present
-        var newTabUrl = siteUrl.replace( /\/$/, '' )
-            + '/typo3/install/';
+        else    {
+            newTabUrl = shortcutValue;
+        }
 
         console.info('newTabUrl: ' + newTabUrl);
 
@@ -170,31 +185,6 @@ var Switcher = {
             });
         });
     },
-    
-    
-    
-    openDump : function (siteUrl) {
-        // if base tag cannot be read / no url found, try only a domain
-        if ( !siteUrl  &&  Switcher._currentTab  &&  Switcher._url ) {
-
-            // extract scheme + domain
-            var parts = Switcher._url.split( '/' );
-            siteUrl = parts[0] + '//' + parts[2];
-        }
-
-        // strip trailing slash, if present
-        var newTabUrl = siteUrl.replace( /\/$/, '' )
-            + '/DUMP/';
-
-        console.info('newTabUrl: ' + newTabUrl);
-
-        chrome.tabs.getSelected( null, function (_currentTab) {
-            chrome.tabs.create({
-                'url':      newTabUrl,
-                'index':    _currentTab.index + 1
-            });
-        });
-    }
 
 };
 
@@ -276,7 +266,7 @@ chrome.runtime.onInstalled.addListener(function() {
         var version = chrome.runtime.getManifest().version;
 
         if ( typeof options.internal_installVersion === 'undefined' || options.internal_installVersion === '' || options.internal_installVersion.split( '.' )[0] !== version.split( '.' )[0] ) {
-            chrome.tabs.create({ url: "http://wolo.pl/chrome/#whats-new" });
+            chrome.tabs.create({ url: "https://wolo.pl/chrome/#whats-new" });
             chrome.storage.sync.set({ internal_installVersion: version });
         }
     });

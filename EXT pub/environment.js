@@ -310,36 +310,36 @@ var Env = {
         }
 
 
-        // -- INSTALL TOOL
-        if ( typeof options.env_menu_show_installtool !== 'undefined'  &&  options.env_menu_show_installtool === true  &&  p > -1 ) {
+        // -- Custom shortcut 1
+        if ( typeof options.env_menu_short_custom1 !== 'undefined'  &&  options.env_menu_short_custom1 !== ''  &&  p > -1 ) {
 
             contextMenuItems.push({
-                title :             '_separator-install',
-                id :                '_separator-install',
+                title :             '_separator-shortcustom1',
+                id :                '_separator-shortcustom1',
                 type :              'separator',
                 showForMenuType:    'rightClickOnly'
             });
 
             contextMenuItems.push({
-                title : 'Install Tool',
-                id :    'project-' + p + '-installtool-'
+                title : options.env_menu_short_custom1,
+                id :    'project-' + p + '-shortcustom1-'
             });
         }
         
                 
-        // -- DUMP
-        if ( typeof options.env_menu_show_dump !== 'undefined'  &&  options.env_menu_show_dump === true  &&  p > -1 ) {
+        // -- Custom shortcut 2
+        if ( typeof options.env_menu_short_custom2 !== 'undefined'  &&  options.env_menu_short_custom2 !== ''  &&  p > -1 ) {
 
             contextMenuItems.push({
-                title :             '_separator-dump',
-                id :                '_separator-dump',
+                title :             '_separator-shortcustom2',
+                id :                '_separator-shortcustom2',
                 type :              'separator',
                 showForMenuType:    'rightClickOnly'
             });
 
             contextMenuItems.push({
-                title : 'DUMP',
-                id :    'project-' + p + '-dump-'
+                title : options.env_menu_short_custom2,
+                id :    'project-' + p + '-shortcustom2-'
             });
         }
 
@@ -772,7 +772,7 @@ chrome.storage.sync.get( null, function(options) {
             var newContext = project.contexts[ itemIndex ];
             //console.log(newContext);
 
-            if ( typeof newContext === 'undefined'  &&  itemType !== 'installtool'  &&  itemType !== 'dump') {
+            if ( typeof newContext === 'undefined'  &&  itemType !== 'shortcustom1'  &&  itemType !== 'shortcustom2') {
                 console.warn('error - no such context set in menu? context index: ' + itemIndex);
                 console.groupEnd();
                 return;
@@ -797,13 +797,13 @@ chrome.storage.sync.get( null, function(options) {
                     }
                 }
 
-                if (itemType === 'installtool') {
-                    Switcher.openInstallTool( activeContext.url );
+                if (itemType === 'shortcustom1') {
+                    Switcher.openCustomShortcut( activeContext.url, options.env_menu_short_custom1, '1' );
                     return;
                 }
-                
-                if (itemType === 'dump') {
-                    Switcher.openDump( activeContext.url );
+                console.log (options);
+                if (itemType === 'shortcustom2') {
+                    Switcher.openCustomShortcut( activeContext.url, options.env_menu_short_custom2, '2' );
                     return;
                 }
 

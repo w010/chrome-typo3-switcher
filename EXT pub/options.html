@@ -8,8 +8,11 @@
 <body>
 <div class="main">
     <div class="settings-block __saveblock heading">
-        <h1>Handy Switcher BE/FE/Env</h1>
-        <h2>Magic server teleporter for TYPO3 & other webprojects</h2>
+        <header>
+            <h1>Handy Switcher BE/FE/Env</h1>
+            <h2>Magic server teleporter for TYPO3 & other webprojects</h2>
+            <a href="https://wolo.pl/chrome/" target="_blank" class="link-block"></a>
+        </header>
 
         <button class="btn save"><span class="icon"></span> <span class="text">Save</span></button>
         <span class="status-notice"></span>
@@ -29,7 +32,7 @@
                 <label class="primary check">
                     <input type="checkbox" id="switch_fe_openSelectedPageUid">
                     <span>Open current pagetree selected page uid <br>
-                        <i>(disabled = open homepage)</i></span>
+                        <i>(disabled = open siteroot)</i></span>
                 </label>
 
             </div>
@@ -38,7 +41,11 @@
                 <h3>to Backend:</h3>
                 <label class="primary check">
                     <input type="checkbox" id="switch_be_useBaseHref">
-                    <span>Try to use &lt;base href&gt; to recognize backend url <br>
+                    <span>Try to use &lt;base href&gt; <abbr title="IMPORTANT!
+Base tag MUST be there, if you run Typo3 in subdirectory, instead of subdomain. Without it we can't estimate that missing segment and build valid Backend path,
+so BE switching using toolbar icon won't work in such projects and there's no other way to workaround that.
+(we need to know the exact webroot url to make that work, otherwise it just opens [domain]/typo3/)
+The BEST SOLUTION for that problem (and highly probable many others) is to just AVOID RUNNING TYPO3 IN SUBDIR when possible, if you care of your nerves.">to recognize backend url [ i ]</abbr> <br>
                         <i>(disabled = use current domain, same as when base tag not found)</i></span>
                 </label>
 
@@ -59,7 +66,7 @@
                 <label class="primary check">
                     <input type="checkbox" id="env_enable">
                     <span>Use this whole Contexts / Environments functionality <br>
-                        <i>(disabled = no env menu, no badges, no favicon. only FE/BE switching)</i></span>
+                        <i>(disabled = no env menu, no badges, no favicon. <br>only FE/BE switching)</i></span>
                 </label>
 
             </div>
@@ -73,15 +80,19 @@
                 </label>-->
                 <label class="primary check">
                     <input type="checkbox" id="env_menu_show_allprojects">
-                    <span>Show <i>All projects</i> (icon / action menu only)</span>
+                    <span>Show <i>All projects</i> submenu (icon / action menu only)</span>
                 </label>
-                <label class="primary check">
-                    <input type="checkbox" id="env_menu_show_installtool">
-                    <span>Show <i>Install tool</i></span>
+
+                <label class="primary text short">
+                    <span>Custom <abbr title="If value starts from / then will treated as path segment and glued to base url/domain.
+Otherwise will open like full url.">path / shortcut</abbr> 1:</span>
+                    <input type="text" id="env_menu_short_custom1">
+                    <i>(default: /typo3/install.php)</i>
                 </label>
-                <label class="primary check">
-                    <input type="checkbox" id="env_menu_show_dump">
-                    <span>Show <i>DUMP</i></span>
+
+                <label class="primary text short">
+                    <span>Custom path / shortcut 2:</span>
+                    <input type="text" id="env_menu_short_custom2">
                 </label>
 
             </div>
@@ -170,7 +181,7 @@
                         <option value="destination-over">destination-over</option>
                         <option value="xor">xor</option>
                     </select>
-                    <span><i>(way it blends into icon / transparency)</i></span>
+                    <span><i>(the way it blends into icon / transparency)</i></span>
                 </label>
 
                 <label class="primary select">
@@ -309,7 +320,7 @@
                 <label class="primary check">
                     <input type="checkbox" id="env_import_test" class="no-autosave">
                     <span>No autosave / Test import<br>
-                        <i>(see the imported projects, you can tune them and save, or not.<br>
+                        <i>(review the imported projects before saving.<br>
                             disabled / default = autosave right after import)</i></span>
                 </label>
 
@@ -345,7 +356,7 @@
         <label class="primary check">
             <input type="checkbox" id="ext_debug" class="no-autosave">
             <span>Debug info <br>
-                (show some console messages and vars values)</span>
+                <i>(show some console messages and vars values)</i></span>
         </label>
     </div>
 
