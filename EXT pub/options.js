@@ -27,6 +27,15 @@ var ExtOptions = {
      */
     optionsSave : function() {
 
+        // sort projects - I think it's best to run sorting at this stage
+        if ( $( '#env_projects_autosorting' ).is( ':checked' ) ) {
+            let sortedProjects = $( '.projects-container .projectItem' ).sort(function(a, b) {
+                return $(a).find( '[name="project[name]"]' ).val().toUpperCase().localeCompare( 
+                    $(b).find( '[name="project[name]"]' ).val().toUpperCase() );
+            });
+            sortedProjects.appendTo( $( '.projects-container' ) );
+        }
+
         var projects = ExtOptions.collectProjects();
     
         chrome.storage.sync.set({
@@ -47,6 +56,7 @@ var ExtOptions = {
             'env_favicon_fill' :                $( '#env_favicon_fill' ).val(),
             'env_favicon_position' :            $( '#env_favicon_position' ).val(),
             'env_favicon_composite' :           $( '#env_favicon_composite' ).val(),
+            'env_projects_autosorting' :        $( '#env_projects_autosorting' ).is( ':checked' ),
             'ext_debug' :                       $( '#ext_debug' ).is( ':checked' )
 
         }, function() {
@@ -121,6 +131,7 @@ var ExtOptions = {
             'switch_be_useBaseHref' :           true,
             'env_projects' :                    [],     // leave for compatibility - must try to read old projects array to migrate
             'env_projects_storing_version' :    1,      // version 1 is original all-projects-one-key method. version 2 means projects stored in separated items, with index and counter. version 3 is items with unique id
+            'env_projects_autosorting' :        false,
             'env_enable' :                      true,
             //'env_switching' :                   true,
             'env_menu_show_allprojects' :       true,
@@ -161,6 +172,7 @@ var ExtOptions = {
             $( '#env_favicon_fill__range' ).val(                    options.env_favicon_fill );
             $( '#env_favicon_position' ).val(                       options.env_favicon_position );
             $( '#env_favicon_composite' ).val(                      options.env_favicon_composite );
+            $( '#env_projects_autosorting' ).attr( 'checked',       options.env_projects_autosorting );
             $( '#ext_debug' ).attr( 'checked',                      options.ext_debug );
 
             ExtOptions.DEV = options.ext_debug;
@@ -512,8 +524,9 @@ var ExtOptions = {
      * @param projects array
      */
     populateEnvSettings : function(projects)   {
-        // console.info('called: ExtOptions.populateEnvSettings');
-        console.info('projects from conf:', projects);
+        if ( ExtOptions.DEV )
+            console.info('projects from conf:', projects);
+
         if ( !Array.isArray( projects ) )
             projects = [];
         
@@ -531,14 +544,15 @@ var ExtOptions = {
             delete(projectItem.sorting);
             ExtOptions.insertProjectItem( projectItem );
 
-            if ( this.DEV )
+            if ( ExtOptions.DEV )
                 console.log(projectItem);
         });
 
 
-        // init drag & drop
-        $( '.projects-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer', update: function() { ExtOptions.sortDropCallback(); } });
-
+        if ( !$( '#env_projects_autosorting' ).is( ':checked' ) ) {
+            // init drag & drop
+            $( '.projects-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer', update: function() { ExtOptions.sortDropCallback(); } });
+        }
 
         // scroll to last set project on load
         /*if ( typeof this.options._lastProject !== 'undefined'  &&  this.options._lastProject.length > 0 )  {

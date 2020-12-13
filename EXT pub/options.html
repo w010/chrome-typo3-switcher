@@ -6,8 +6,11 @@
 </head>
 
 <body>
+<div class="main">
+    <div class="settings-block __saveblock heading">
+        <h1>Handy Switcher BE/FE/Env</h1>
+        <h2>Magic server teleporter for TYPO3 & other webprojects</h2>
 
-    <div class="settings-block __saveblock">
         <button class="btn save"><span class="icon"></span> <span class="text">Save</span></button>
         <span class="status-notice"></span>
         <br>
@@ -17,7 +20,7 @@
 
     <div class="settings-block __general">
 
-        <h1>Switching</h1>
+        <h2>Switching</h2>
 
         <div class="row">
             <div class="col-6">
@@ -35,8 +38,8 @@
                 <h3>to Backend:</h3>
                 <label class="primary check">
                     <input type="checkbox" id="switch_be_useBaseHref">
-                    <span>Use &lt;base href&gt; to recognize backend url <br>
-                        <i>(disabled = use current domain)</i></span>
+                    <span>Try to use &lt;base href&gt; to recognize backend url <br>
+                        <i>(disabled = use current domain, same as when base tag not found)</i></span>
                 </label>
 
             </div>
@@ -46,7 +49,7 @@
 
     <div class="settings-block __environments">
 
-        <h1>Environment</h1>
+        <h2>Environment</h2>
 
         <div class="row">
             <div class="col-6 settings-block-section __contexts">
@@ -171,7 +174,7 @@
                 </label>
 
                 <label class="primary select">
-                    <span>Preview:</span>
+                    <span>Example icon preview:</span>
                     <img id="favicon-preview">
                 </label>
 
@@ -182,11 +185,11 @@
 
     <div class="settings-block __projects">
 
-        <h1>Projects</h1>
+        <h2>Projects</h2>
         
         <br>
         <button class="btn add env_projectAdd"><span class="icon"></span> <span class="text">Add new empty Project</span></button>
-        or
+        <span class="between-buttons">or</span>
         <button class="btn repodialog env_projectRepo"><span class="icon"></span> <span class="text">Get from <abbr title="It's a good idea to host your own repo to share projects with your team/company. It's a 15-minut-work, so don't forget to check details.">Project Repository</abbr></span></button>
         <br>
         <br>
@@ -224,7 +227,7 @@
                 </div>
 
                 <button class="btn add env_contextAdd"><span class="icon"></span> <span class="text">Add new Context</span></button>
-                or
+                <span class="between-buttons">or</span>
                 <button class="btn add env_contextAddDefaultSet"><span class="icon"></span> <span class="text">Generate standard <abbr title="Adds some default predefined environments">Contexts set</abbr></span></button>
             </div>
 
@@ -253,6 +256,12 @@
         </div>
 
         <br>
+        <label class="primary check">
+            <input type="checkbox" id="env_projects_autosorting" class="no-autosave">
+            <span><abbr title="Autosave on click is DISABLED for this option (in general to avoid mistake click which could ruin one's custom order)">
+                Auto sort</abbr> Project items alphabetically (disables drag&drop <abbr title="but it keeps working for Contexts and Links.">for Project items</abbr> - applies after page reload)<br>
+            <i>(disabled = sort manually yourself, new items adds on bottom)</i></span>
+        </label>
     </div>
 
 
@@ -267,7 +276,7 @@
 
     <div class="settings-block __importexport" id="settings_block_importexport">
 
-        <h1>Import / export projects</h1>
+        <h2>Import / export projects</h2>
         <h3>Backup or share with your team</h3>
         
         <span class="status-import"></span>
@@ -322,7 +331,7 @@
 
                 <button id="env_export_download" class="btn export"><span class="icon"></span> <span class="text">Export - download</span></button>
 
-                <p><i>Don't forget to save before exporting, to update json data!</i></p>
+                <p><i>It's good to always Save before exporting, to make sure json data has updated</i></p>
             </div>
         </div>
 
@@ -331,7 +340,7 @@
 
     <div class="settings-block __miscoptions">
 
-        <h1>Misc options</h1>
+        <h2>Misc options</h2>
 
         <label class="primary check">
             <input type="checkbox" id="ext_debug" class="no-autosave">
@@ -351,5 +360,6 @@
     <script src="setFavicon.js"></script>
     <script src="setBadge.js"></script>
 	<script src="projectsRepo.js"></script>
+</div>
 </body>
 </html>

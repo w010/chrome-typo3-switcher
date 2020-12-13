@@ -243,6 +243,9 @@ button.replace .icon  { background-image: url(/Icons/Options/Replace.svg);  }
 button.env_contextAddDefaultSet {
 	display: none;
 }
+.between-buttons    {
+	padding: 0 8px;
+}
 
 .contexts,
 .links {
