@@ -801,7 +801,7 @@ chrome.storage.sync.get( null, function(options) {
                     Switcher.openCustomShortcut( activeContext.url, options.env_menu_short_custom1, '1' );
                     return;
                 }
-                console.log (options);
+
                 if (itemType === 'shortcustom2') {
                     Switcher.openCustomShortcut( activeContext.url, options.env_menu_short_custom2, '2' );
                     return;

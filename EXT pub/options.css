@@ -4,6 +4,7 @@
 }
 body {
 	font-size: 80%;
+	background: #f9f9f9;
 }
 .main   {
 	padding: 10px;
@@ -223,10 +224,11 @@ button  {
 		vertical-align: top;
 	}
 
-button.remove   {
+button.btn.remove   {
 	position: absolute;
 	top: 10px;  right: 10px;
 	padding: 8px 9px;
+	background-color: transparent;
 	/*background-size: 60% 60%;*/
 }
 button.remove .icon  {  background-image: url(/Icons/Options/Delete.svg);   }
@@ -245,6 +247,19 @@ button.env_contextAddDefaultSet {
 }
 .between-buttons    {
 	padding: 0 8px;
+}
+
+/* "Use max-height in the transition and not height. And set a value on max-height to something bigger than your box will ever get." */
+.section-foldable   {
+	overflow-y: hidden;
+	transition: ease .4s;
+	max-height: 0;
+	padding: 0;
+}
+.section-foldable.expand   {
+	padding: initial;
+	overflow: auto;
+	max-height: 250em;
 }
 
 .projects-container input[type="text"]    { /* possibly also all other text-like modern inputs */
@@ -290,6 +305,7 @@ button.env_contextAddDefaultSet {
 }
 .projectItem input[name="project[name]"],
 .projectItem input[name="context[name]"]  {
+/*.projectItem input[name="link[name]"]  {*/
 	font-weight: 600;
 	font-size: 1.25em;
 }
@@ -309,7 +325,7 @@ button.env_contextAddDefaultSet {
 	border-radius: 3px;
 	padding: 10px;
 	margin-bottom: 10px;
-	transition: opacity 0.4s;
+	transition: opacity 0.4s, background-color 0.3s, border-color 0.4s, box-shadow 0.4s;
 }
 .contextItem:hover,
 .contextItem:focus,
@@ -373,7 +389,7 @@ label.primary   {
 	margin-bottom: 20px;
 }
 	label.primary:hover {
-		background: #f8f8f8;
+		background: #f1f1f1;
 	}
 	label.primary i   {
 		opacity: .6;
@@ -434,7 +450,7 @@ label.primary span  {
 .dialog-inner {
 	position: relative;
 	margin: 8% auto;
-	background: #eee;
+	background: #e7e7e7;
 	padding: 15px;
 	width: 50%;
 	box-shadow: 10px 10px 20px -3px #666;

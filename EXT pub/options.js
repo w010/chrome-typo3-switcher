@@ -178,6 +178,8 @@ var ExtOptions = {
             ExtOptions.DEV = options.ext_debug;
             ExtOptions.options = options;
 
+            ExtOptions.initFoldableSections();
+            
             ExtOptions.setFaviconPreview();
             ExtOptions.setBadgePreview();
 
@@ -1158,7 +1160,55 @@ var ExtOptions = {
                 ExtOptions.optionsSave();
             })
             ;
-    }
+    },
+    
+    initFoldableSections : function ()  {
+        $('.section-foldable').each(function( i, sectionNode )    {
+            let section = $( sectionNode );
+            let triggerSelector = section.data('visibility-trigger');
+  
+            if ( $(triggerSelector).is( ':checked' ) )    {
+                section.addClass('expand');
+                section.css('maxHeight', 'auto');
+            }
+                
+            $( triggerSelector ).on('click', function ()    {
+                if ( $(this).is( ':checked' ) ) {
+                    section.css('maxHeight', 'auto');
+                    section.addClass('expand');
+                }
+                else    {
+                    section.removeClass('expand');
+                }
+            });
+        });
+    },
+    
+    flushStorageKey : function ( key )   {
+
+        if ( !$('#ext_debug').is( ':checked' ) )  {
+            ExtOptions.displayMessage( 'Not called - option Debug must be enabled to execute this request', 'level-error', '#flush-storage-feedback', 10000 );
+            return;
+        }
+
+        if ( key === '_ALL!')   {
+            ExtOptions.confirmDialog( 'FLUSH _WHOLE_ STORAGE REQUESTED!', 'Are you sure, that you\'re sure?',function() {
+                // sync.clear() might be used, but this way we can also log every removed item 
+                chrome.storage.sync.get( null, function(options) {
+                    $.each(options, function(k, v){
+                        console.log('Flushing key: ' + k);
+                        chrome.storage.sync.remove( k, function() {});
+                    });
+                    ExtOptions.displayMessage( 'FLUSH WHOLE STORAGE WAS CALLED!', 'level-error', '#flush-storage-feedback', 10000 );
+                });
+            });
+        }
+        else    {
+            chrome.storage.sync.remove( key, function() {
+                ExtOptions.displayMessage( 'Removed key ' + key, 'level-info', '#flush-storage-feedback', 10000 );
+            });
+        }
+    },
 };
 
 
@@ -1215,6 +1265,13 @@ $( 'input#env_import_file' ).change( function() {
 
 $( 'button#env_export_download' ).click( function() {
     ExtOptions.exportProjectsDownloadFile();
+});
+
+$( 'button#flush-storage' ).click( function() {
+    ExtOptions.confirmDialog( 'FLUSH STORAGE KEY', 'Are you sure?',function() {
+        ExtOptions.flushStorageKey( $( '#flush-storage-key' ).val() );
+        $( '#flush-storage-key' ).val('');
+    });
 });
 
 $( 'textarea#env_importexport-data' )

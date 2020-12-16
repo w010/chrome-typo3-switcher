@@ -70,7 +70,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                 </label>
 
             </div>
-            <div class="col-6 settings-block-section __contextmenu">
+            <div class="col-6 settings-block-section __contextmenu section-foldable" data-visibility-trigger="#env_enable">
 
                 <h3>Menu:</h3>
 
@@ -99,7 +99,7 @@ Otherwise will open like full url.">path / shortcut</abbr> 1:</span>
         </div>
 
 
-        <div class="row">
+        <div class="row  section-foldable" data-visibility-trigger="#env_enable">
             <div class="col-6 settings-block-section __badge">
 
                 <h3>Badge:</h3>
@@ -108,26 +108,31 @@ Otherwise will open like full url.">path / shortcut</abbr> 1:</span>
                     <input type="checkbox" id="env_badge">
                     <span>Display badge on page to identify current context</span>
                 </label>
-                <label class="primary check">
-                    <input type="checkbox" id="env_badge_projectname">
-                    <span>Show also project name on badge <br>
-                        <i>(disabled = show only context name)</i></span>
-                </label>
-                <label class="primary radio">
-                    <span>Position: </span>
-                    <label class="radio-item">
-                        <input type="radio" class="env_badge_position" id="env_badge_position_left" value="left" name="badge_position">
-                        On left corner</label>
-                    <label class="radio-item">
-                        <input type="radio" class="env_badge_position" id="env_badge_position_right" value="right" name="badge_position">
-                        On right corner</label>
-                </label>
-                <label class="primary text range">
-                    <span>Scale:</span>
-                    <input type="text" id="env_badge_scale" class="range-text">
-                    <input type="range" id="env_badge_scale__range" min="0.2" max="2" step="0.1">
-                    <span><i>(0.6 - 1.6 recommended, other may cause weird result)</i></span>
-                </label>
+                
+                <div class="section-foldable" data-visibility-trigger="#env_badge">
+
+                    <label class="primary check">
+                        <input type="checkbox" id="env_badge_projectname">
+                        <span>Show also project name on badge <br>
+                            <i>(disabled = show only context name)</i></span>
+                    </label>
+                    <label class="primary radio">
+                        <span>Position: </span>
+                        <label class="radio-item">
+                            <input type="radio" class="env_badge_position" id="env_badge_position_left" value="left" name="badge_position">
+                            On left corner</label>
+                        <label class="radio-item">
+                            <input type="radio" class="env_badge_position" id="env_badge_position_right" value="right" name="badge_position">
+                            On right corner</label>
+                    </label>
+                    <label class="primary text range">
+                        <span>Scale:</span>
+                        <input type="text" id="env_badge_scale" class="range-text">
+                        <input type="range" id="env_badge_scale__range" min="0.2" max="2" step="0.1">
+                        <span><i>(0.6 - 1.6 recommended, other may cause weird result)</i></span>
+                    </label>
+
+                </div>
 
             </div>
 
@@ -141,60 +146,64 @@ Otherwise will open like full url.">path / shortcut</abbr> 1:</span>
                         <i>(this is a test feature, it seems to not show always when it should)</i></span>
                 </label>
 
-                <label class="primary text range">
-                    <span>Alpha / opacity:</span>
-                    <input type="text" id="env_favicon_alpha" class="range-text">
-                    <input type="range" id="env_favicon_alpha__range" min="0" max="1" step="0.05">
-                </label>
+                <div class="section-foldable" data-visibility-trigger="#env_favicon">
 
-                <label class="primary text range">
-                    <span>Overlay shape fill ratio:</span>
-                    <input type="text" id="env_favicon_fill" class="range-text">
-                    <input type="range" id="env_favicon_fill__range" min="0" max="1" step="0.05">
-                    <span><i>(how much of favicon is covered)</i></span>
-                </label>
+                    <label class="primary text range">
+                        <span>Alpha / opacity:</span>
+                        <input type="text" id="env_favicon_alpha" class="range-text">
+                        <input type="range" id="env_favicon_alpha__range" min="0" max="1" step="0.05">
+                    </label>
+    
+                    <label class="primary text range">
+                        <span>Overlay shape fill ratio:</span>
+                        <input type="text" id="env_favicon_fill" class="range-text">
+                        <input type="range" id="env_favicon_fill__range" min="0" max="1" step="0.05">
+                        <span><i>(how much of favicon is covered)</i></span>
+                    </label>
+    
+                    <label class="primary select">
+                        <span>Position & shape:</span>
+                        <select id="env_favicon_position">
+                            <optgroup label="Rectangle">
+                                <option value="top">Top</option>
+                                <option value="right">Right</option>
+                                <option value="bottom">Bottom</option>
+                                <option value="left">Left</option>
+                            </optgroup>
+                            <optgroup label="Triangle">
+                                <option value="top-right">Top - Right</option>
+                                <option value="bottom-right">Bottom - Right</option>
+                                <option value="bottom-left">Bottom - Left</option>
+                                <option value="top-left">Top - Left</option>
+                            </optgroup>
+                        </select>
+                    </label>
+    
+                    <label class="primary select">
+                        <span>Overlay composite operation:</span>
+                        <select id="env_favicon_composite">
+                            <option value="source-over">source-over</option>
+                            <option value="source-atop">source-atop</option>
+                            <option value="source-in">source-in</option>
+                            <option value="destination-over">destination-over</option>
+                            <option value="xor">xor</option>
+                        </select>
+                        <span><i>(the way it blends into icon / transparency)</i></span>
+                    </label>
+    
+                    <label class="primary select">
+                        <span>Example icon preview:</span>
+                        <img id="favicon-preview">
+                    </label>
 
-                <label class="primary select">
-                    <span>Position & shape:</span>
-                    <select id="env_favicon_position">
-                        <optgroup label="Rectangle">
-                            <option value="top">Top</option>
-                            <option value="right">Right</option>
-                            <option value="bottom">Bottom</option>
-                            <option value="left">Left</option>
-                        </optgroup>
-                        <optgroup label="Triangle">
-                            <option value="top-right">Top - Right</option>
-                            <option value="bottom-right">Bottom - Right</option>
-                            <option value="bottom-left">Bottom - Left</option>
-                            <option value="top-left">Top - Left</option>
-                        </optgroup>
-                    </select>
-                </label>
-
-                <label class="primary select">
-                    <span>Overlay composite operation:</span>
-                    <select id="env_favicon_composite">
-                        <option value="source-over">source-over</option>
-                        <option value="source-atop">source-atop</option>
-                        <option value="source-in">source-in</option>
-                        <option value="destination-over">destination-over</option>
-                        <option value="xor">xor</option>
-                    </select>
-                    <span><i>(the way it blends into icon / transparency)</i></span>
-                </label>
-
-                <label class="primary select">
-                    <span>Example icon preview:</span>
-                    <img id="favicon-preview">
-                </label>
+                </div>
 
             </div>
         </div>
     </div>
 
 
-    <div class="settings-block __projects">
+    <div class="settings-block __projects  section-foldable" data-visibility-trigger="#env_enable">
 
         <h2>Projects</h2>
         
@@ -285,7 +294,7 @@ Otherwise will open like full url.">path / shortcut</abbr> 1:</span>
     </div>
 
 
-    <div class="settings-block __importexport" id="settings_block_importexport">
+    <div id="settings_block_importexport" class="settings-block __importexport section-foldable" data-visibility-trigger="#env_enable">
 
         <h2>Import / export projects</h2>
         <h3>Backup or share with your team</h3>
@@ -351,13 +360,24 @@ Otherwise will open like full url.">path / shortcut</abbr> 1:</span>
 
     <div class="settings-block __miscoptions">
 
-        <h2>Misc options</h2>
+        <h2>Misc / advanced</h2>
 
         <label class="primary check">
             <input type="checkbox" id="ext_debug" class="no-autosave">
             <span>Debug info <br>
                 <i>(show some console messages and vars values)</i></span>
         </label>
+        
+        <div class="section-foldable" data-visibility-trigger="#ext_debug">
+            <div id="flush-storage-feedback"></div>
+            <label class="primary text">
+                <span>Flush storage key (use with care):</span>
+                <input type="text" id="flush-storage-key" class="no-autosave">
+                <button class="btn" id="flush-storage">! ! !</button>
+                <br>
+                <i>(write _ALL! to wipe whole storage for this ext - in case of problems or to make a fresh start)</i>
+            </label>
+        </div>
     </div>
 
 
@@ -365,7 +385,7 @@ Otherwise will open like full url.">path / shortcut</abbr> 1:</span>
     <div id="storageInfo"></div>
     <div id="debugStorageContent"></div>
 
-    <script src="Vendor/jquery-3.3.1.min.js"></script>
+    <script src="Vendor/jquery-3.5.1.min.js"></script>
     <script src="Vendor/jquery-ui-1.12.1-custom.min.js"></script>
     <script src="options.js"></script>
     <script src="setFavicon.js"></script>
