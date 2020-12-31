@@ -855,7 +855,7 @@ var ExtOptions = {
 
         if ( !ExtOptions.options.repo_url ) {
             info_repo_default = '<p><a id="repo_test" href="#">Test how it works using example dummy repo</a><br>' +
-                'You may easily host your own project repo, <a class="external" href="https://chrome.wolo.pl/projectrepo/">see details how</a>.</p>';
+                'You may easily host your own project repo, <a class="external" href="https://chrome.wolo.pl/projectrepo/" target="_blank">see details how</a>.</p>';
         }
 
         let content = $( '<div class="repo-config">' +
