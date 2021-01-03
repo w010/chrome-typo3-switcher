@@ -79,7 +79,9 @@ function getSelectedPageUid() {
 
 
 chrome.runtime.sendMessage({
-    action: "selectedPageUid",
-    source: getSelectedPageUid()
+    action: "backend_getData",
+    data: {
+        selectedPageUid: getSelectedPageUid(),
+    },
 });
 

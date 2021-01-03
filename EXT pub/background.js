@@ -1,7 +1,7 @@
 /**
  * TYPO3 Backend-Frontend Handy Switcher - Chrome extension
  *
- * wolo.pl '.' studio 2017
+ * wolo.pl '.' studio 2017-2021
  * Adam wolo Wolski
  * wolo.wolski+t3becrx@gmail.com
  */
@@ -46,7 +46,7 @@ var Switcher = {
                 // tries to extract current pid from backend pagetree and sends a message
                 chrome.tabs.executeScript( null, {
 
-                    file: 'getSelectedPageUid.js'
+                    file: 'backend_getData.js'
 
                 }, function () {
                     // on system pages you can't inject any scripts
@@ -73,7 +73,7 @@ var Switcher = {
                 // try to find proper backend url and open it
                 chrome.tabs.executeScript( null, {
 
-                    file: 'getBaseHref.js'
+                    file: 'frontend_getData.js'
 
                 }, function () {
                     // on system pages you can't inject any scripts
@@ -139,7 +139,22 @@ var Switcher = {
         chrome.tabs.create({
             'url':      newTabUrl,
             'index':    Switcher._currentTab.index + 1
-        });
+        }, function(tab)    {
+            /*
+            // WIP: pagetree preselect. todo: finish, check in conf if we use this feature
+
+            console.info('tab id from callback: ' + tab.id);
+
+            // inject into new tab script which does initial stuff, like preselecting page in tree
+            chrome.tabs.executeScript( tab.id, {
+
+                file: 'backend_preselect.js'
+
+            }, function () {
+                console.log('location:', window.location.href);
+            });
+            */
+        })
     },
 
 
@@ -172,6 +187,9 @@ var Switcher = {
             newTabUrl = siteUrl.replace( /\/$/, '' )
                 + shortcutValue;
         }
+        else if ( !shortcutValue.startsWith('http') )   {
+            newTabUrl = 'https://' + shortcutValue;
+        }
         else    {
             newTabUrl = shortcutValue;
         }
@@ -193,7 +211,7 @@ var Switcher = {
 
 
 
-// on click action inject the script to current page
+// on icon click action inject the script to current page
 
 chrome.browserAction.onClicked.addListener(function (tab) {
 
@@ -228,27 +246,29 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 chrome.runtime.onMessage.addListener(function(request, sender) {
 
 
-    if ( request  &&  request.action === 'selectedPageUid'  ||  '' ) {
+    if ( request  &&  request.action === 'backend_getData' ) {
 
-        var selectedPageUid = request.source;
+        var selectedPageUid = request.data.selectedPageUid;
+        console.info('pid: ' + selectedPageUid);
         Switcher.openFrontend( selectedPageUid );
     }
 
 
 
-    if (request  &&  request.action === 'baseHref'  ||  '' ) {
+    if (request  &&  request.action === 'frontend_getData') {
 
-        var baseHref = request.source;
+        var baseUrl = request.data.baseUrl;
 
-        console.info('baseHref: ' + baseHref);
+        console.info('baseHref: ' + baseUrl);
+        console.info('pid: ' + request.data.pageUid);
         //console.log('tab object: ' + _currentTab);
 
 	    // prevent wrong url if someone sets base to other value than site's address
-        if ( baseHref === '/'  ||  baseHref === 'auto' )	{
-            baseHref = '';
+        if ( baseUrl === '/'  ||  baseUrl === 'auto' )	{
+            baseUrl = '';
         }
 
-        Switcher.openBackend( baseHref );
+        Switcher.openBackend( baseUrl );
     }
 
 });
