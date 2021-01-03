@@ -1,7 +1,7 @@
 /**
  * TYPO3 Backend-Frontend Handy Switcher - Chrome extension
  *
- * wolo.pl '.' studio 2017
+ * wolo.pl '.' studio 2017-2021
  * Adam wolo Wolski
  * wolo.wolski+t3becrx@gmail.com
  */
@@ -37,33 +37,150 @@ var Env = {
      * find current url in projects options. if found - set new menu and badge. otherwise exit
      */
     initProject : function()   {
+        
+        let console_setupProjectVisualDivider = function()   {
+            console.info('');
+            console.info('=============  RUN ENVIRONMENT SETUP  =============');
+        }
 
-        // switch tab
-        chrome.tabs.onHighlighted.addListener( function () {
-            console.log(': EVENT: tabs.onHighlighted');
-            if (Env.lock)   {
-                console.log( ': LOCKED!' );
+        // do the whole job on these specified events hit, to reinit the menu etc. every time in current window a tab
+        // is switched / page is loaded in current tab / - basically when current window's content / viewport / url changes
+        // we rebuild the menu and replace the action icon indicator
+
+        // on switch tab
+        chrome.tabs.onHighlighted.addListener( function (highlightInfo) {
+
+            // try these
+            // chrome.tabs.onHighlightChanged.addListener( function (highlightInfo) {
+            // [works bad]
+            // this one: chrome.tabs.onSelectionChanged.addListener( function (tabId, selectInfo) can't be used here, it have to run on tab focus
+
+            console_setupProjectVisualDivider();
+            console.log(': EVENT: tabs.highlightInfo');
+            
+            // we can't use this here - a) we don't get it from this event, b) we have to run it 
+            // if ( !highlightInfo.url )  { ...
+
+            
+            if ( Env.lock )   {
+                console.log( ': LOCKED! operation in progress. exit' );
                 return;
             }
-            Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onHighlighted' );
+            
+            // should be right here! on begin of the event hit
+            console.log( '[LOCK]' );
+            Env.lock = true;
+
+
+            let tabId = (typeof highlightInfo.tabIds !== 'undefined') ? highlightInfo.tabIds[0] : 0;
+
+            chrome.tabs.get( tabId, function(tab){
+
+                if (typeof tab === 'undefined') {
+                    console.log( ': ** TAB OBJECT DOESN\'T EXIST. IT SHOULD NOT HAPPEN. INVESTIGATE THE SITUATION. Params from callback:' );
+                    console.log( 'tabId: ' + tabId + ' highlightInfo', highlightInfo );
+                    console.log( ': EXIT / No tab object for some reason' );
+                }
+
+                // on system and other pages which are not simply http website, end execution
+                // update: this idea failed, but after recent tests I think it's unnecessary, works well 
+                /*if ( !tab.url.toString().startsWith('http') )   {
+                    console.log( ': - applies only to http/s schema urls.' );
+
+                    console.groupCollapsed('Cleanup / reset');
+                    Env.lock = true;
+
+                    console.info('-- ICON: deactivate');
+                    Env.setActionIcon( '', tabId );
+
+                    console.log('-- MENU: clean.');
+                    chrome.contextMenus.removeAll( function () {
+                        console.log('-- MENU: rebuild with universal items.');
+                        // setup menu with universal items
+                        Env.setupContextMenu( [], -1, [], 'onHighlighted' );
+                        console.log( ': EXIT' );
+                    });
+                    return;
+                }*/
+
+
+                // check if completed and if not - delay execution (don't loop checking this, better try to load it anyway after a while.
+                // this way it should fix missing favicon/badge problem, but doesn't make you wait every time until all assets finishes loading
+                // until the badge finally displays.) todo: observe the new behaviour, revert in case of problems
+                if ( tab.status === 'loading' )   {
+                    console.log( ': PAGE IS STILL LOADING - delay project init' );
+                    setTimeout(function(){
+                        Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onHighlighted' );
+                    }, 500);
+                }
+                else    {
+                    Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onHighlighted' );
+                }
+            });
         });
-        // switch window
-        chrome.windows.onFocusChanged.addListener( function () {
+
+
+        // on switch window
+        // (focus window with some tab open doesn't hit any event on this tab, so we need this also) 
+        chrome.windows.onFocusChanged.addListener( function (windowId) {
+            console_setupProjectVisualDivider();
             console.log(': EVENT: windows.onFocusChanged');
-            if (Env.lock)   {
-                console.log( ': LOCKED!' );
+
+            if ( Env.lock )   {
+                console.log( ': LOCKED! operation in progress. exit' );
                 return;
             }
+            
+            // should be right here! on begin of the event hit
+            console.log( '[LOCK]' );
+            Env.lock = true;
+
             Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onFocusChanged' );
         });
-        // load page
-        chrome.tabs.onUpdated.addListener( function (tabId) {
+
+
+        // on load page
+        chrome.tabs.onUpdated.addListener( function (tabId, changeInfo) {
+            console_setupProjectVisualDivider();
             console.log(': EVENT: tabs.onUpdated');
-            if (Env.lock)   {
-                console.log( ': LOCKED!' );
+            
+            // this filter doesn't work well, it ignores clicks on previously loaded tabs and doesn't reset setup
+            /*console.log('changeInfo', changeInfo);
+            if ( !changeInfo.status )   {
+                console.log( ': EXIT / Not a page re/load event, but some other onUpdated hit (like injected badge)' );
+                return;
+            }*/
+            
+            
+            if ( Env.lock )   {
+                console.log( ': LOCKED! operation in progress. exit' );
                 return;
             }
-            Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onUpdated', tabId );
+            
+            // should be right here! on begin of the event hit
+            console.log( '[LOCK]' );
+            Env.lock = true;
+
+
+            chrome.tabs.get( tabId, function(tab) {
+                if ( typeof tab === 'undefined' ) {
+                    console.log( ': ** TAB OBJECT DOESN\'T EXIST. IT SHOULD NOT HAPPEN. INVESTIGATE THE SITUATION. Params from callback:' );
+                    console.log( 'changeInfo', changeInfo );
+                    Env.lock = false;
+                    console.log( ': EXIT / No tab object for some reason [LOCK RELEASED]' );
+                    return;
+                }
+
+                if ( tab.status === 'loading' )   {
+                    console.log( ': PAGE IS STILL LOADING - delay project init' );
+                    setTimeout(function(){
+                        Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onUpdated' );
+                    }, 500 );
+                }
+                else    {
+                    Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onUpdated', tabId );
+                }
+            });
         });
     },
 
@@ -77,17 +194,16 @@ var Env = {
      */
     findAndApplyProjectConfigForCurrentTabUrl : function(options, projectsAll, _debugEventTriggered, tabId) {
 
-        Env.lock = true;
         var loadFavicon = _debugEventTriggered === 'onUpdated';
         var loadBadge = _debugEventTriggered === 'onUpdated';
 
-        console.group('Project context setup');
-        console.info('--------------- PROJECT CONTEXT SETUP begin - find project for current url & clear menu [LOCK]');
+
+        console.groupCollapsed('Start - handle active tab');
+        console.info('- PROJECT CONTEXT SETUP begin - find project for current url & rebuild menu');
 
         // clear current options
+        console.log('-- MENU: clean');
         chrome.contextMenus.removeAll( function () {
-
-            console.log('-- CLEAN menu. MATCH url to project');
 
             // deactivate icon
             console.info('-- ICON: deactivate');
@@ -102,9 +218,15 @@ var Env = {
             chrome.tabs.query({active: true, lastFocusedWindow: true}, function (tabs) {
                 let tab = tabs[0];
                 if (typeof tab === 'undefined') {
-                    console.log('-- can\'t read tab (system?) - exit [ LOCK RELEASE ] ');
+                    console.groupEnd();
+                    console.log('Can\'t read tab (system?) - exit [ LOCK RELEASE ]');
                     Env.lock = false;
                     return;
+                }
+                
+                if ( !tab.url.toString().startsWith('http') )   {
+                    loadFavicon = false;
+                    loadBadge = false;
                 }
 
                 var isProjectFound = false;
@@ -135,13 +257,15 @@ var Env = {
 
                                     isProjectFound = true;
 
-                                    console.info('--- FOUND project: ', project.name, ', context: ', context.name);
+                                    console.groupEnd();
+                                    console.info('* FOUND project: ', project.name, ', context: ', context.name);
+                                    console.groupCollapsed( 'Setup active project' );
 
                                     //chrome.storage.sync.set({'_currentProject': project});
                                     //chrome.storage.sync.set({'_lastProject': project});     // for options autoscroll, not resetted on every setup
                                     //chrome.storage.sync.set({'_currentContext': context});
 
-                                    console.info('--- ICON: activate');
+                                    console.info('-- ICON: activate');
                                     Env.setActionIcon( 'active', tabId );
 
                                     // don't check this option - show menu always anyway. no reason to disable it and show only badge.
@@ -150,6 +274,7 @@ var Env = {
                                     Env.setupContextMenu( context, p, project, _debugEventTriggered );
 
                                     if ( options.env_badge !== false  &&  loadBadge )  {
+                                        console.info('-- BADGE: inject ');
                                         Env.setupBadge( context, project, tab, _debugEventTriggered );
                                     }
 
@@ -182,7 +307,7 @@ var Env = {
                                     //chrome.storage.sync.set({'_lastProject': project});     // for options autoscroll, not resetted on every setup
                                     //chrome.storage.sync.set({'_currentLink': link});
 
-                                    console.info('--- ICON: activate');
+                                    console.info('-- ICON: activate');
                                     Env.setActionIcon( 'active', tabId );
 
                                     Env.setupContextMenu( link, p, project, _debugEventTriggered );
@@ -200,12 +325,13 @@ var Env = {
                     }
                 }
 
-                // if project not found, release the lock
-                console.log('- project not found - try to set All Projects menu, if enabled');
-                Env.setupContextMenu( [], -1, [], _debugEventTriggered );
-                console.log('-- exit [LOCK RELEASE]');
+                // if project not found, build standard menu
                 console.groupEnd();
-                Env.lock = false;
+                console.info('- project NOT FOUND.');
+                console.groupCollapsed( 'Setup only non-project stuff' );
+
+                console.info( '-- MENU: standard menu items, All Projects, custom links, if enabled' );
+                Env.setupContextMenu( [], -1, [], _debugEventTriggered );
             });
         });
     },
@@ -220,286 +346,292 @@ var Env = {
      */
     setupContextMenu : function(activeContext, p, project, _debugEventTriggered) {
 
-        console.log('---- SETUP context menu: ADD items');
-
-        var contextMenuItems = [];
-        var mark = '';
-        var options = this.options;
-
-
-        // -- ENVIRONMENTS (CONTEXTS)
-        if ( typeof project.contexts !== 'undefined' ) {
-
-            var c = 0;
-
-            for ( c;  c < project.contexts.length;  c++ ) {
-
-                var context = project.contexts[c];
-
-                if ( context.hidden || !context.url )
-                    continue;
-
-                mark = activeContext.name === context.name && activeContext.url === context.url  ?  '-> '  :  '     ';
-
-                contextMenuItems.push({
-                    title : mark + context.name,
-                    id :    'project-' + p + '-env-' + c,
-                    parentId :  'parent-contexts'
-                });
-            }
-
-            // if any not hidden contexts
-            if ( c > 0 )    {
-                // add top level submenu because of action icon menu positions limit in chrome...
-                //if ( contextMenuItems.length > chrome.contextMenus.ACTION_MENU_TOP_LEVEL_LIMIT )  {
-
-                // add top level submenu always (for action icon, not for page right click menu)
-                chrome.contextMenus.create({
-                    title :     project.name + ': contexts',
-                    contexts :  [ "browser_action" ],
-                    id :        'parent-contexts'
-                });
-            }
-        }
-
-
-        // -- LINKS
-        if ( typeof project.links !== 'undefined' ) {
-
-            var separatorAdded = false;
-            var l = 0;
-
-            for ( l;  l < project.links.length;  l++ ) {
-
-                var link = project.links[l];
-
-                if ( link.hidden || !link.url)
-                    continue;
-
-                mark = activeContext.name === link.name && activeContext.url === link.url  ?  '-> '  :  '     ';
-
-                // add separator on first (not hidden) item
-                if ( !separatorAdded ) {
-                    contextMenuItems.push({
-                        // for action icon where we use submenus, we set parentId
-                        // in that case this separator is not used.
-                        // it's only for page context menu, where we don't use additional submenus
-                        title :             '_separator-links',    // needed to not cause error later in iteration
-                        id :                '_separator-links',    // needed to not cause error later in iteration
-                        type :              'separator',
-                        showForMenuType:    'rightClickOnly'
-                    });
-                    separatorAdded = true;
-                }
-
-                contextMenuItems.push({
-                    title : mark + link.name,
-                    id :    'project-' + p + '-link-' + l,
-                    parentId :  'parent-links'
-                });
-            }
-
-            // if any not hidden links
-            if (l > 0)  {
-                chrome.contextMenus.create({
-                    title :     project.name + ': links',
-                    contexts :  [ "browser_action" ],
-                    id :        'parent-links'
-                });
-            }
-        }
-
-
-        // -- Custom shortcut 1
-        if ( typeof options.env_menu_short_custom1 !== 'undefined'  &&  options.env_menu_short_custom1 !== ''  &&  p > -1 ) {
-
-            contextMenuItems.push({
-                title :             '_separator-shortcustom1',
-                id :                '_separator-shortcustom1',
-                type :              'separator',
-                showForMenuType:    'rightClickOnly'
-            });
-
-            contextMenuItems.push({
-                title : options.env_menu_short_custom1,
-                id :    'project-' + p + '-shortcustom1-'
-            });
-        }
+        console.log('-- MENU: rebuild');
         
-                
-        // -- Custom shortcut 2
-        if ( typeof options.env_menu_short_custom2 !== 'undefined'  &&  options.env_menu_short_custom2 !== ''  &&  p > -1 ) {
+        // clear current options again / to be sure it's empty before adding anything
+        
+        console.log('--- menu clean');
+        chrome.contextMenus.removeAll( function () {
 
-            contextMenuItems.push({
-                title :             '_separator-shortcustom2',
-                id :                '_separator-shortcustom2',
-                type :              'separator',
-                showForMenuType:    'rightClickOnly'
-            });
-
-            contextMenuItems.push({
-                title : options.env_menu_short_custom2,
-                id :    'project-' + p + '-shortcustom2-'
-            });
-        }
+            var contextMenuItems = [];
+            var mark = '';
+            var options = Env.options;
 
 
-        // -- ALL PROJECTS
-        if ( typeof options.env_menu_show_allprojects !== 'undefined'  &&  options.env_menu_show_allprojects === true ) {
+            // -- ENVIRONMENTS (CONTEXTS)
+            if ( typeof project.contexts !== 'undefined' ) {
 
-            /*contextMenuItems.push({
-                title :             '_separator-allprojects',
-                id :                '_separator-allprojects',
-                type :              'separator',
-                showForMenuType :   'rightClickOnly'
-            });*/
+                var c = 0;
 
-            contextMenuItems.push({
-                title :             'All projects',
-                id :                'parent-allprojects',
-                showForMenuType :   'actionMenuOnly'
-            });
+                for ( c;  c < project.contexts.length;  c++ ) {
 
-            // iterate all projects and links
-            if ( typeof Env.projectsAll !== 'undefined' ) {
-                for ( var _p = 0;  _p < Env.projectsAll.length;  _p++ ) {
-                    var _project = Env.projectsAll[_p];
-                    if ( _project.hidden )
+                    var context = project.contexts[c];
+
+                    if ( context.hidden || !context.url )
                         continue;
+
+                    mark = activeContext.name === context.name && activeContext.url === context.url ? '-> ' : '     ';
+
                     contextMenuItems.push({
-                        title :             _project.name,
-                        id :                'parent_allprojects_project-' + _p,
-                        parentId :          'parent-allprojects',
-                        showForMenuType :   'actionMenuOnly'
+                        title : mark + context.name,
+                        id :    'project-' + p + '-env-' + c,
+                        parentId :  'parent-contexts'
                     });
-                    if ( typeof _project.contexts !== 'undefined' ) {
-                        for ( var _c = 0;  _c < _project.contexts.length;  _c++ ) {
-                            var _context = _project.contexts[_c];
-                            if ( _context.hidden || !_context.url )
-                                continue;
-                            
-                            contextMenuItems.push({
-                                title :             _context.name,
-                                id :                '_allprojects_project-' + _p + '-env-' + _c,
-                                parentId :          'parent_allprojects_project-' + _p,
-                                showForMenuType :   'actionMenuOnly'
-                            });
-                        }
+                }
+
+                // if any not hidden contexts
+                if ( c > 0 )    {
+                    // add top level submenu because of action icon menu positions limit in chrome...
+                    //if ( contextMenuItems.length > chrome.contextMenus.ACTION_MENU_TOP_LEVEL_LIMIT )  {
+
+                    // add top level submenu always (for action icon, not for page right click menu)
+                    chrome.contextMenus.create({
+                        title :     project.name + ': contexts',
+                        contexts :  [ "browser_action" ],
+                        id :        'parent-contexts'
+                    });
+                }
+            }
+
+
+            // -- LINKS
+            if ( typeof project.links !== 'undefined' ) {
+
+                var separatorAdded = false;
+                var l = 0;
+
+                for ( l;  l < project.links.length;  l++ ) {
+
+                    var link = project.links[l];
+
+                    if ( link.hidden || !link.url)
+                        continue;
+
+                    mark = activeContext.name === link.name && activeContext.url === link.url ? '-> ' : '     ';
+
+                    // add separator on first (not hidden) item
+                    if ( !separatorAdded ) {
+                        contextMenuItems.push({
+                            // for action icon where we use submenus, we set parentId
+                            // in that case this separator is not used.
+                            // it's only for page context menu, where we don't use additional submenus
+                            title :             '_separator-links',    // needed to not cause error later in iteration
+                            id :                '_separator-links',    // needed to not cause error later in iteration
+                            type :              'separator',
+                            showForMenuType: 'rightClickOnly'
+                        });
+                        separatorAdded = true;
                     }
 
-                    if ( typeof _project.links !== 'undefined' ) {
-                        separatorAdded = false;
-                        for ( var _l = 0;  _l < _project.links.length;  _l++ ) {
-                            var _link = _project.links[_l];
-                            if ( _link.hidden || !_link.url )
-                                continue;
+                    contextMenuItems.push({
+                        title : mark + link.name,
+                        id :    'project-' + p + '-link-' + l,
+                        parentId :  'parent-links'
+                    });
+                }
+
+                // if any not hidden links
+                if (l > 0) {
+                    chrome.contextMenus.create({
+                        title :     project.name + ': links',
+                        contexts :  [ "browser_action" ],
+                        id :        'parent-links'
+                    });
+                }
+            }
+
+
+            // -- Custom shortcut 1
+            if ( typeof options.env_menu_short_custom1 !== 'undefined'  &&  options.env_menu_short_custom1 !== '' ) {
+
+                contextMenuItems.push({
+                    title :             '_separator-shortcustom1',
+                    id :                '_separator-shortcustom1',
+                    type :              'separator',
+                    showForMenuType: 'rightClickOnly'
+                });
+
+                contextMenuItems.push({
+                    title : options.env_menu_short_custom1,
+                    id :    'project-' + p + '-shortcustom1-'
+                });
+            }
+
+
+            // -- Custom shortcut 2
+            if ( typeof options.env_menu_short_custom2 !== 'undefined'  &&  options.env_menu_short_custom2 !== '' ) {
+
+                contextMenuItems.push({
+                    title :             '_separator-shortcustom2',
+                    id :                '_separator-shortcustom2',
+                    type :              'separator',
+                    showForMenuType: 'rightClickOnly'
+                });
+
+                contextMenuItems.push({
+                    title : options.env_menu_short_custom2,
+                    id :    'project-' + p + '-shortcustom2-'
+                });
+            }
+
+
+            // -- ALL PROJECTS
+            if ( typeof options.env_menu_show_allprojects !== 'undefined'  &&  options.env_menu_show_allprojects === true ) {
+
+                /*contextMenuItems.push({
+                    title :             '_separator-allprojects',
+                    id :                '_separator-allprojects',
+                    type :              'separator',
+                    showForMenuType :   'rightClickOnly'
+                });*/
+
+                contextMenuItems.push({
+                    title :             'All projects',
+                    id :                'parent-allprojects',
+                    showForMenuType :   'actionMenuOnly'
+                });
+
+                // iterate all projects and links
+                if ( typeof Env.projectsAll !== 'undefined' ) {
+                    for ( var _p = 0;  _p < Env.projectsAll.length;  _p++ ) {
+                        var _project = Env.projectsAll[_p];
+                        if ( _project.hidden )
+                            continue;
+                        contextMenuItems.push({
+                            title :             _project.name,
+                            id :                'parent_allprojects_project-' + _p,
+                            parentId :          'parent-allprojects',
+                            showForMenuType :   'actionMenuOnly'
+                        });
+                        if ( typeof _project.contexts !== 'undefined' ) {
+                            for ( var _c = 0;  _c < _project.contexts.length;  _c++ ) {
+                                var _context = _project.contexts[_c];
+                                if ( _context.hidden || !_context.url )
+                                    continue;
                             
-                            // add separator on first (not hidden) item
-                            if ( !separatorAdded ) {
                                 contextMenuItems.push({
-                                    title :             '_separator-links',
-                                    id :                '_allprojects_project-' + _p + '-separator-links',
+                                    title :             _context.name,
+                                    id :                '_allprojects_project-' + _p + '-env-' + _c,
                                     parentId :          'parent_allprojects_project-' + _p,
-                                    type :              'separator',
-                                    showForMenuType:    'actionMenuOnly'
+                                    showForMenuType :   'actionMenuOnly'
                                 });
-                                separatorAdded = true;
                             }
+                        }
 
-                            contextMenuItems.push({
-                                title :             _link.name,
-                                id :                '_allprojects_project-' + _p + '-link-' + _l,
-                                parentId :          'parent_allprojects_project-' + _p,
-                                showForMenuType :   'actionMenuOnly'
-                            });
+                        if ( typeof _project.links !== 'undefined' ) {
+                            separatorAdded = false;
+                            for ( var _l = 0;  _l < _project.links.length;  _l++ ) {
+                                var _link = _project.links[_l];
+                                if ( _link.hidden || !_link.url )
+                                    continue;
+                                
+                                // add separator on first (not hidden) item
+                                if ( !separatorAdded ) {
+                                    contextMenuItems.push({
+                                        title :             '_separator-links',
+                                        id :                '_allprojects_project-' + _p + '-separator-links',
+                                        parentId :          'parent_allprojects_project-' + _p,
+                                        type :              'separator',
+                                        showForMenuType: 'actionMenuOnly'
+                                    });
+                                    separatorAdded = true;
+                                }
+
+                                contextMenuItems.push({
+                                    title :             _link.name,
+                                    id :                '_allprojects_project-' + _p + '-link-' + _l,
+                                    parentId :          'parent_allprojects_project-' + _p,
+                                    showForMenuType :   'actionMenuOnly'
+                                });
+                            }
                         }
                     }
                 }
+
             }
 
-        }
 
+            // when item array ready,
+            // BUILD THE MENU
 
+            console.log('--- ITEMS: ');
+            console.dir(contextMenuItems);
 
-        // when item array ready,
-        // BUILD THE MENU
+            let menuCallback;
 
-        console.log('---- ITEMS: ', contextMenuItems);
+            // set up context menu
+            for ( var i = 0;  i < contextMenuItems.length;  i++ ) {
 
-
-        // set up context menu
-        for ( var i = 0;  i < contextMenuItems.length;  i++ ) {
-
-            //if (Env.DEV)    console.log(contextMenuItems[i]);
-
-            var menuCallbackDefault = function () {
-                if ( chrome.runtime.lastError ) {
-                    console.warn('Error: Probably duplicated url for various projects. Project: ' + project.name + ', from event: ' + _debugEventTriggered);
-                    console.error(chrome.runtime.lastError.message);
+                
+                // on last item
+                if ( i+1 === contextMenuItems.length ) {
+                    menuCallback = function () {
+                        if (chrome.runtime.lastError) {
+                            console.warn('Error: Probably duplicated url for various projects. Project: ' + project.name + ', from event: ' + _debugEventTriggered);
+                            console.error(chrome.runtime.lastError.message);
+                        }
+    
+                        console.info('--- CONTEXT MENU: SUCCESS');
+    
+                        // release the lock
+                        Env.lock = false;
+                        console.groupEnd();
+                        console.info('* DONE - tab handle end - EXIT [LOCK RELEASE]');
+                    };
                 }
-            };
-
-            // on last item
-            var menuCallbackLast = function()   {
-                if ( chrome.runtime.lastError ) {
-                    console.warn('Error: Probably duplicated url for various projects. Project: ' + project.name + ', from event: ' + _debugEventTriggered);
-                    console.error(chrome.runtime.lastError.message);
+                else    {
+                    menuCallback = function () {
+                        if ( chrome.runtime.lastError ) {
+                            console.warn('Error: Probably duplicated url for various projects. Project: ' + project.name + ', from event: ' + _debugEventTriggered);
+                            console.error(chrome.runtime.lastError.message);
+                        }
+                    };
                 }
 
-                console.info('----- CONTEXT MENU: SUCCESS');
 
-                // release the lock
-                Env.lock = false;
-                console.info('--------------- PROJECT CONTEXT SETUP END - exit [LOCK RELEASE]');
-                console.groupEnd();
-            };
 
-            // ACTION ICON MENU
-            if ( typeof contextMenuItems[i].showForMenuType === 'undefined'
-                // don't show items dedicated only to right-click menu (like separators, when no submenus used there)
-                ||  ( typeof contextMenuItems[i].showForMenuType !== 'undefined'  &&  contextMenuItems[i].showForMenuType !== 'rightClickOnly' ) )  {
+                // ACTION ICON MENU
+                if ( typeof contextMenuItems[i].showForMenuType === 'undefined'
+                    // don't show items dedicated only to right-click menu (like separators, when no submenus used there)
+                    ||  ( typeof contextMenuItems[i].showForMenuType !== 'undefined'  &&  contextMenuItems[i].showForMenuType !== 'rightClickOnly' ) )  {
 
-                chrome.contextMenus.create({
-                    title :     contextMenuItems[i].title,
-                    contexts :  [ "browser_action" ],
-                    id :        contextMenuItems[i].id,
-                    type :      typeof contextMenuItems[i].type !== 'undefined'  &&  contextMenuItems[i].type === 'separator'
-                        ?  'separator'
-                        :  'normal',
-                    parentId:   typeof contextMenuItems[i].parentId !== 'undefined'
-                        ?  contextMenuItems[i].parentId
-                        : null
-                },
-                    menuCallbackDefault
-                );
+                    chrome.contextMenus.create({
+                            title :     contextMenuItems[i].title,
+                            contexts :  [ "browser_action" ],
+                            id :        contextMenuItems[i].id,
+                            type :      typeof contextMenuItems[i].type !== 'undefined'  &&  contextMenuItems[i].type === 'separator'
+                                ? 'separator'
+                                : 'normal',
+                            parentId: typeof contextMenuItems[i].parentId !== 'undefined'
+                                ? contextMenuItems[i].parentId
+                                : null
+                        },
+                        menuCallback
+                    );
+                }
+
+                // PAGE RIGHT-CLICK MENU
+                if ( typeof contextMenuItems[i].showForMenuType === 'undefined'
+                    // don't show items dedicated only to right-click menu (like separators, when no submenus used there)
+                    ||  ( typeof contextMenuItems[i].showForMenuType !== 'undefined'  &&  contextMenuItems[i].showForMenuType !== 'actionMenuOnly' ) )  {
+
+                    chrome.contextMenus.create({
+                            title :     contextMenuItems[i].title,
+                            contexts :  [ "page", "frame", "selection", "link", "editable", "image", "video", "audio", "page_action" ],
+                            id :        'pagerightclickmenu_'+contextMenuItems[i].id,
+                            type :      typeof contextMenuItems[i].type !== 'undefined'  &&  contextMenuItems[i].type === 'separator'
+                                ? 'separator'
+                                : 'normal'
+                            // no parentId by default - in this menu put all in one level
+                            /*parentId :  typeof contextMenuItems[i].forceParentId !== 'undefined'  &&  typeof contextMenuItems[i].parentId !== 'undefined'
+                                ?  typeof contextMenuItems[i].parentId
+                                :  ''*/
+                        },
+                        menuCallback
+                    );
+                }
             }
-
-            // PAGE RIGHT-CLICK MENU
-            if ( typeof contextMenuItems[i].showForMenuType === 'undefined'
-                // don't show items dedicated only to right-click menu (like separators, when no submenus used there)
-                ||  ( typeof contextMenuItems[i].showForMenuType !== 'undefined'  &&  contextMenuItems[i].showForMenuType !== 'actionMenuOnly' ) )  {
-
-                chrome.contextMenus.create({
-                    title :     contextMenuItems[i].title,
-                    contexts :  [ "page", "frame", "selection", "link", "editable", "image", "video", "audio", "page_action" ],
-                    id :        'pagerightclickmenu_'+contextMenuItems[i].id,
-                    type :      typeof contextMenuItems[i].type !== 'undefined'  &&  contextMenuItems[i].type === 'separator'
-                        ?  'separator'
-                        :  'normal'
-                    // no parentId by default - in this menu put all in one level
-                    /*parentId :  typeof contextMenuItems[i].forceParentId !== 'undefined'  &&  typeof contextMenuItems[i].parentId !== 'undefined'
-                        ?  typeof contextMenuItems[i].parentId
-                        :  ''*/
-                },
-                    //( i+1 === contextMenuItems.length  ?  menuCallbackLast  :  menuCallbackDefault )
-                    menuCallbackDefault
-                );
-            }
-            // is this working well like that? release lock here, instead of in callback of last item create?
-            // no idea, how to do this better - some items are created conditionally and could never release the lock
-            if (i+1 === contextMenuItems.length)
-                menuCallbackLast();
-        }
+        });
     },
 
 
