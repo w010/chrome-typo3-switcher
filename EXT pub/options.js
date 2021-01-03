@@ -1274,6 +1274,16 @@ $( 'button#flush-storage' ).click( function() {
     });
 });
 
+$( '#jump-to-top' ).click( function () {
+    $('html,body').animate({scrollTop: 0}, 300);
+});
+$( '#jump-to-projects' ).click( function () {
+    $('html,body').animate({scrollTop: $("#settings_block_projects").offset().top - 100}, 300);  // offset correction by heading padding-top
+});
+$( '#jump-to-importexport' ).click( function () {
+    $('html,body').animate({scrollTop: $("#settings_block_importexport").offset().top - 100}, 300);  // offset correction by heading padding-top
+});
+
 $( 'textarea#env_importexport-data' )
     .on( 'focus', function() {
         $(this).select();
