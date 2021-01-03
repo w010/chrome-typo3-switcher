@@ -80,11 +80,11 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                 </label>-->
                 <label class="primary check">
                     <input type="checkbox" id="env_menu_show_allprojects">
-                    <span>Show <i>All projects</i> submenu (icon / action menu only)</span>
+                    <span>Show <abbr title="There will always be a submenu with all Projects and their Contexts">All projects</abbr> submenu (icon / action menu only)</span>
                 </label>
 
                 <label class="primary text short">
-                    <span>Custom <abbr title="If value starts from / then will treated as path segment and glued to base url/domain.
+                    <span>Custom <abbr title="If value starts with / it will be treated as path segment and glued to base url/domain.
 Otherwise will open like full url.">path / url</abbr> 1:</span>
                     <input type="text" id="env_menu_short_custom1">
                     <i>(default: /typo3/install.php)</i>
@@ -213,6 +213,12 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
         <button class="btn repodialog env_projectRepo"><span class="icon"></span> <span class="text">Get from <abbr title="It's a good idea to host your own repo to share projects with your team/company. It's a 15-minut-work, so don't forget to check details.">Project Repository</abbr></span></button>
         <br>
         <br>
+
+        <div class="projects-filter">
+            <input id="projects_filter" placeholder="Filter - search by name / url">
+            <button class="input-reset" id="projects_filter_reset" title="Reset">x</button>
+        </div>
+        <br class="clear">
         <br>
 
         <div class="projects-container"></div>

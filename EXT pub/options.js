@@ -1289,8 +1289,55 @@ $( 'textarea#env_importexport-data' )
         $(this).animate({width: 457, height: 80}, 200);
 
         // scroll to only if we are lower than textarea begin
-    if ( $(document).scrollTop() > $("#settings_block_importexport").offset().top ) 
-    $('html,body').animate({scrollTop: $("#settings_block_importexport").offset().top}, 300);
+        if ( $(document).scrollTop() > $("#settings_block_importexport").offset().top )
+            $('html,body').animate({scrollTop: $("#settings_block_importexport").offset().top}, 300);
+    });
+
+
+// project / env filter (quick search)
+$('#projects_filter').on('keyup', function(e) {
+
+    let filterValue = $(this).val().toLowerCase();
+    let projectsItemsSet = $('.projects-container .projectItem');
+
+    projectsItemsSet.addClass( 'filtered-out' );
+
+
+    if ( filterValue )   {
+        $( '.projects-filter' ).addClass('active');
+
+        projectsItemsSet.filter( function(index) {
+            let found = false;
+
+            // search for the value in project's name
+            if ( $(this).find('[name="project[name]"]').val().toLowerCase().indexOf( filterValue ) >= 0 )  {
+                found = true;
+            }
+            
+            // search for the value in context urls
+            $(this).find('[name="context[url]"]').each(function()  {
+                if ( $(this).val().toLowerCase().indexOf( filterValue ) >= 0 )  {
+                    found = true;
+                    return;
+                }
+            });
+
+            return found;
+        })
+        .removeClass( 'filtered-out' );
+    }
+    else    {
+        // reset
+        projectsItemsSet.removeClass( 'filtered-out' );
+        $( '.projects-filter' ).removeClass('active');
+    }
+});
+
+
+$( 'button#projects_filter_reset' ).click( function() {
+    $( '.projects-container .projectItem' ).removeClass( 'filtered-out' );
+    $( '.projects-filter' ).removeClass('active');
+    $( '.projects-filter input' ).val('');
 });
 
 

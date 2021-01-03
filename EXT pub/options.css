@@ -381,6 +381,41 @@ button.env_contextAddDefaultSet {
 	opacity: .4;
 }
 
+.projectItem.filtered-out   {
+	display: none;
+}
+
+.projects-filter    {
+	position: relative;
+	float: left;
+}
+.projects-filter input {
+	width: 300px;
+	padding-right: 24px;
+}
+.projects-filter.active input    {
+	background: rgb(140, 218, 233);
+}
+.input-reset    {
+	position: absolute;
+	right: 1px;
+	top: 1px;
+	padding: 0;
+	background: none;
+	border: none;
+    box-shadow: none !important;
+	min-height: 22px;
+	min-width: 22px;
+	display: none;
+}
+.input-reset:hover    {
+	font-weight: bold;
+	background: none !important;
+}
+.projects-filter.active .input-reset    {
+	display: inline-block;
+}
+
 label.primary   {
 	display: block;
 	padding-left: 20px;
