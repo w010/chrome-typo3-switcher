@@ -201,6 +201,17 @@ var ExtOptions = {
 
                     ExtOptions.populateEnvSettings( projects );
                     ExtOptions.fillExportData();
+                    
+                    // if urlAddEdit came, handle it on load
+                    chrome.storage.local.get({ 'urlAddEdit': '' }, function(local) {
+                        if ( local.urlAddEdit ) {
+                            
+                            ExtOptions.handleAddEditUrl( local.urlAddEdit );
+                            
+                            // remove the url after use
+                            chrome.storage.local.set({ 'urlAddEdit': '' }, function() {});
+                        }
+                    });
                 });
             }
             // for migration, try to read projects using method 1 (omit version 2, it was only used for tests in unpublished version) 
@@ -214,7 +225,83 @@ var ExtOptions = {
     },
 
 
+    /**
+     * 
+     */
+    handleAddEditUrl : function(url)   {
+        
+        let urlParts = url.split(/\//); 
+        let cleanedUrl = urlParts[0] + '//' + urlParts[2] + '/';
     
+        // try to find and expand its project
+        let projectsItemsSet = $('.projects-container .projectItem');
+        let found = false;
+    
+        projectsItemsSet.each( function(index, item) {
+            // search for the value in context urls
+            $(this).find('[name="context[url]"]').each(function()  {
+                
+                // strip any trailing slash and add (make sure it ends with one, to match no matter if given or not in config)  
+                let checkedContextUrl = $(this).val().replace('/\/^/', '') + '/';
+                
+                if ( checkedContextUrl.toLowerCase().indexOf( cleanedUrl ) >= 0 )  {
+                    found = true;
+    
+                    // open project form and scroll to it
+                    $(item).find('.toggle.project').trigger('click');
+                    $(this).focus();
+                    $('html,body').animate({scrollTop: $(item).offset().top - 100}, 300);
+                    return;
+                }
+            });
+    
+            if (found)
+                return;
+        });
+
+
+        // if not in local projects, propose add options
+        if ( !found )  {
+            // open dialog asking to add to current / make new project / cancel
+
+            let dialogContent = $( '<h3>' ).html( cleanedUrl + '<br><br>' + 'Requested URL is not yet in your local projects. Here\'s what you can do:' );
+            let buttonNewProject = $( '<button class="btn add dialog_projectAdd"><span class="icon"></span> <span class="text">Make new Project</span></button>' );
+            let buttonNewContext = $( '<button class="btn add dialog_contextAdd"><span class="icon"></span> <span class="text">Add Context to current Project</span></button>' );
+            let buttonCancel = $( '<button class="btn cancel"><span class="text" title="Close dialog and discard url">Nothing</span></button>' );
+
+
+            let dialog = ExtOptions.openDialog('New URL', $( '<div>' )
+                .append( dialogContent )
+                .append( buttonNewProject )
+                .append( buttonNewContext )
+                .append( buttonCancel )
+            );
+    
+            dialog.find('.dialog_projectAdd').click( function() {
+                // open and prefill Add form
+                console.log('open addform');
+                var newProject = ExtOptions.insertProjectItem( {} )
+                    .removeClass( 'collapse' )
+                newProject.find( '.env_contextAdd' ).click();
+                newProject.find( '[name="context[url]"]' )
+                    .val( cleanedUrl )
+                    .focus();
+
+                ExtOptions.closeDialog( dialog );
+            });
+    
+            
+            dialog.find('.dialog_contextAdd').click( function() {
+// todo: find out how to make the selection of project to add context
+                console.log('Add as context for existing project / selection not implemented yet! todo: finish this function');
+            });
+            
+            
+            dialog.find('.cancel').click( function() {
+                ExtOptions.closeDialog( dialog );
+            });
+        }
+    },
     
     
     
@@ -555,18 +642,6 @@ var ExtOptions = {
             // init drag & drop
             $( '.projects-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer', update: function() { ExtOptions.sortDropCallback(); } });
         }
-
-        // scroll to last set project on load
-        /*if ( typeof this.options._lastProject !== 'undefined'  &&  this.options._lastProject.length > 0 )  {
-            var scrollToElement = $( '#' + hashCode( this.options._lastProject.name ) );
-            console.log(this.options._lastProject);
-            console.log(scrollToElement);
-            if ( scrollToElement ) {
-                $( window ).scrollTop( scrollToElement.offset().top );
-                scrollToElement.toggleClass( 'collapse' );
-            }
-            chrome.storage.sync.set({ '_lastProject': {} });
-        }*/
     },
 
 

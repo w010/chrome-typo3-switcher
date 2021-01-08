@@ -526,6 +526,12 @@ label.primary span  {
 .btn.confirm    {
 	background: rgba(233, 151, 127, .5);
 }
+.btn.add    {
+	background: rgba(215, 233, 214, .5);
+}
+.btn.add:hover    {
+	background: rgba(215, 233, 214, 1);
+}
 
 .ui-sortable    {
 	cursor: move;
