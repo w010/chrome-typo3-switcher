@@ -1,0 +1,43 @@
+{
+    "name": "Another Project",
+    "hidden": false,
+    "contexts": [
+        {
+            "name": "DOCKER",
+            "url": "https://another.de.local/",
+            "color": "#00cc00",
+            "hidden": false
+        },
+        {
+            "name": "DEV",
+            "url": "https://another.de.yourcompany.com/",
+            "color": "#dfdf00",
+            "hidden": false
+        },
+        {
+            "name": "STAGE",
+            "url": "https://stage.another.de/",
+            "color": "#ff8000",
+            "hidden": false
+        },
+        {
+            "name": "LIVE",
+            "url": "https://www.another.de/",
+            "color": "#df0000",
+            "hidden": false
+        }
+    ],
+    "links": [
+        {
+            "name": "Redmine",
+            "url": "http://redmine.another.de/projects/another-project-support",
+            "hidden": false
+        },
+        {
+            "name": "Wiki",
+            "url": "http://wiki.another.de/",
+            "hidden": false
+        }
+    ],
+    "uuid": "sdg982391hi"
+}

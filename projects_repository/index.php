@@ -3,6 +3,11 @@
  * BE/FE/Env Handy Switcher (TYPO3 dedicated, but is kind of universal)
  * Great help for integrators with many web projects, that runs on multiple paralell environments/contexts.
  * 
+ * 
+ * Subpackage: Projects Repository
+ * Version: 0.2.0
+ * 
+ * 
  * wolo.pl '.' studio
  * 2017-2020
  * wolo.wolski(at)gmail.com
@@ -42,23 +47,38 @@
 class ProjectsRepository    {
 	
 	protected $dataDir = 'data';
+	protected $config = [];
 
 
 	public function __construct() {
-		
+		// include optional config
+		if (file_exists('config/config.php'))   {
+			$this->config = @include_once('config/config.php');
+		}
 	}
+
 	
 	public function handleRequest()  {
-	
+
+		// control access
+		if ($this->config['repo_key'] && $_GET['key'] !== $this->config['repo_key'])    {
+			$this->sendContent([
+				'success' => false,
+				'result' => [],
+				'code' => 'invalid_key',
+				'error' => 'Unauthorized - invalid repo key'
+			]);
+			exit;
+		}
+
+
+		// call action
 		switch ($_GET['action']) {
 			case 'fetch':
-				$this->sendContent('{
-					"success": true,
-					"result": [
-						' . $this->prepareProjectsToOutput() . '
-					]
-				}');
-			
+				$this->sendContent([
+					'success' => true,
+					'result' => $this->getProjects()
+				]);
 				break;
 
 			case 'push':
@@ -67,67 +87,92 @@ class ProjectsRepository    {
 				break;
 
 			default:
-				$this->sendContent('{
-					"success": false,
-					"result": [],
-					"code": "action_not_found",
-					"error": "Action not found or unavailable"
-				}');
+				$this->sendContent([
+					'success' => false,
+					'result' => [],
+					'code' => 'action_not_found',
+					'error' => 'Action not found or unavailable'
+				]);
 		}
 	}
 
 
 	/**
 	 * Read projects and build output. Since they are json files already, glue them together into one json array
+	 * @return array
 	 */
-	protected function prepareProjectsToOutput() {
+	protected function getProjects() {
 		
-		$filter = $_GET['filter'];
+		$filter = htmlspecialchars($_GET['filter']);
 		
-		$json = '';
+		$projectsAll = [];
+		$projectsFiltered = [];
+
+
 		if (is_dir($this->dataDir)){
+
 	        foreach (scandir($this->dataDir) as $file)   {
 	        	
-	            if (substr($file, 0, 1) != '.'  &&  substr($file, -5, 5) == '.json') {
+	            if (substr($file, 0, 1) != '.'  &&  substr($file, -5, 5) === '.json') {
 		            // read file content
 		            $fileContent = file_get_contents($this->dataDir . '/' . $file);
-		            if ($filter)    {
-		            	// parse json and search for string occurance in name
-			            $projectParsed = @json_decode($fileContent, true);
-			            if (is_array($projectParsed))   {
-			            	if (stristr($projectParsed['name'], $filter))    {
-		                        $json .= $fileContent.',';
-				            }
-			            	else    {
-			            		foreach (array_merge((array)$projectParsed['contexts'], (array)$projectParsed['links']) as $testItem)  {
-			            			if (stristr($testItem['name'], $filter))    {
-				                        $json .= $fileContent.',';
-				                        break;
-						            }
-					            }
-				            }
-			            }
+		            $fileParsedArray = @json_decode($fileContent, true);
+
+		            // allow both: files with single project, as single json object / json starting with {
+		            // and files with array of projects / json starting with [{
+		            // merge them all together
+		            // todo: detect and mark uuid duplicates
+
+		            if (preg_match('/^\[/', trim($fileContent)))    {
+		            	$projectsAll = array_merge($projectsAll, $fileParsedArray);
 		            }
 		            else    {
-		                $json .= $fileContent.',';
+		            	$projectsAll[] = $fileParsedArray;
 		            }
 	            }
 		    }
 		}
-		// strip last comma
-		$json = substr($json, 0, -1);
-		
-		return $json;
+
+		foreach ($projectsAll as $project) {
+
+			// ignore this field, don't import, don't compare
+			unset ($project['sorting']);
+
+			// search
+			if ($filter) {
+				// search for string occurrence in name
+				if (stristr($project['name'], $filter))    {
+                    $projectsFiltered[] = $project;
+	            }
+	            else    {
+	                // search in merged array of contexts & links, in names and urls
+	                foreach (array_merge((array)$project['contexts'], (array)$project['links']) as $testItem)  {
+	                    if (stristr($testItem['name'], $filter))    {
+	                        $projectsFiltered[] = $project;
+	                        break;
+			            }
+	                    else if (stristr($testItem['url'], $filter))    {
+	                        $projectsFiltered[] = $project;
+	                        break;
+			            }
+		            }
+	            }
+			}
+			else    {
+				$projectsFiltered[] = $project;
+			}
+		}
+		return $projectsFiltered;
 	}
 
 
 	/**
 	 * Output xhr body
-	 * @param string $content
+	 * @param array $content
 	 */
 	protected function sendContent($content) {
 		header('Content-type:application/json;charset=utf-8');
-		print $content;
+		print json_encode($content, JSON_PRETTY_PRINT);
 		exit;
 	}
 }
