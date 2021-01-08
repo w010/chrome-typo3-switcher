@@ -261,9 +261,6 @@ var Env = {
                                     console.info('* FOUND project: ', project.name, ', context: ', context.name);
                                     console.groupCollapsed( 'Setup active project' );
 
-                                    //chrome.storage.sync.set({'_currentProject': project});
-                                    //chrome.storage.sync.set({'_lastProject': project});     // for options autoscroll, not resetted on every setup
-                                    //chrome.storage.sync.set({'_currentContext': context});
 
                                     console.info('-- ICON: activate');
                                     Env.setActionIcon( 'active', tabId );
@@ -303,9 +300,6 @@ var Env = {
 
                                     console.info('--- FOUND project: ', project.name, ', link: ', link.name);
 
-                                    //chrome.storage.sync.set({'_currentProject': project});
-                                    //chrome.storage.sync.set({'_lastProject': project});     // for options autoscroll, not resetted on every setup
-                                    //chrome.storage.sync.set({'_currentLink': link});
 
                                     console.info('-- ICON: activate');
                                     Env.setActionIcon( 'active', tabId );
@@ -331,7 +325,7 @@ var Env = {
                 console.groupCollapsed( 'Setup only non-project stuff' );
 
                 console.info( '-- MENU: standard menu items, All Projects, custom links, if enabled' );
-                Env.setupContextMenu( [], -1, [], _debugEventTriggered );
+                Env.setupContextMenu( [], '', [], _debugEventTriggered );
             });
         });
     },
@@ -375,7 +369,7 @@ var Env = {
                     contextMenuItems.push({
                         title : mark + context.name,
                         id :    'project-' + p + '-env-' + c,
-                        parentId :  'parent-contexts'
+                        parentId :  'parent_contexts'
                     });
                 }
 
@@ -388,7 +382,7 @@ var Env = {
                     chrome.contextMenus.create({
                         title :     project.name + ': contexts',
                         contexts :  [ "browser_action" ],
-                        id :        'parent-contexts'
+                        id :        'ICON-parent_contexts'
                     });
                 }
             }
@@ -416,9 +410,9 @@ var Env = {
                             // in that case this separator is not used.
                             // it's only for page context menu, where we don't use additional submenus
                             title :             '_separator-links',    // needed to not cause error later in iteration
-                            id :                '_separator-links',    // needed to not cause error later in iteration
+                            id :                'separator_links',    // needed to not cause error later in iteration
                             type :              'separator',
-                            showForMenuType: 'rightClickOnly'
+                            showForMenuType :   'rightClickOnly'
                         });
                         separatorAdded = true;
                     }
@@ -426,7 +420,7 @@ var Env = {
                     contextMenuItems.push({
                         title : mark + link.name,
                         id :    'project-' + p + '-link-' + l,
-                        parentId :  'parent-links'
+                        parentId :  'parent_links'
                     });
                 }
 
@@ -435,25 +429,26 @@ var Env = {
                     chrome.contextMenus.create({
                         title :     project.name + ': links',
                         contexts :  [ "browser_action" ],
-                        id :        'parent-links'
+                        id :        'ICON-parent_links'
                     });
                 }
             }
+
+
+            contextMenuItems.push({
+                title :             '_separator-shortcustom',
+                id :                'separator_shortcustom',
+                type :              'separator',
+                showForMenuType :   'rightClickOnly'
+            });
 
 
             // -- Custom shortcut 1
             if ( typeof options.env_menu_short_custom1 !== 'undefined'  &&  options.env_menu_short_custom1 !== '' ) {
 
                 contextMenuItems.push({
-                    title :             '_separator-shortcustom1',
-                    id :                '_separator-shortcustom1',
-                    type :              'separator',
-                    showForMenuType: 'rightClickOnly'
-                });
-
-                contextMenuItems.push({
                     title : options.env_menu_short_custom1,
-                    id :    'project-' + p + '-shortcustom1-'
+                    id :    'project-' + p + '-shortcustom-1'
                 });
             }
 
@@ -462,15 +457,8 @@ var Env = {
             if ( typeof options.env_menu_short_custom2 !== 'undefined'  &&  options.env_menu_short_custom2 !== '' ) {
 
                 contextMenuItems.push({
-                    title :             '_separator-shortcustom2',
-                    id :                '_separator-shortcustom2',
-                    type :              'separator',
-                    showForMenuType: 'rightClickOnly'
-                });
-
-                contextMenuItems.push({
                     title : options.env_menu_short_custom2,
-                    id :    'project-' + p + '-shortcustom2-'
+                    id :    'project-' + p + '-shortcustom-2'
                 });
             }
 
@@ -478,16 +466,9 @@ var Env = {
             // -- ALL PROJECTS
             if ( typeof options.env_menu_show_allprojects !== 'undefined'  &&  options.env_menu_show_allprojects === true ) {
 
-                /*contextMenuItems.push({
-                    title :             '_separator-allprojects',
-                    id :                '_separator-allprojects',
-                    type :              'separator',
-                    showForMenuType :   'rightClickOnly'
-                });*/
-
                 contextMenuItems.push({
                     title :             'All projects',
-                    id :                'parent-allprojects',
+                    id :                'allprojects',
                     showForMenuType :   'actionMenuOnly'
                 });
 
@@ -499,8 +480,8 @@ var Env = {
                             continue;
                         contextMenuItems.push({
                             title :             _project.name,
-                            id :                'parent_allprojects_project-' + _p,
-                            parentId :          'parent-allprojects',
+                            id :                'allprojects_project-' + _p,
+                            parentId :          'allprojects',
                             showForMenuType :   'actionMenuOnly'
                         });
                         if ( typeof _project.contexts !== 'undefined' ) {
@@ -511,8 +492,8 @@ var Env = {
                             
                                 contextMenuItems.push({
                                     title :             _context.name,
-                                    id :                '_allprojects_project-' + _p + '-env-' + _c,
-                                    parentId :          'parent_allprojects_project-' + _p,
+                                    id :                'allprojects_project-' + _p + '-env-' + _c,
+                                    parentId :          'allprojects_project-' + _p,
                                     showForMenuType :   'actionMenuOnly'
                                 });
                             }
@@ -529,18 +510,18 @@ var Env = {
                                 if ( !separatorAdded ) {
                                     contextMenuItems.push({
                                         title :             '_separator-links',
-                                        id :                '_allprojects_project-' + _p + '-separator-links',
-                                        parentId :          'parent_allprojects_project-' + _p,
+                                        id :                'allprojects_project-' + _p + '-separator-links',
+                                        parentId :          'allprojects_project-' + _p,
                                         type :              'separator',
-                                        showForMenuType: 'actionMenuOnly'
+                                        showForMenuType :   'actionMenuOnly'
                                     });
                                     separatorAdded = true;
                                 }
 
                                 contextMenuItems.push({
                                     title :             _link.name,
-                                    id :                '_allprojects_project-' + _p + '-link-' + _l,
-                                    parentId :          'parent_allprojects_project-' + _p,
+                                    id :                'allprojects_project-' + _p + '-link-' + _l,
+                                    parentId :          'allprojects_project-' + _p,
                                     showForMenuType :   'actionMenuOnly'
                                 });
                             }
@@ -549,6 +530,29 @@ var Env = {
                 }
 
             }
+
+            
+            contextMenuItems.push({
+                title :             '_separator-tools',
+                id :                'separator_tools',
+                type :              'separator',
+                showForMenuType :   'rightClickOnly'
+            });
+
+
+            // additional tools submenu
+            contextMenuItems.push({
+                title :             'Tools',
+                id :                'tools',
+                showForMenuType:    'actionMenuOnly',
+            });
+
+            contextMenuItems.push({
+                title :             'Add/Edit current URI',
+                id :                'tool--add_edit',
+                parentId :          'tools',
+            });
+
 
 
             // when item array ready,
@@ -598,12 +602,12 @@ var Env = {
                     chrome.contextMenus.create({
                             title :     contextMenuItems[i].title,
                             contexts :  [ "browser_action" ],
-                            id :        contextMenuItems[i].id,
+                            id :        'ICON-'+contextMenuItems[i].id,
                             type :      typeof contextMenuItems[i].type !== 'undefined'  &&  contextMenuItems[i].type === 'separator'
                                 ? 'separator'
                                 : 'normal',
                             parentId: typeof contextMenuItems[i].parentId !== 'undefined'
-                                ? contextMenuItems[i].parentId
+                                ? 'ICON-'+contextMenuItems[i].parentId
                                 : null
                         },
                         menuCallback
@@ -612,20 +616,18 @@ var Env = {
 
                 // PAGE RIGHT-CLICK MENU
                 if ( typeof contextMenuItems[i].showForMenuType === 'undefined'
-                    // don't show items dedicated only to right-click menu (like separators, when no submenus used there)
+                    // don't show items dedicated only to action icon menu (like separators, when no submenus used there)
                     ||  ( typeof contextMenuItems[i].showForMenuType !== 'undefined'  &&  contextMenuItems[i].showForMenuType !== 'actionMenuOnly' ) )  {
 
                     chrome.contextMenus.create({
                             title :     contextMenuItems[i].title,
                             contexts :  [ "page", "frame", "selection", "link", "editable", "image", "video", "audio", "page_action" ],
-                            id :        'pagerightclickmenu_'+contextMenuItems[i].id,
+                            id :        'RIGHT-'+contextMenuItems[i].id,
                             type :      typeof contextMenuItems[i].type !== 'undefined'  &&  contextMenuItems[i].type === 'separator'
                                 ? 'separator'
                                 : 'normal'
                             // no parentId by default - in this menu put all in one level
-                            /*parentId :  typeof contextMenuItems[i].forceParentId !== 'undefined'  &&  typeof contextMenuItems[i].parentId !== 'undefined'
-                                ?  typeof contextMenuItems[i].parentId
-                                :  ''*/
+                            // parentId :
                         },
                         menuCallback
                     );
@@ -643,6 +645,11 @@ var Env = {
      * @param _debugEventTriggered
      */
     setupBadge : function (context, project, tab, _debugEventTriggered) {
+
+        if ( !tab.url.toString().startsWith('http') )   {
+            console.info('Env.setupBadge(): tab url is not http type (probably system page). Exit');
+            return;
+        }
 
         if ( !context.color )   {
             console.warn('Env.setupBadge(): color not set. project / context: \n' + project.name + ' / ' + context.name);
@@ -693,6 +700,11 @@ var Env = {
      * @param _debugEventTriggered
      */
     setupFavicon : function (context, project, tab, _debugEventTriggered) {
+        
+        if ( !tab.url.toString().startsWith('http') )   {
+            console.info('Env.setupFavicon(): tab url is not http type (probably system page). Exit');
+            return;
+        }
 
         if ( !context.color )   {
             console.warn('Env.setupFavicon(): color not set. project / context: \n' + project.name + ' / ' + context.name);
@@ -752,7 +764,7 @@ var Env = {
             var newTabUrl = '';
 
             // if we are on project's link, not context, we may not get activeContext
-            if ( typeof activeContext !== 'undefined' )  {
+            if ( typeof activeContext !== 'undefined'  &&  typeof activeContext.url !== 'undefined' )  {
                 // strip trailing slash
                 var activeContextBaseUrl = activeContext.url.replace( /\/$/, '' );
                 var newContextBaseUrl = newContext.url.replace( /\/$/, '' );
@@ -860,37 +872,95 @@ chrome.storage.sync.get( null, function(options) {
             // console.log(info);
             // console.log(tab);
             // console.log(Env.options);
+            
+            /** syntax:
+                    clickSrc-itemType-itemIndex-itemSubType-itemSubIndex
+                examples:
+                    ICON-project-20-link-3,
+                    ICON-allprojects_project-4
+                    RIGHT-shortcustom-4-shortcustom-2
+                    ICON-tool--addedit
+             */
 
             // extract necessary info from button id
             var idParts = info.menuItemId.split(/-/);
-            var projectIndex = idParts[1];
-            var itemType = idParts[2];
-            var itemIndex = idParts[3];
+            var itemType = idParts[1];
+            var itemIndex = idParts[2];
+            var itemSubType = idParts[3];
+            var itemSubIndex = idParts[4];
 
             console.group('open tab. menu position params:');
-            console.log({menuPositionUniqueId: idParts[0], projectIndex: projectIndex, itemType: itemType, itemIndex: itemIndex});
-            //console.log(idParts);
+            console.log({clickSrc: idParts[0], itemIndex: itemIndex, itemType: itemType, itemSubType: itemSubType, itemSubIndex: itemSubIndex});
+            console.log(idParts);
 
-            var project = Env.projectsAll[ projectIndex ];
-            console.log(project);
-
-            if ( typeof project === 'undefined' )   {
+            
+            // menu position: TOOLS
+            
+            if ( itemType === 'tool'  &&  itemSubType === 'add_edit' )   {
+                console.info(':: OPEN OPTIONS & EXIT');
                 console.groupEnd();
+
+                // store current page url
+                chrome.tabs.getSelected( null, function(tab) {
+                    chrome.storage.local.set({ 'urlAddEdit': tab.url }, function() {
+                        
+                        // open options screen and handle that uri there
+                        chrome.tabs.create({
+                            'url':     'options.html',    // 'chrome-extension://'+chrome.runtime.id+'/options.html',
+                            'index':   tab.index + 1
+                        });
+                    });
+                });
+
                 return;
             }
 
 
+            // handle project-related items
+
+            var project = Env.projectsAll[ itemIndex ] ?? {};
+            console.log(project);
+            console.log(itemSubType);
+
+            if ( typeof project === 'undefined'  &&  itemSubType !== 'shortcustom')   {
+                console.groupEnd();
+                return;
+            }
+
+            
+            
+            if ( typeof itemType === 'allprojects_project' )  {
+                if (  itemSubType === 'env'  &&  typeof project.contexts[ itemSubIndex ]  !==  'undefined' )    {
+                    console.info(':: OPEN TAB [allprojects: '+project.name+', env: '+project.contexts[ itemSubIndex ].name+'] & EXIT: ' + project.contexts[ itemSubIndex ].url);
+                    chrome.tabs.create({
+                        'url' :     project.contexts[ itemSubIndex ].url,
+                        'index' :   tab.index + 1
+                    });
+                }
+                else if (  itemSubType === 'link'  &&  typeof project.links[ itemSubIndex ]  !==  'undefined' )    {
+                    console.info(':: OPEN TAB [allprojects: '+project.name+', link: '+project.links[ itemSubIndex ].name+'] & EXIT: ' + project.links[ itemSubIndex ].url);
+                    chrome.tabs.create({
+                        'url' :     project.links[ itemSubIndex ].url,
+                        'index' :   tab.index + 1
+                    });
+                }
+
+                console.groupEnd();
+                return;
+            }
+            
+
 
             // menu position: LINK
 
-            if ( typeof itemType !== 'undefined'  &&  itemType === 'link'  &&  typeof project.links[ itemIndex ]  !==  'undefined' )  {
+            if ( typeof itemSubType === 'project'  &&  itemSubType === 'link'  &&  typeof project.links[ itemSubIndex ]  !==  'undefined' )  {
                 //console.log(project.links[ itemIndex ]);
 
-                console.info(':: OPEN TAB [LINK] & EXIT: ' + project.links[ itemIndex ].url);
+                console.info(':: OPEN TAB [LINK] & EXIT: ' + project.links[ itemSubIndex ].url);
                 console.groupEnd();
 
                 chrome.tabs.create({
-                    'url' :     project.links[ itemIndex ].url,
+                    'url' :     project.links[ itemSubIndex ].url,
                     'index' :   tab.index + 1
                 });
 
@@ -898,22 +968,15 @@ chrome.storage.sync.get( null, function(options) {
             }
 
 
+
             // menu position: ENV / CONTEXT
-            // menu position: INSTALL TOOL
+            // menu position: CUSTOM SHORTCUTS
 
-            var newContext = project.contexts[ itemIndex ];
-            //console.log(newContext);
-
-            if ( typeof newContext === 'undefined'  &&  itemType !== 'shortcustom1'  &&  itemType !== 'shortcustom2') {
-                console.warn('error - no such context set in menu? context index: ' + itemIndex);
-                console.groupEnd();
-                return;
-            }
 
             chrome.tabs.getSelected( null, function(tab) {
                 //console.log(tab);
 
-                var activeContext;
+                var activeContext = {};
 
                 // look for current context (for base url replace)
                 if ( typeof project.contexts !== 'undefined' )    {
@@ -928,16 +991,32 @@ chrome.storage.sync.get( null, function(options) {
                         }
                     }
                 }
+                
 
-                if (itemType === 'shortcustom1') {
-                    Switcher.openCustomShortcut( activeContext.url, options.env_menu_short_custom1, '1' );
+                if ( itemSubType === 'shortcustom'  &&  itemSubIndex === '1') {
+                    Switcher.openCustomShortcut( activeContext.url ?? '', options.env_menu_short_custom1, '1' );
                     return;
                 }
 
-                if (itemType === 'shortcustom2') {
-                    Switcher.openCustomShortcut( activeContext.url, options.env_menu_short_custom2, '2' );
+                if ( itemSubType === 'shortcustom'  &&  itemSubIndex === '2') {
+                    Switcher.openCustomShortcut( activeContext.url ?? '', options.env_menu_short_custom2, '2' );
                     return;
                 }
+                
+                
+                
+                if ( typeof project.contexts !== 'undefined' )  {
+                    var newContext = project.contexts[ itemSubIndex ];
+                }
+                //console.log(newContext);
+    
+                if ( typeof newContext === 'undefined'  &&  itemSubType !== 'shortcustom' ) {
+                    console.warn('error - no such context set in menu? context index: ' + itemSubIndex);
+                    console.groupEnd();
+                    return;
+                }
+                
+                
 
                 if ( newContext === activeContext )   {
                     console.log(':: PRE-SWITCH: current context clicked: do nothing');

@@ -166,37 +166,37 @@ var Switcher = {
      */
     openCustomShortcut : function( siteUrl, shortcutValue, customShortcutNumber ) {
 
-        let newTabUrl = '';
-
-        // if begins with slash, treat as path segment and attach to base/domain
-        if ( shortcutValue.charAt(0) === '/' )    {
-
-            // if base tag cannot be read / no url found, try only a domain
-            if ( !siteUrl  &&  Switcher._currentTab  &&  Switcher._url ) {
-
-                // extract scheme + domain
-                let parts = Switcher._url.split( '/' );
-                siteUrl = parts[0] + '//' + parts[2];
-
-                /*console.log('url: ' + _url);
-                console.log(parts);
-                console.log(siteUrl);*/
-            }
-            
-            // strip trailing slash
-            newTabUrl = siteUrl.replace( /\/$/, '' )
-                + shortcutValue;
-        }
-        else if ( !shortcutValue.startsWith('http') )   {
-            newTabUrl = 'https://' + shortcutValue;
-        }
-        else    {
-            newTabUrl = shortcutValue;
-        }
-
-        console.info('newTabUrl: ' + newTabUrl);
-
         chrome.tabs.getSelected( null, function (_currentTab) {
+
+            let newTabUrl;
+
+            // if begins with slash, treat as path segment and attach to base/domain
+            if ( shortcutValue.charAt(0) === '/' )    {
+
+                // if base url didn't come from menu click, it means unknown site (not set up) - try only a domain
+                if ( !siteUrl ) {
+
+                    // extract scheme + domain
+                    let parts = _currentTab.url.split( '/' );
+                    siteUrl = parts[0] + '//' + parts[2];
+                    // console.log(siteUrl);
+                }
+
+                // strip trailing slash
+                newTabUrl = siteUrl.replace( /\/$/, '' )
+                    + shortcutValue;
+            }
+            // if it doesn't start with http, but no slash - treat as external url, but schema is missed - add it
+            else if ( !shortcutValue.startsWith('http') )   {
+                newTabUrl = 'https://' + shortcutValue;
+            }
+            // assume good external url
+            else    {
+                newTabUrl = shortcutValue;
+            }
+
+            console.info('newTabUrl: ' + newTabUrl);
+
             chrome.tabs.create({
                 'url':      newTabUrl,
                 'index':    _currentTab.index + 1
