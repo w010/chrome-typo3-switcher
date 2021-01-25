@@ -46,24 +46,14 @@
  */
 class ProjectsRepository {
 
-    /**
-     * @var string 
-     */
     protected $dataDir = 'data';
-
-    /**
-     * @var array
-     */
     protected $config = [];
+
 
     public function __construct() {
         // include optional config
         if (file_exists('config/config.php')) {
             $this->config = @include_once('config/config.php');
-        } else {
-            $this->config = [
-                'repo_key' => '',
-            ];
         }
     }
 
