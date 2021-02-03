@@ -3,3 +3,7 @@ crx and keys
 media
 repoexample
 projects_repository/config/config.php
+projects_repository/data/*
+projects_repository/data/!.htaccess
+projects_repository/data/!example-project.json
+projects_repository/data/!example-project2.json
