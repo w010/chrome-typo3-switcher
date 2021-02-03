@@ -45,11 +45,10 @@
  * Class ProjectsRepository
  */
 class ProjectsRepository {
+    
+    const DATA_DIR = 'data';
 
-    /**
-     * @var string
-     */
-    protected $dataDir = 'data';
+    const CONFIG_FILE = 'config/config.php';
 
     /**
      * @var array
@@ -59,8 +58,8 @@ class ProjectsRepository {
 
     public function __construct() {
         // include optional config
-        if (file_exists('config/config.php'))   {
-            $this->config = @include_once('config/config.php');
+        if (file_exists(self::CONFIG_FILE))   {
+            $this->config = @include_once(self::CONFIG_FILE);
         } else {
             $this->config = [
                 'repo_key' => '',
@@ -110,6 +109,7 @@ class ProjectsRepository {
 
 	/**
 	 * Read projects and build output. Since they are json files already, glue them together into one json array
+     * 
 	 * @return array
 	 */
 	protected function getProjects() {
@@ -120,13 +120,13 @@ class ProjectsRepository {
 		$projectsFiltered = [];
 
 
-		if (is_dir($this->dataDir)){
+		if (is_dir(self::DATA_DIR)) {
 
-	        foreach (scandir($this->dataDir) as $file)   {
+	        foreach (scandir(self::DATA_DIR) as $file) {
 	        	
-	            if (substr($file, 0, 1) != '.'  &&  substr($file, -5, 5) === '.json') {
+	            if (substr($file, 0, 1) != '.' && substr($file, -5, 5) === '.json') {
 		            // read file content
-		            $fileContent = file_get_contents($this->dataDir . '/' . $file);
+		            $fileContent = file_get_contents(self::DATA_DIR . '/' . $file);
 		            $fileParsedArray = @json_decode($fileContent, true);
 
 		            // allow both: files with single project, as single json object / json starting with {
@@ -134,10 +134,9 @@ class ProjectsRepository {
 		            // merge them all together
 		            // todo: detect and mark uuid duplicates
 
-		            if (preg_match('/^\[/', trim($fileContent)))    {
+		            if (preg_match('/^\[/', trim($fileContent))) {
 		            	$projectsAll = array_merge($projectsAll, $fileParsedArray);
-		            }
-		            else    {
+		            } else {
 		            	$projectsAll[] = $fileParsedArray;
 		            }
 	            }
