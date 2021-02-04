@@ -231,7 +231,7 @@ button  {
 		vertical-align: top;
 	}
 
-button.btn.remove   {
+button.btn.remove {
 	position: absolute;
 	top: 10px;  right: 10px;
 	padding: 8px 9px;
@@ -248,6 +248,8 @@ button.fetch .icon  {   background-image: url(/Icons/Options/Refresh.svg);  }
 button.getAll .icon  {   background-image: url(/Icons/Options/GetWholePack.svg);  }
 button.compare .icon  { background-image: url(/Icons/Options/Compare.svg);  }
 button.replace .icon  { background-image: url(/Icons/Options/Replace.svg);  }
+button.clipboard .icon  { background-image: url(/Icons/Options/Clipboard.svg);  }
+.btn-new-tab .icon { background-image: url(/Icons/Options/actions-window-open.svg); }
 
 button.env_contextAddDefaultSet {
 	display: none;

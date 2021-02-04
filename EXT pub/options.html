@@ -234,7 +234,10 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
                 <div class="contextItem collapse _template">
 
                     <label><input type="text" name="context[name]" placeholder="Name" class="required"></label>
-                    <label><input type="text" name="context[url]" placeholder="Url" class="required"></label>
+                    <label>
+											<input type="text" name="context[url]" placeholder="Url" class="required">
+											<a class="btn btn-new-tab" target="_blank" title="Open in new tab" href=""><span class="icon"></span></a>
+										</label>
                     <label>Badge color:
                         <input type="color" class="color-picker">
                         <input type="text" name="context[color]" placeholder="#Hex" class="color-text" maxlength="7">
@@ -265,7 +268,10 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
                 <div class="linkItem _template">
 
                     <label><input type="text" name="link[name]" placeholder="Name" class="required"></label>
-                    <label><input type="text" name="link[url]" placeholder="Url" class="required"></label>
+                    <label>
+											<input type="text" name="link[url]" placeholder="Url" class="required">
+											<a class="btn btn-new-tab" target="_blank" title="Open in new tab" href=""><span class="icon"></span></a>
+										</label>
 
                     <label class="check hide"><input type="checkbox" name="link[hidden]"> Disable </label>
                     <button class="btn remove env_linkRemove" title="Remove"><span class="icon"></span></button>

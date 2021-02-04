@@ -15,7 +15,7 @@
 
 
 
-var ExtOptions = {
+const ExtOptions = {
 
     DEV : false,
     options : {},
@@ -313,7 +313,7 @@ var ExtOptions = {
      * @param projectItem object
      */
     insertProjectItem : function(projectItem)   {
-        var project = $( '.projectItem._template' ).clone().removeClass( '_template' )
+        const project = $( '.projectItem._template' ).clone().removeClass( '_template' )
             .appendTo( $( '.projects-container' ) );
 
         if (typeof projectItem.uuid === 'undefined' || !projectItem.uuid)
@@ -342,29 +342,35 @@ var ExtOptions = {
 
         // bind buttons
         project.find( 'button.env_contextAdd' ).click( function() {
-            var context = ExtOptions.insertContextItem( project, {} );
+            const context = ExtOptions.insertContextItem( project, {} );
             context.find( '[name="context[name]"]' ).focus();
         });
+        
         project.find( 'button.env_contextAddDefaultSet' ).click( function() {
             ExtOptions.insertDefaultContextSet( project );
         });
+        
         project.find( 'button.env_linkAdd' ).click( function() {
-            var link = ExtOptions.insertLinkItem( project, {} );
+            const link = ExtOptions.insertLinkItem( project, {} );
             link.find( '[name="link[name]"]' ).focus();
         });
+        
         project.find( 'button.env_projectRemove' ).click( function() {
-			var trigger = $(this);
-			ExtOptions.confirmDialog( 'Delete project', 'Are you sure?',function() {
-				ExtOptions.deleteProjectItem( trigger.closest('.projectItem') );
+					const trigger = $(this);
+					ExtOptions.confirmDialog( 'Delete project', 'Are you sure?',function() {
+						ExtOptions.deleteProjectItem( trigger.closest('.projectItem') );
                 //ExtOptions.optionsSave(); // probably is problematic to call it right after
-            });
+					});
         });
+        
         project.find( '> .hide input' ).on( 'change', function() {
             project.toggleClass( 'hidden' );
         });
+        
         project.find( '.toggle.project' ).click( function() {
             project.toggleClass( 'collapse' );
         });
+        
         project.find( 'button.env_projectExport' ).click( function() {
             ExtOptions.exportProjectsDownloadFile( project );
         });
@@ -372,7 +378,7 @@ var ExtOptions = {
         // make elements inside sortable
         project.find( '.contexts-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer', update: function() { ExtOptions.sortDropCallback(); } });
         project.find( '.links-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer', update: function() { ExtOptions.sortDropCallback() } });
-
+        
         return project;
     },
 
@@ -382,12 +388,13 @@ var ExtOptions = {
      * @param contextItem object with data
      */
     insertContextItem : function(project, contextItem)   {
-        var context = project.find( '.contextItem._template' ).clone().removeClass( '_template' )
+        const context = project.find( '.contextItem._template' ).clone().removeClass( '_template' )
             .appendTo( project.find( '.contexts-container' ) );
 
         // populate data
         context.find( "[name='context[name]']" ).val( contextItem.name );
         context.find( "[name='context[url]']" ).val( contextItem.url );
+        context.find('.btn-new-tab').attr('href', contextItem.url);
         context.find( "[name='context[color]']" ).val( contextItem.color );
         context.find( ".color-picker" ).val( contextItem.color );
         context.find( "[name='context[hidden]']" ).prop( 'checked', contextItem.hidden );
@@ -434,12 +441,13 @@ var ExtOptions = {
      * @param linkItem object with data
      */
     insertLinkItem : function(project, linkItem)   {
-        var link = project.find( '.linkItem._template' ).clone().removeClass( '_template' )
+        const link = project.find( '.linkItem._template' ).clone().removeClass( '_template' )
             .appendTo( project.find( '.links-container' ) );
 
         // populate data
         link.find( "[name='link[name]']" ).val( linkItem.name );
         link.find( "[name='link[url]']" ).val( linkItem.url );
+        link.find('.btn-new-tab').attr('href', linkItem.url);
         link.find( "[name='link[hidden]']" ).prop( 'checked', linkItem.hidden );
         if ( linkItem.hidden )
             link.addClass( 'hidden' );
