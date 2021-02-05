@@ -182,8 +182,8 @@ const ExtOptions = {
             ExtOptions.options = options;
 
             ExtOptions.initFoldableSections();
-            
-            ExtOptions.handleDarkMode();
+
+						ExtOptions.handleDarkMode();
             ExtOptions.setFaviconPreview();
             ExtOptions.setBadgePreview();
 

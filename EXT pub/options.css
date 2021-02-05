@@ -843,3 +843,13 @@ input#repo_key  {
 	color: #a52c2c;
 	background: #f8b8b8;
 }
+
+
+
+/* NOTE: Keep it at the end of file */
+.dark-mode {
+    background-color: #333;
+    color: #f3f3f3;
+    
+    transition: .3s ease-in-out color, .3s ease-in-out background-color;
+}
