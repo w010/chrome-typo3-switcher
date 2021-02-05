@@ -212,6 +212,7 @@ button  {
 	box-shadow: none !Important;
 	min-width: 28px;
 	min-height: 28px;
+    text-shadow: none;
 	transition: background-color .15s, border-color .15s;
 }
 	.btn:hover {
@@ -854,10 +855,23 @@ input#repo_key  {
     transition: .3s ease-in-out color, .3s ease-in-out background-color;
 }
 
-.dark-mode .heading {
+.dark-mode .heading,
+.dark-mode .dialog-overlay, 
+.dark-mode .dialog-inner {
     background-color: #333;
 }
 
-.dark-mode .jump-toolbar {
-    color: initial;
+.dark-mode .jump-toolbar,
+.dark-mode .btn:focus,
+.dark-mode .btn:hover,
+.dark-mode .projects-container {
+    color: #333;
+}
+
+.dark-mode h3 {
+    color: #f3f3f3;
+}
+
+.dark-mode label.primary:hover {
+    background-color: rgba(255, 255, 255, .2);
 }
