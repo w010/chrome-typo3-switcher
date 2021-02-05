@@ -871,7 +871,9 @@ const ExtOptions = {
 		handleDarkMode : function() {
     	if (this.options.ext_dark_mode === true) {
     		document.body.classList.add('dark-mode');
-			}
+			} else {
+				document.body.classList.remove('dark-mode');
+    	}
 		},
 
 
