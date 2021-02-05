@@ -853,3 +853,11 @@ input#repo_key  {
     
     transition: .3s ease-in-out color, .3s ease-in-out background-color;
 }
+
+.dark-mode .heading {
+    background-color: #333;
+}
+
+.dark-mode .jump-toolbar {
+    color: initial;
+}
