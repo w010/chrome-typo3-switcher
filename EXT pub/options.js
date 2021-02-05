@@ -57,7 +57,8 @@ const ExtOptions = {
             'env_favicon_position' :            $( '#env_favicon_position' ).val(),
             'env_favicon_composite' :           $( '#env_favicon_composite' ).val(),
             'env_projects_autosorting' :        $( '#env_projects_autosorting' ).is( ':checked' ),
-            'ext_debug' :                       $( '#ext_debug' ).is( ':checked' )
+            'ext_debug' :                       $( '#ext_debug' ).is( ':checked' ),
+						'ext_dark_mode':										$( '#ext_dark_mode' ).is( ':checked' )
 
         }, function() {
 
@@ -147,6 +148,7 @@ const ExtOptions = {
             'env_favicon_position' :            'bottom',
             'env_favicon_composite' :           'source-over',
             'ext_debug' :                       false,
+            'ext_dark_mode' :                   false,
             'repo_url' :                        '',
             'repo_key' :                        '',
 
@@ -174,12 +176,14 @@ const ExtOptions = {
             $( '#env_favicon_composite' ).val(                      options.env_favicon_composite );
             $( '#env_projects_autosorting' ).attr( 'checked',       options.env_projects_autosorting );
             $( '#ext_debug' ).attr( 'checked',                      options.ext_debug );
+            $( '#ext_dark_mode' ).attr( 'checked',                  options.ext_dark_mode );
 
             ExtOptions.DEV = options.ext_debug;
             ExtOptions.options = options;
 
             ExtOptions.initFoldableSections();
             
+            ExtOptions.handleDarkMode();
             ExtOptions.setFaviconPreview();
             ExtOptions.setBadgePreview();
 
@@ -864,6 +868,11 @@ const ExtOptions = {
         //window.URL.revokeObjectURL( url );
     },
 
+		handleDarkMode : function() {
+    	if (this.options.ext_dark_mode === true) {
+    		document.body.classList.add('dark-mode');
+			}
+		},
 
 
     // HELPERS
@@ -1308,18 +1317,19 @@ favicon_params = {
 
 // init
 $(function() {
-    ExtOptions.optionsRestore();
-    ExtOptions.updateStorageInfo();
-    ExtOptions.debugStorageData();
-    ExtOptions.linkRangeInputs();
-    ExtOptions.bindFaviconControlsForPreview();
-    ExtOptions.bindBadgeControlsForPreview();
-    ExtOptions.bindAutosave();
-	$(document).on('keydown',function(e) {
-        if (e.keyCode === 27) {
-            ExtOptions.closeDialog( ExtOptions.dialogToCloseOnGlobalEvents );
-        }
-    });
+		ExtOptions.optionsRestore();
+		ExtOptions.updateStorageInfo();
+		ExtOptions.debugStorageData();
+		ExtOptions.linkRangeInputs();
+		ExtOptions.bindFaviconControlsForPreview();
+		ExtOptions.bindBadgeControlsForPreview();
+		ExtOptions.bindAutosave();
+		
+		$(document).on('keydown',function(e) {
+				if (e.keyCode === 27) {
+						ExtOptions.closeDialog( ExtOptions.dialogToCloseOnGlobalEvents );
+				}
+		});
 });
 
 // bind basic buttons
