@@ -44,8 +44,8 @@ a.external:before {
 	position: fixed;
 	top: 0;
 	z-index: 1;
-	padding-top: 10px;
-    width: inherit;
+	padding-top: 15px;
+    width: 970px; /* .main width - padding | 990px - (2 x 10px) = 970px */
 	background: #f9f9f9;
 }
 .heading header {
