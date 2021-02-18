@@ -231,7 +231,7 @@ var Env = {
 
                 var isProjectFound = false;
 
-                // todo: here read new way projects (or maybe before? where it's all called just after first storage read? and pass them here
+
 
                 // setup new ones, if url found in config
                 if ( typeof projectsAll !== 'undefined' ) {
@@ -239,7 +239,7 @@ var Env = {
 
                         var project = projectsAll[p];
 
-                        if ( project.hidden )
+                        if ( project.hidden || !project.name )
                             continue;
 
 
@@ -252,8 +252,8 @@ var Env = {
                                     continue;
 
                                 // compare ignoring schema (& trailing slash in configured url)
-                                if ( context.url  &&  tab.url.replace( /^https?:\/\//, '')
-                                        .match( context.url.replace( /^https?:\/\//, '').replace( /\/$/, '') ) ) {
+                                if ( context.url  &&  tab.url.replace( /^https?:\/\//, '/')
+                                        .match( context.url.replace( /^https?:\/\//, '/').replace( /\/$/, '') ) ) {
 
                                     isProjectFound = true;
 
@@ -361,7 +361,7 @@ var Env = {
 
                     var context = project.contexts[c];
 
-                    if ( context.hidden || !context.url )
+                    if ( context.hidden || !context.url || !context.name )
                         continue;
 
                     mark = activeContext.name === context.name && activeContext.url === context.url ? '-> ' : '     ';
@@ -369,7 +369,13 @@ var Env = {
                     contextMenuItems.push({
                         title : mark + context.name,
                         id :    'project-' + p + '-env-' + c,
-                        parentId :  'parent_contexts'
+                        parentId :  'parent_contexts',
+                        showForMenuType :   'actionMenuOnly'
+                    });
+                    contextMenuItems.push({
+                        title : mark + context.name,
+                        id :    'project-' + p + '-env-' + c,
+                        showForMenuType :   'rightClickOnly'
                     });
                 }
 
@@ -398,7 +404,7 @@ var Env = {
 
                     var link = project.links[l];
 
-                    if ( link.hidden || !link.url)
+                    if ( link.hidden || !link.url || !link.name)
                         continue;
 
                     mark = activeContext.name === link.name && activeContext.url === link.url ? '-> ' : '     ';
@@ -420,7 +426,13 @@ var Env = {
                     contextMenuItems.push({
                         title : mark + link.name,
                         id :    'project-' + p + '-link-' + l,
-                        parentId :  'parent_links'
+                        parentId :  'parent_links',
+                        showForMenuType :   'actionMenuOnly'
+                    });
+                    contextMenuItems.push({
+                        title : mark + link.name,
+                        id :    'project-' + p + '-link-' + l,
+                        showForMenuType :   'rightClickOnly'
                     });
                 }
 
@@ -469,32 +481,30 @@ var Env = {
                 contextMenuItems.push({
                     title :             'All projects',
                     id :                'allprojects',
-                    showForMenuType :   'actionMenuOnly'
+                    //showForMenuType :   'actionMenuOnly'
                 });
 
                 // iterate all projects and links
                 if ( typeof Env.projectsAll !== 'undefined' ) {
                     for ( var _p = 0;  _p < Env.projectsAll.length;  _p++ ) {
                         var _project = Env.projectsAll[_p];
-                        if ( _project.hidden )
+                        if ( _project.hidden || !_project.name )
                             continue;
                         contextMenuItems.push({
                             title :             _project.name,
                             id :                'allprojects_project-' + _p,
                             parentId :          'allprojects',
-                            showForMenuType :   'actionMenuOnly'
                         });
                         if ( typeof _project.contexts !== 'undefined' ) {
                             for ( var _c = 0;  _c < _project.contexts.length;  _c++ ) {
                                 var _context = _project.contexts[_c];
-                                if ( _context.hidden || !_context.url )
+                                if ( _context.hidden || !_context.url || !_context.name )
                                     continue;
                             
                                 contextMenuItems.push({
                                     title :             _context.name,
                                     id :                'allprojects_project-' + _p + '-env-' + _c,
                                     parentId :          'allprojects_project-' + _p,
-                                    showForMenuType :   'actionMenuOnly'
                                 });
                             }
                         }
@@ -503,7 +513,7 @@ var Env = {
                             separatorAdded = false;
                             for ( var _l = 0;  _l < _project.links.length;  _l++ ) {
                                 var _link = _project.links[_l];
-                                if ( _link.hidden || !_link.url )
+                                if ( _link.hidden || !_link.url || !_link.name )
                                     continue;
                                 
                                 // add separator on first (not hidden) item
@@ -513,7 +523,7 @@ var Env = {
                                         id :                'allprojects_project-' + _p + '-separator-links',
                                         parentId :          'allprojects_project-' + _p,
                                         type :              'separator',
-                                        showForMenuType :   'actionMenuOnly'
+                                        //showForMenuType :   'actionMenuOnly'
                                     });
                                     separatorAdded = true;
                                 }
@@ -522,7 +532,7 @@ var Env = {
                                     title :             _link.name,
                                     id :                'allprojects_project-' + _p + '-link-' + _l,
                                     parentId :          'allprojects_project-' + _p,
-                                    showForMenuType :   'actionMenuOnly'
+                                    //showForMenuType :   'actionMenuOnly'
                                 });
                             }
                         }
@@ -551,6 +561,13 @@ var Env = {
                 title :             'Add/Edit current URI',
                 id :                'tool--add_edit',
                 parentId :          'tools',
+                showForMenuType:    'actionMenuOnly',
+            });
+            
+            contextMenuItems.push({
+                title :             'Add/Edit current URI',
+                id :                'tool--add_edit',
+                showForMenuType:    'rightClickOnly',
             });
 
 
@@ -625,9 +642,11 @@ var Env = {
                             id :        'RIGHT-'+contextMenuItems[i].id,
                             type :      typeof contextMenuItems[i].type !== 'undefined'  &&  contextMenuItems[i].type === 'separator'
                                 ? 'separator'
-                                : 'normal'
-                            // no parentId by default - in this menu put all in one level
-                            // parentId :
+                                : 'normal',
+
+                            parentId : typeof contextMenuItems[i].parentId !== 'undefined'
+                                ? 'RIGHT-'+contextMenuItems[i].parentId
+                                : null
                         },
                         menuCallback
                     );
@@ -656,7 +675,7 @@ var Env = {
             return;
         }
 
-        chrome.tabs.executeScript( null, {
+        chrome.tabs.executeScript( tab.id, {
 
             code: 'var badge_params = {' +
                     'DEV: '+Env.DEV+',' +
@@ -676,7 +695,7 @@ var Env = {
                 console.warn('Env.setupBadge(): Error executing code: \n' + chrome.runtime.lastError.message);
             }
             else {
-                chrome.tabs.executeScript( null, {
+                chrome.tabs.executeScript( tab.id, {
 
                     file: 'setBadge.js'
 
@@ -759,7 +778,8 @@ var Env = {
         //console.log(activeContext);
 
         // params2.pageUrl is a key in object passed to this func? not passed, so get it
-        chrome.tabs.getSelected( null, function (_currentTab) {
+        chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+            let _currentTab = tabs[0];
 
             var newTabUrl = '';
 
@@ -901,7 +921,8 @@ chrome.storage.sync.get( null, function(options) {
                 console.groupEnd();
 
                 // store current page url
-                chrome.tabs.getSelected( null, function(tab) {
+                chrome.tabs.query( {active: true, currentWindow: true}, function(tabs) {
+                    let tab = tabs[0];
                     chrome.storage.local.set({ 'urlAddEdit': tab.url }, function() {
                         
                         // open options screen and handle that uri there
@@ -918,7 +939,7 @@ chrome.storage.sync.get( null, function(options) {
 
             // handle project-related items
 
-            var project = Env.projectsAll[ itemIndex ] ?? {};
+            var project = typeof Env.projectsAll[ itemIndex ] !== 'undefined' ? Env.projectsAll[ itemIndex ] : {};
             console.log(project);
             console.log(itemSubType);
 
@@ -929,7 +950,8 @@ chrome.storage.sync.get( null, function(options) {
 
             
             
-            if ( typeof itemType === 'allprojects_project' )  {
+            if ( itemType === 'allprojects_project' )  {
+
                 if (  itemSubType === 'env'  &&  typeof project.contexts[ itemSubIndex ]  !==  'undefined' )    {
                     console.info(':: OPEN TAB [allprojects: '+project.name+', env: '+project.contexts[ itemSubIndex ].name+'] & EXIT: ' + project.contexts[ itemSubIndex ].url);
                     chrome.tabs.create({
@@ -937,8 +959,8 @@ chrome.storage.sync.get( null, function(options) {
                         'index' :   tab.index + 1
                     });
                 }
-                else if (  itemSubType === 'link'  &&  typeof project.links[ itemSubIndex ]  !==  'undefined' )    {
-                    console.info(':: OPEN TAB [allprojects: '+project.name+', link: '+project.links[ itemSubIndex ].name+'] & EXIT: ' + project.links[ itemSubIndex ].url);
+                else if ( itemSubType === 'link'  &&  typeof project.links[ itemSubIndex ]  !==  'undefined' )    {
+                    console.info(':: OPEN TAB [allprojects: '+project.name+', link: '+project.links[ itemSubIndex ].name +'] & EXIT: ' + project.links[ itemSubIndex ].url);
                     chrome.tabs.create({
                         'url' :     project.links[ itemSubIndex ].url,
                         'index' :   tab.index + 1
@@ -953,7 +975,7 @@ chrome.storage.sync.get( null, function(options) {
 
             // menu position: LINK
 
-            if ( typeof itemSubType === 'project'  &&  itemSubType === 'link'  &&  typeof project.links[ itemSubIndex ]  !==  'undefined' )  {
+            if ( itemType === 'project'  &&  itemSubType === 'link'  &&  typeof project.links[ itemSubIndex ]  !==  'undefined' )  {
                 //console.log(project.links[ itemIndex ]);
 
                 console.info(':: OPEN TAB [LINK] & EXIT: ' + project.links[ itemSubIndex ].url);
@@ -973,7 +995,8 @@ chrome.storage.sync.get( null, function(options) {
             // menu position: CUSTOM SHORTCUTS
 
 
-            chrome.tabs.getSelected( null, function(tab) {
+            chrome.tabs.query( {active: true, currentWindow: true}, function(tabs) {
+                let tab = tabs[0];
                 //console.log(tab);
 
                 var activeContext = {};
@@ -994,12 +1017,12 @@ chrome.storage.sync.get( null, function(options) {
                 
 
                 if ( itemSubType === 'shortcustom'  &&  itemSubIndex === '1') {
-                    Switcher.openCustomShortcut( activeContext.url ?? '', options.env_menu_short_custom1, '1' );
+                    Switcher.openCustomShortcut( typeof activeContext.url !== 'undefined' ? activeContext.url : '', options.env_menu_short_custom1, '1' );
                     return;
                 }
 
                 if ( itemSubType === 'shortcustom'  &&  itemSubIndex === '2') {
-                    Switcher.openCustomShortcut( activeContext.url ?? '', options.env_menu_short_custom2, '2' );
+                    Switcher.openCustomShortcut( typeof activeContext.url !== 'undefined' ? activeContext.url : '', options.env_menu_short_custom2, '2' );
                     return;
                 }
                 
@@ -1008,7 +1031,6 @@ chrome.storage.sync.get( null, function(options) {
                 if ( typeof project.contexts !== 'undefined' )  {
                     var newContext = project.contexts[ itemSubIndex ];
                 }
-                //console.log(newContext);
     
                 if ( typeof newContext === 'undefined'  &&  itemSubType !== 'shortcustom' ) {
                     console.warn('error - no such context set in menu? context index: ' + itemSubIndex);
