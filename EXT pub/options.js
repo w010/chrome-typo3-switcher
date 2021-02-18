@@ -1,7 +1,7 @@
 /**
  * TYPO3 Backend-Frontend Handy Switcher - Chrome extension
  *
- * wolo.pl '.' studio 2017-2020
+ * wolo.pl '.' studio 2017-2021
  * Adam wolo Wolski
  * wolo.wolski+t3becrx@gmail.com
  */
@@ -20,6 +20,8 @@ var ExtOptions = {
     DEV : false,
     options : {},
 
+    /* stores which dialog is the "active" one, when more than one is open at once (submodals) - usually this handles
+    which is the one to close on esc key hit */
     dialogToCloseOnGlobalEvents : null,
     
     /**
@@ -34,7 +36,16 @@ var ExtOptions = {
                     $(b).find( '[name="project[name]"]' ).val().toUpperCase() );
             });
             sortedProjects.appendTo( $( '.projects-container' ) );
+
+            // scroll to the current project, if name changed it might have been moved in other sort position, so catch the form
+            let focusedProject = $( '.projectItem.active-focus' )[0];
+            if ( typeof focusedProject !== 'undefined' )  {
+                $('html,body').animate({scrollTop: $(focusedProject).offset().top - 100}, 400);
+            }
         }
+        
+        // marks new, finds duplicates, scrolls to them
+        ExtOptions.checkItems();
 
         var projects = ExtOptions.collectProjects();
     
@@ -83,11 +94,12 @@ var ExtOptions = {
                     }
                     else    {
                         ExtOptions.displayMessage( 'Options saved.', 'success' );
-                        // blink window after save
+                        // blink window after saveflashContainer
                         $('body').addClass('flashContainer');
                         setTimeout(function() { $('body').removeClass('flashContainer'); }, 1000);
 
 
+                        // todo: remove & cleanup in next major release
                         // finish migration - try to make sure it's ready to cleanup - proceed if some current projects exists.
                         // empty array may mean that importing of old items failed - better keep them in storage, there's always a chance to retrieve them
                         if ( Object.keys(projects).length > 0 )   {
@@ -221,14 +233,21 @@ var ExtOptions = {
             }
 
             ExtOptions.debugStorageData();
+
+            if ( ExtOptions.DEV )   {
+                $( 'body > .main' ).addClass('debug_mode');
+            }
         });
     },
 
 
     /**
-     * 
+     * Handle incoming URL - find & open or propose to add
      */
     handleAddEditUrl : function(url)   {
+        if (!url)   {
+            return;
+        }
         
         let urlParts = url.split(/\//); 
         let cleanedUrl = urlParts[0] + '//' + urlParts[2] + '/';
@@ -241,7 +260,7 @@ var ExtOptions = {
             // search for the value in context urls
             $(this).find('[name="context[url]"]').each(function()  {
                 
-                // strip any trailing slash and add (make sure it ends with one, to match no matter if given or not in config)  
+                // strip any trailing slash and then add one (make sure it ends with one, to match no matter if given or not in config)  
                 let checkedContextUrl = $(this).val().replace('/\/^/', '') + '/';
                 
                 if ( checkedContextUrl.toLowerCase().indexOf( cleanedUrl ) >= 0 )  {
@@ -255,8 +274,9 @@ var ExtOptions = {
                 }
             });
     
-            if (found)
+            if (found)  {
                 return;
+            }
         });
 
 
@@ -264,36 +284,205 @@ var ExtOptions = {
         if ( !found )  {
             // open dialog asking to add to current / make new project / cancel
 
-            let dialogContent = $( '<h3>' ).html( cleanedUrl + '<br><br>' + 'Requested URL is not yet in your local projects. Here\'s what you can do:' );
-            let buttonNewProject = $( '<button class="btn add dialog_projectAdd"><span class="icon"></span> <span class="text">Make new Project</span></button>' );
-            let buttonNewContext = $( '<button class="btn add dialog_contextAdd"><span class="icon"></span> <span class="text">Add Context to current Project</span></button>' );
-            let buttonCancel = $( '<button class="btn cancel"><span class="text" title="Close dialog and discard url">Nothing</span></button>' );
+            let clipboardTheIncomingUrl = function ( inputSelector )   {
+                // cannot select text in invisible elements
+                let el = $(inputSelector);
+                el.css('display', 'inline').select();
+                document.execCommand("copy");
+                el.css('display', 'none');
+
+                // visual feedback                
+                let url_value_el = el.parent().find('h3.url_value');
+                url_value_el.addClass('blinkText');
+                setTimeout(function() { url_value_el.removeClass('blinkText'); }, 250);
+            }
+
+            let finalUrlValue = '';
 
 
-            let dialog = ExtOptions.openDialog('New URL', $( '<div>' )
+            // build url selector (raw or cleaned/domain)
+            let urlSelector = $( '<div id="url_selector" class="row">' )
+                .html( '<div class="col-6 col-option-cleaned"><div class="url_option option_cleaned default active"></div></div>' +
+                       '<div class="col-6 col-option-raw"><div class="url_option option_raw"></div></div>' );
+
+            let urlSelectorOptionChoose = function (el)    {
+                $( '#url_selector .url_option' ).removeClass( 'active' );
+                el.addClass( 'active' );
+                finalUrlValue = el.find( '.url_value' ).text();
+            };
+
+
+            // option 1: cleaned url
+            
+                // keep url in hidden input to copy it to clipboard on url click. (selecting in text nodes doesn't work) 
+            let urlCleanedValueLabel = $( '<h3 class="url_value">' ).html( cleanedUrl );
+            let urlCleanedPlaceholder = $( '<input id="urlAddEdit_url_cleaned" style="display: none;">' ).val( cleanedUrl );
+            let buttonClipboardUrlCleaned = $( '<button class="btn clipboard copyIncomingUrl_cleaned" title="Copy URL"><span class="icon"></span> </button>' );
+
+            $(urlSelector).find( '.option_cleaned' )
+                .append( '<p>Use cleaned / only domain:</p>' )
+                .append( $(urlCleanedValueLabel) )
+                .append( $(urlCleanedPlaceholder) )
+                .click(function(){  urlSelectorOptionChoose( $(this) );    });
+
+            $(urlSelector).find( '.col-option-cleaned' )
+                .append( buttonClipboardUrlCleaned );
+            
+            
+            
+            // option 2: raw url
+            
+            let urlRawValueLabel = $( '<h3 class="url_value">' ).html( url );
+            let urlRawPlaceholder = $( '<input id="urlAddEdit_url_raw" style="display: none;">' ).val( url );
+            let buttonClipboardUrlRaw = $( '<button class="btn clipboard copyIncomingUrl_raw" title="Copy URL"><span class="icon"></span> </button>' );
+
+            $(urlSelector).find('.option_raw')
+                .append( '<p>Use raw address / whole as-is:</p>' )
+                .append( $(urlRawValueLabel) )
+                .append( $(urlRawPlaceholder) )
+                .click(function(){  urlSelectorOptionChoose( $(this) );    });
+            
+            $(urlSelector).find( '.col-option-raw' )
+                .append( buttonClipboardUrlRaw );
+                
+
+
+            let dialogContent = $( '<p>' ).html('Requested URL is <b>NOT YET</b> in your projects database. <br>What to do with it?' );
+
+            let buttonNewProject = $( '<button class="btn add dialog_projectAdd"><span class="icon"></span> <span class="text">Create new PROJECT</span></button>' );
+            let buttonNewContext = $( '<button class="btn add dialog_contextAdd"><span class="icon"></span> <span class="text">Add CONTEXT / LINK to existing one</span></button>' );
+            let buttonCancel = $( '<button class="btn cancel"><span class="text" title="Close dialog and discard url">Do nothing & close</span></button>' );
+
+
+            let dialog = ExtOptions.openDialog('New URL:', $( '<div>' )
+                .append( urlSelector )
                 .append( dialogContent )
                 .append( buttonNewProject )
                 .append( buttonNewContext )
                 .append( buttonCancel )
             );
     
+            
+
+            // default initial before click any of them
+            finalUrlValue = $( '.url_option.active .url_value' ).text();
+
+
+            // make new PROJECT
             dialog.find('.dialog_projectAdd').click( function() {
                 // open and prefill Add form
-                console.log('open addform');
                 var newProject = ExtOptions.insertProjectItem( {} )
                     .removeClass( 'collapse' )
                 newProject.find( '.env_contextAdd' ).click();
                 newProject.find( '[name="context[url]"]' )
-                    .val( cleanedUrl )
+                    .val( finalUrlValue )
                     .focus();
 
                 ExtOptions.closeDialog( dialog );
             });
     
             
+            // add CONTEXT
             dialog.find('.dialog_contextAdd').click( function() {
-// todo: find out how to make the selection of project to add context
-                console.log('Add as context for existing project / selection not implemented yet! todo: finish this function');
+                $('#projectSelector').detach();
+                // display project list/selector
+                let projectSelector = $('<div id="projectSelector">')
+                    .html('<h3 class="info">Choose project:</h3>');
+                
+                $.each(ExtOptions.getProjectsArray(), function(p, project){
+                    let projectOptionItem = $('<div class="projectOptionItem" data-uuid="' + project.uuid + '">');
+                   
+                    projectOptionItem.append(
+                        $('<p class="project-name">').html( project.name )
+                    );
+                    
+                    let contextsBox = $('<div class="contexts-list">').appendTo( projectOptionItem );
+
+                    $.each(project.contexts, function(c, context) {
+                        contextsBox.append(
+                            $('<p class="context">').html(
+                                '<span class="name">' + context.name + ':</span>' +
+                                '<span class="url">' + context.url + '</span>'
+                            )
+                        );
+                    });
+
+                    if (project.links.length)    {
+                       contextsBox.append( '<hr>' );
+                    }
+
+                    $.each(project.links, function(c, link) {
+                        contextsBox.append(
+                            $('<p class="link">').html(
+                                '<span class="name">' + link.name + ':</span>' +
+                                '<span class="url">' + link.url + '</span>'
+                            )
+                        );
+                    });
+
+                    
+                    let findAndExpandProject = function()   {
+                        // hide modal, open project form and scroll to it
+                        ExtOptions.closeDialog( dialog );
+                        ExtOptions.collapseAllProjects();
+                        let projectRealItem = $('#project_' + project.uuid);
+                        $('html,body').animate({scrollTop: projectRealItem.offset().top - 100}, 300);
+                        projectRealItem.find('.toggle.project').trigger('click');
+                        return projectRealItem;
+                    }
+                    
+                    // after choosing target project display mini dialog to decide - to add as context or as link
+
+                    projectOptionItem
+                        .appendTo( projectSelector )
+                        .click(function(){
+                            // correct selector item scroll position to make item fully visible - scroll to top of current item
+                            let targetOffsetCorrection = projectSelector.scrollTop() + $(this).position().top + 2;
+                            $(projectSelector).animate({scrollTop: targetOffsetCorrection}, 300);
+                            
+                            let contextOrLinkQuestionExists = $(this).find('.context-or-link');
+                            if ( contextOrLinkQuestionExists.length )   {
+                                contextOrLinkQuestionExists.remove();  // clean if clicked again
+                            }
+                            else    {
+                                let contextOrLinkQuestion = $('<div class="context-or-link">')
+                                    .append(
+                                        $('<p>').html('Add as new server <b>context</b> / environment, or as a project related <b>link</b>?')
+                                    )
+                                    .append(
+                                        $('<button class="btn add as-context"><span class="icon"></span> <span class="text">Add as CONTEXT</span></button>')
+                                            .on('click', function(){
+                                                let project = findAndExpandProject();
+                                                let context = ExtOptions.insertContextItem( project, {} );
+                                                context.find( '[name="context[url]"]' ).val( finalUrlValue ).focus();
+                                            })
+                                    )
+                                    .append(
+                                        $('<button class="btn add as-link"><span class="icon"></span> <span class="text">Add as LINK</span></button>')
+                                            .on('click', function(){
+                                                let project = findAndExpandProject();
+                                                let link = ExtOptions.insertLinkItem( project, {} );
+                                                link.find( '[name="link[url]"]' ).val( finalUrlValue ).focus();
+                                        })
+                                    );
+                                contextOrLinkQuestion.appendTo( projectOptionItem );
+                            }
+                        });
+                });
+                
+                dialog.find('.dialog-body').append( projectSelector );
+                
+                // scroll to it
+                $(dialog.find('.dialog-inner')).animate({scrollTop: $('#url_selector').height()}, 300);
+            });
+            
+            
+            dialog.find('.copyIncomingUrl_cleaned').click(function () {
+                clipboardTheIncomingUrl( '#urlAddEdit_url_cleaned' );
+            });
+            
+            dialog.find('.copyIncomingUrl_raw').click(function () {
+                clipboardTheIncomingUrl( '#urlAddEdit_url_raw' );
             });
             
             
@@ -311,10 +500,14 @@ var ExtOptions = {
     /**
      * Add project item block
      * @param projectItem object
+     * @param string classes - additional classes to set to item
      */
-    insertProjectItem : function(projectItem)   {
+    insertProjectItem : function(projectItem, classes)   {
         var project = $( '.projectItem._template' ).clone().removeClass( '_template' )
             .appendTo( $( '.projects-container' ) );
+        
+        if (typeof classes === 'string')
+            project.addClass( classes );
 
         if (typeof projectItem.uuid === 'undefined' || !projectItem.uuid)
             projectItem.uuid = makeRandomUuid(6);
@@ -372,6 +565,11 @@ var ExtOptions = {
         // make elements inside sortable
         project.find( '.contexts-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer', update: function() { ExtOptions.sortDropCallback(); } });
         project.find( '.links-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer', update: function() { ExtOptions.sortDropCallback() } });
+
+        project.on( 'click', function() {
+            $('.projectItem').removeClass('active-focus');
+            project.addClass('active-focus');
+        });
 
         return project;
     },
@@ -538,6 +736,14 @@ var ExtOptions = {
     },
 
 
+    expandAllProjects : function()  {
+        $( '.projects-container .projectItem' ).removeClass('collapse');
+    },
+    
+    collapseAllProjects : function()  {
+        $( '.projects-container .projectItem' ).addClass('collapse');
+    },
+
 
     // ENV SETTINGS: READ / WRITE
 
@@ -611,8 +817,9 @@ var ExtOptions = {
     /**
      *
      * @param projects array
+     * @param markAsNew bool
      */
-    populateEnvSettings : function(projects)   {
+    populateEnvSettings : function(projects, markAsNew)   {
         if ( ExtOptions.DEV )
             console.info('projects from conf:', projects);
 
@@ -629,9 +836,10 @@ var ExtOptions = {
 
         $.each( projects, function(i, projectItem)    {
 
-            // no need to show or export this anywhere. so cleanup
+            // no need to show or export sorting param anywhere. so cleanup before inserting
             delete(projectItem.sorting);
-            ExtOptions.insertProjectItem( projectItem );
+
+            ExtOptions.insertProjectItem( projectItem, markAsNew ? 'new' : '' );
 
             if ( ExtOptions.DEV )
                 console.log(projectItem);
@@ -644,6 +852,48 @@ var ExtOptions = {
         }
     },
 
+
+    /**
+     * Find and mark duplicate uuid projects, mark freshly imported etc.
+     */
+    checkItems : function()  {
+
+        $('.projectItem').removeClass( 'uuid-collision' )
+            .find( '.info.collision' ).remove();
+
+        $('.projectItem:not(._template)').each(function(i, project)    {
+            let lookupItem = $( '[id="' + project.id + '"]' );
+
+            if ( lookupItem.length > 1 )  {
+                lookupItem.each( function (c, duplicate) {
+                    let $duplicate = $(duplicate);
+
+                    if ( $duplicate.hasClass('uuid-collision') )
+                        return;
+
+                    $duplicate.addClass('uuid-collision');
+
+                    $duplicate.prepend(
+                        $( '<div>' ).addClass( 'info collision' )
+                            .html('<b>Unique id collision!</b> Please review. Uuid = <b>' + project.id.replace(/^project_+/g, '') + '</b> - Only the last project with duplicated uuid will be stored!</div>' )
+                    );
+                });
+            }
+        });
+
+
+        let collidedProjects = $( '.projectItem.uuid-collision' ); 
+        let newProjects = $( '.projectItem.new' );
+
+        // jump to first collision item, if any 
+        if ( collidedProjects.length )    {
+            $('html,body').animate({scrollTop: collidedProjects.offset().top - 100}, 300);
+        }
+        // jump to first imported
+        else if ( newProjects.length )    {
+            $('html,body').animate({scrollTop: newProjects.offset().top - 100}, 300);
+        }
+    },
 
 
     // IMPORT / EXPORT
@@ -693,14 +943,15 @@ var ExtOptions = {
                 importData = [importData];
             }
 
-            ExtOptions.populateEnvSettings( importData );
+            ExtOptions.populateEnvSettings( importData, true );
+
 
             if ( !$( '#env_import_test' ).is( ':checked' ) ) {
                 ExtOptions.optionsSave();
                 ExtOptions.displayMessage( 'Environments / projects imported', 'success', '.status-import', -1 );
             }
             else    {
-                ExtOptions.displayMessage( 'Environments / projects imported - TEST IMPORT - not autosaved', 'warn', '.status-import', -1 );
+               ExtOptions.displayMessage( 'Environments / projects imported - TEST IMPORT - not autosaved', 'warn', '.status-import', -1 );
             }
 
         } catch(e)   {
@@ -988,7 +1239,7 @@ var ExtOptions = {
             });
             
             // on enter key pressed in filter input
-            content.find('#repo_fetch_filter').on( 'keypress', function(e) {
+            content.find('#repo_fetch_filter').focus().on( 'keypress', function(e) {
                 if ( e.which === 13 )       RepoHelper.fetchProjects(caller);
             })
     
@@ -1010,10 +1261,12 @@ var ExtOptions = {
      * @param callback function
      */
     openDialog : function(title, content, classname, callback)   {
+        if ( typeof classname === 'undefined' )
+            classname = '';
 
         if ( $( 'body > .dialog' ).length === 0 )
             var dialog_overlay = $( '<div class="dialog-overlay">' );
-        var dialog = $( '<div class="dialog '+(classname ?? '')+'">' );
+        var dialog = $( '<div class="dialog '+ classname +'">' );
         $( 'body' ).append( dialog_overlay ).append( dialog );
         
         $( '<div class="dialog-inner">' )
@@ -1241,12 +1494,12 @@ var ExtOptions = {
         $('.section-foldable').each(function( i, sectionNode )    {
             let section = $( sectionNode );
             let triggerSelector = section.data('visibility-trigger');
-  
+
             if ( $(triggerSelector).is( ':checked' ) )    {
                 section.addClass('expand');
                 section.css('maxHeight', 'auto');
             }
-                
+    
             $( triggerSelector ).on('click', function ()    {
                 if ( $(this).is( ':checked' ) ) {
                     section.css('maxHeight', 'auto');
@@ -1261,7 +1514,7 @@ var ExtOptions = {
     
     flushStorageKey : function ( key )   {
 
-        if ( !$('#ext_debug').is( ':checked' ) )  {
+        if ( !ExtOptions.DEV )  {
             ExtOptions.displayMessage( 'Not called - option Debug must be enabled to execute this request', 'level-error', '#flush-storage-feedback', 10000 );
             return;
         }
@@ -1330,12 +1583,10 @@ $( 'button.env_projectRepo' ).click( function () {
 });
 $( 'button#env_import' ).click( function () {
     ExtOptions.importProjectsFromTextarea( {} )
-    $('html,body').animate({scrollTop: $("#settings_block_importexport").offset().top}, 300);
 });
 
 $( 'input#env_import_file' ).change( function() {
     ExtOptions.importProjectsFromUpload( this.files );
-    $('html,body').animate({scrollTop: $("#settings_block_importexport").offset().top}, 300);
 });
 
 $( 'button#env_export_download' ).click( function() {
@@ -1358,6 +1609,16 @@ $( '#jump-to-projects' ).click( function () {
 $( '#jump-to-importexport' ).click( function () {
     $('html,body').animate({scrollTop: $("#settings_block_importexport").offset().top - 100}, 300);  // offset correction by heading padding-top
 });
+
+$( '#projects-collapse-all' ).click( function (e) {
+    ExtOptions.collapseAllProjects();
+    e.preventDefault();
+});
+$( '#projects-expand-all' ).click( function (e) {
+    ExtOptions.expandAllProjects();
+    e.preventDefault();
+});
+
 
 $( 'textarea#env_importexport-data' )
     .on( 'focus', function() {
@@ -1425,6 +1686,14 @@ $( 'button#projects_filter_reset' ).click( function() {
     $( '.projects-filter input' ).val('');
 });
 
+
+$( document ).click(function(e) {
+    let container = $( '.projects-container' );
+    // if the target of the click isn't the container nor a descendant of the container
+    if (!container.is(e.target) && container.has(e.target).length === 0)    {
+        $('.projectItem').removeClass('active-focus');
+    }
+});
 
     // some debug. should be disabled later
     /*chrome.storage.onChanged.addListener(function(changes, namespace) {
