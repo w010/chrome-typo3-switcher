@@ -166,7 +166,8 @@ var Switcher = {
      */
     openCustomShortcut : function( siteUrl, shortcutValue, customShortcutNumber ) {
 
-        chrome.tabs.getSelected( null, function (_currentTab) {
+        chrome.tabs.query( {active: true, currentWindow: true}, function (tabs) {
+            let _currentTab = tabs[0];
 
             let newTabUrl;
 

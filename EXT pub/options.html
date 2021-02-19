@@ -3,6 +3,7 @@
 <head>
     <title>TYPO3 - Backend-Frontend Handy Switcher</title>
     <link href="options.css" rel="stylesheet" type="text/css">
+    <link rel="shortcut icon" href="Icons/icon-32.png">
 </head>
 
 <body>
@@ -61,7 +62,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
         <div class="row">
             <div class="col-6 settings-block-section __contexts">
 
-                <h3>Context switch:</h3>
+                <h3>Context switch / server teleport:</h3>
 
                 <label class="primary check">
                     <input type="checkbox" id="env_enable">
@@ -74,10 +75,6 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
 
                 <h3>Menu:</h3>
 
-                <!--<label class="primary check">
-                    <input type="checkbox" id="env_switching">
-                    <span>Enable right-click menu context switching</span>
-                </label>-->
                 <label class="primary check">
                     <input type="checkbox" id="env_menu_show_allprojects">
                     <span>Show <abbr title="There will always be a submenu with all Projects and their Contexts">All projects</abbr> submenu (icon / action menu only)</span>
@@ -203,20 +200,28 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
     </div>
 
 
-    <div id="settings_block_projects" class="settings-block __projects  section-foldable" data-visibility-trigger="#env_enable">
+    <div id="settings_block_projects" class="settings-block __projects">
 
         <h2>Projects</h2>
         
         <br>
         <button class="btn add env_projectAdd"><span class="icon"></span> <span class="text">Add new empty Project</span></button>
+    <span class="debug-mode-restricted">
         <span class="between-buttons">or</span>
         <button class="btn repodialog env_projectRepo"><span class="icon"></span> <span class="text">Get from <abbr title="It's a good idea to host your own repo to share projects with your team/company. It's a 15-minut-work, so don't forget to check details.">Project Repository</abbr></span></button>
+        <p class="level-info">You've found hidden test feature! The repository functionality is not yet finished / tested well enough (works in basics though, so you can give it a try)</p>
+    </span>
         <br>
         <br>
 
         <div class="projects-filter">
             <input id="projects_filter" placeholder="Filter - search by name / url">
             <button class="input-reset" id="projects_filter_reset" title="Reset">x</button>
+            <span class="projects-list-control">
+                <a href="#" id="projects-expand-all">Expand all</a>
+                <a href="#" id="projects-collapse-all">Collapse all</a>
+            </span>
+               
         </div>
         <br class="clear">
         <br>
@@ -299,7 +304,7 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
 
     <br>
 
-    <div id="settings_block_importexport" class="settings-block __importexport section-foldable" data-visibility-trigger="#env_enable">
+    <div id="settings_block_importexport" class="settings-block __importexport">
 
         <h2>Import / export projects</h2>
         <h3>Backup or share with your team</h3>
@@ -338,7 +343,7 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
                             disabled / default = autosave right after import)</i></span>
                 </label>
 
-                <label class="primary select">Interpret as projects from <abbr title="Treat imported data structure as exported from selected extension (json or base64 json)">other extension</abbr>: &nbsp;
+                <label class="primary select">External import / migration - interpret import data as projects from <abbr title="Treat imported data structure as exported from selected extension (json or base64 json). [ Can't see on the list that one Chrome ext you need to import from? Let me know on project's GitHub ]">other Chrome extension</abbr>: &nbsp;
                     <br>
                     <br>
                     <select id="env_import_extension" class="no-autosave">
@@ -393,7 +398,7 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
     
     <div class="jump-toolbar">
         <span>Jump to:</span>
-        <div id="jump-to-top">Top</div>
+        <div id="jump-to-top">&Uparrow; Top</div>
         <div id="jump-to-projects">Projects</div>
         <div id="jump-to-importexport">Imp/Exp</div>
     </div>
