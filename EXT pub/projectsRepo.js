@@ -40,7 +40,7 @@ let RepoHelper = {
         })
             .done(function(data) {
                 caller.find('.ajax-target').html(
-                    '<p>Found items: '+ data.result.length +'</p>' +
+                    '<p>Found items: <b>'+ data.result.length +'</b></p>' +
                     '<button class="btn getAll"><span class="icon"></span> <span class="text">Import all <abbr title="Only imports new, doesn\'t update these uuids which are found to already exist in config">missing</abbr></span></button>'
                 );
 

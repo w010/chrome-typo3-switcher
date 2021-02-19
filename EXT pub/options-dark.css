@@ -1,0 +1,417 @@
+
+/*
+	Dark mode theme
+	NOTE: load this sheet as the last one
+*/
+body.dark {
+    background-color: #333;
+    color: #e1e1e1;
+}
+
+.dark h1,
+.dark h2,
+.dark h3 {
+    color: #e1e1e1;
+}
+
+.dark a {
+	color: #e1e1e1;
+}
+
+.dark .settings-block {
+	border-color: #858585;
+}
+
+.dark .heading {
+	background-color: #333;
+}
+.dark .heading h2  {
+	color: #a1a1a1;
+}
+
+
+/* form inputs etc */
+
+.dark textarea,
+.dark input {
+	background-color: #2f2f2f;
+	color: #e1e1e1;
+	border-color: #5d5d5d;
+}
+
+.dark input[type="text"].required:placeholder-shown {
+	border-bottom-color: #c16600;
+}
+
+.dark label.radio-item:hover    {
+	transition: color .3s;
+	color: #a1a1a1;
+}
+
+.dark label.range input.range-text    {
+	border-color: #5b5b5b;
+}
+	.dark label.range input.range-text:hover    {
+		border-color: #737373;
+	}
+
+
+.dark .textarea-cover    {
+	box-shadow: inset -20px -20px 30px -10px rgb(45, 44, 44);
+}
+
+.dark label.primary:hover {
+    background-color: rgba(16, 16, 16, .2);
+}
+
+.dark .nice-checkbox  {
+	background: #6f3636;
+    color: #999999;
+	border: 1px solid #666666;
+}
+	.dark .nice-checkbox:hover    {
+		background: #833737;
+        color: #d9d8d8;
+	}
+		.dark .nice-checkbox.checked    {
+			background-color: #295729;
+			color: #649050;
+		}
+		.dark .nice-checkbox.checked:hover    {
+			background-color: #186718;
+			color: #c1deb5;
+		}
+
+
+.dark input[type="radio"]    {
+
+}
+.dark input[type="color"]   {
+	background-color: #94949433;
+}
+.dark select {
+	text-shadow: rgb(59, 59, 59) 0px 1px 0px;
+	box-shadow: none;
+	
+	background-image: -webkit-image-set(url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAAICAQAAACxSAwfAAAAUUlEQVR4AWP4TxREZkYxpKHAKKzKEhOZvyG4zN8SE7Eq+6+wYCHbTwiT7eeChf8VsFsKVQhTxIDDbVCFfF8ginApgyp82wRShEcZVJIVzoJDAGqrgIJGRl20AAAAAElFTkSuQmCC) 1x, url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACcAAAAQCAQAAAA/1a6rAAAAQUlEQVR4Xu3MsQnAMBAEMI1+myf9gw0+3ASCenmu+mQn2yGn3S4Mp906DEW3CEPfzTD03QxD380w3OmIUHe9v+u9QwAt93yns5cAAAAASUVORK5CYII=) 2x), linear-gradient(rgb(57, 57, 57), rgb(57, 57, 57) 38%, #2f2f2f);
+	color: #e1e1e1;
+	border-color: #5d5d5d;
+	
+}
+	.dark :enabled:hover:-webkit-any(select)  {
+		color: #e1e1e1;
+		box-shadow: none;
+		background-image: -webkit-image-set(url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAAICAQAAACxSAwfAAAAUUlEQVR4AWP4TxREZkYxpKHAKKzKEhOZvyG4zN8SE7Eq+6+wYCHbTwiT7eeChf8VsFsKVQhTxIDDbVCFfF8ginApgyp82wRShEcZVJIVzoJDAGqrgIJGRl20AAAAAElFTkSuQmCC) 1x, url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACcAAAAQCAQAAAA/1a6rAAAAQUlEQVR4Xu3MsQnAMBAEMI1+myf9gw0+3ASCenmu+mQn2yGn3S4Mp906DEW3CEPfzTD03QxD380w3OmIUHe9v+u9QwAt93yns5cAAAAASUVORK5CYII=) 2x), linear-gradient(rgb(57, 57, 57), rgb(57, 57, 57) 38%, rgb(81, 81, 81));
+	}
+
+.dark optgroup {
+	color: #dedede;
+	background: #333;
+}
+.dark option    {
+	color: #b0b0b0;
+	background: #333;
+}
+
+
+/* buttons */
+
+.dark .btn {
+	background-color: #454545;
+	border: 1px solid #585858;
+	color: #d7d7d7;
+}
+	.dark .btn:hover {
+		color: #333333;
+		background-color: rgba(96, 147, 157, 0.4);
+		border-color: rgba(129, 200, 214, 0.4);
+	}
+
+	.dark .btn .icon   {
+		filter: invert(80%);
+	}
+
+	.dark .btn .text   {
+		color: #d7d7d7;
+		text-shadow: rgb(43, 43, 43) 0px 1px 0px
+	}
+	.dark .btn:hover .text   {
+		color: #e5e5e5;
+	}
+
+.dark .btn.remove   {
+	background-color: transparent;
+} 
+
+/* special buttons */
+.dark .btn.confirm    {
+	background-color: rgba(210, 88, 53, .5);
+}
+.dark .btn.add  {
+	background-color: rgba(77, 114, 77, .5);
+	border-color: #7a886e !important;
+}
+.dark .btn.add:hover,
+.dark .projectItem .btn.add:hover    {
+	background-color: rgba(110, 155, 110, .5);
+	border-color: #aeca97 !important;
+}
+
+.dark .btn.repodialog:hover {
+	background-color: #5dbacd66;
+	border-color: #cdeef494;
+}
+.dark .dialog-fetch .btn.fetch:hover  {
+	background-color: #5dbacd66;
+	border-color: #cdeef494;
+}
+.dark .dialog-fetch .btn.getAll:hover  {
+	background-color: rgba(77, 114, 77, .5);
+}
+
+.dark .project-item-preview button.add:hover {
+	
+}
+.dark .project-item-preview button.replace:hover {
+	background: rgba(210, 88, 53, .5);
+}
+.dark .project-item-preview button.compare:hover {
+    background-color: rgba(96, 147, 157, 0.4);
+    border-color: rgba(129, 200, 214, 0.4);
+}
+
+
+
+/* projects editor list */
+
+.dark .projectItem    {
+	background-color: #575757;
+}
+.dark .projectItem.collapse    {
+	background-color: #484848;
+}
+.dark .projectItem:hover,
+.dark .projectItem:focus    {
+	border-color: #868686;
+}
+
+.dark .projectItem.new    {
+	background-color: #617c84;
+}
+.dark .projectItem.uuid-collision    {
+	background-color: #5b3b3b;
+	border-color: #906060;
+}
+
+.dark .projectItem:hover > .toggle .icon {
+    opacity: 0.4;
+}
+
+.dark .projectItem input[type="text"]:focus,
+.dark .projectItem input[type="text"]:hover    {
+	background-color: #2f2f2f;
+	border-color: #6f6f6f;
+}
+
+.dark .contextItem, .dark .linkItem    {
+	border-color: #4a4a4a;
+	background-color: #444;
+}
+
+.dark .contextItem:hover,
+.dark .contextItem:focus,
+.dark .linkItem:hover,
+.dark .linkItem:focus    {
+	border-color: #444;
+}
+.dark .projectItem.active-focus   {
+	border-color: #888;
+}
+
+
+.dark .projectItem:hover,
+.dark .contextItem:hover,
+.dark .linkItem:hover    {
+    box-shadow: 3px 2px 6px 0px #484848a6;
+}
+
+.dark .projectItem .btn:hover   {
+	background-color: rgba(73, 153, 169, .4);
+}
+
+
+.dark .projects-filter.active input    {
+	background-color: rgb(42, 75, 81);
+}
+
+.dark .toggle .icon   {
+	
+}
+				
+.dark .ui-state-highlight {
+	background-color: #8f8f8f;
+	border-color: #eaf5e0 !important;
+}
+
+.dark .projects-list-control a::after {
+	filter: invert(80%);
+}
+
+
+
+/* status & notifications */
+
+.dark .status-notice, .dark .status-import {
+	color: rgba(34, 34, 34, 0.61);
+	background-color: rgb(192, 192, 192);
+}
+			
+			
+.dark .status-notice.info, .dark .status-import.info        {background: rgb(140, 218, 233);} 
+.dark .status-notice.success, .dark .status-import.success  {background: rgb(156, 233, 144);} 
+.dark .status-notice.warn, .dark .status-import.warn        {background: rgb(233, 232, 160);} 
+.dark .status-notice.error, .dark .status-import.error      {background: rgb(233, 151, 127);} 
+
+.dark  .level-info       { color: rgb(140, 218, 233);}
+.dark  .level-success    { color: rgb(156, 233, 144);}
+.dark  .level-warn       { color: rgb(233, 232, 160);}
+.dark  .level-error      { color: rgb(233, 151, 127);}
+
+
+/* flash whole document, like on save */
+.dark.flashContainer    {
+	animation: flash-dark ease-in-out 0.3s 1;
+}
+@keyframes flash-dark {
+	0% { background-color: #333; }
+	30% { background-color: #404036; }
+	100% { background-color: #333; }
+}
+
+
+/* on texts, like url on copy */
+.dark .blinkText    {
+	color: #353535;
+	animation: blink-dark ease-in-out 0.35s 1;
+}
+@keyframes blink-dark {
+	0% { color: #353535 }
+	50% { color: #999; }
+	100% { color: #e7e7e7; }
+}
+
+
+
+
+/* dialogs */
+
+.dark .dialog-inner {
+	box-shadow: 10px 10px 20px -3px #535353c4;
+	background-color: #514f4f;
+}
+
+.dark .dialog-overlay   {
+    background-color: #1f1f1f;
+}
+
+.dark .dialog-close:hover {
+	color: #fff;
+    text-shadow: 2px 1px 3px #111;
+}
+
+
+
+/* dialog: fetch from repo */
+	
+.dark .project-item-preview   {
+	background: #3d3d3d;
+	border-color: #3d3d3d;
+}
+.dark .project-item-preview:hover {
+	background: #313030;
+	border-color: #919191;
+}
+
+/* project name */
+.dark .project-item-preview.differs > h3    {
+	color: #ff8700;
+}
+
+.dark .project-item-preview.identical > h3    {
+	color: #2ca545;
+}
+
+/* context name */
+.dark .project-item-preview h4   {
+	color: #dfdfdf;
+}
+
+
+		
+		
+/* dialog: compare */
+		
+.dark .dialog.dialog-compare .dialog-inner  {
+    background: #514f4f;
+}
+
+.dark .dialog.dialog-compare .compare-diff    {
+    background: #5c5c5c;
+}
+
+.dark .dialog.dialog-compare .compare-diff .inserted   {
+    color: #0b140c;
+    background: #4bc163;
+}
+.dark .dialog.dialog-compare .compare-diff .deleted   {
+    color: #2f1414;
+    background: #d78383;
+}
+
+
+/* dialog: add/edit */
+		
+.dark #url_selector .url_option   {
+	border: 1px solid #747474;
+}
+.dark #url_selector .url_option.active,
+.dark #url_selector .url_option:hover   {
+	background: #576c5780;
+	border-color: #b6e8b680;
+}
+.dark #url_selector .url_option:hover   {
+	background: rgba(94, 115, 94, 0.5);
+}
+.dark #url_selector .url_option.active    {
+	box-shadow: 4px 4px 15px -3px #999;
+}
+
+/* project selector to add url */
+.dark .projectOptionItem  {
+	background: #3d3d3d;
+	border-color: #3d3d3d;
+}
+.dark .projectOptionItem:hover  {
+	background-color: #313030;
+	border-color: #919191;
+}
+
+.dark .projectOptionItem hr   {
+	border-color: #545353;
+}
+
+
+/* jumplist / side nav */
+
+.dark .jump-toolbar  {
+	background-color: #575757;
+	color: #ddd;
+}
+
+.dark .jump-toolbar > div {
+	border: 1px solid #575757;
+}
+.dark .jump-toolbar > div:hover {
+	background-color: rgba(96, 147, 157, 0.4);
+	border-color: rgba(129, 200, 214, 0.4);
+}

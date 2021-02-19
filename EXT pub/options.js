@@ -15,7 +15,7 @@
 
 
 
-var ExtOptions = {
+const ExtOptions = {
 
     DEV : false,
     options : {},
@@ -27,7 +27,15 @@ var ExtOptions = {
     /**
      * Saves options to chrome.storage.sync.
      */
-    optionsSave : function() {
+    optionsSave : function( trigger ) {
+        let flashFeedback = true;
+
+        if ( typeof trigger === 'object' )  {
+            // trigger node may have some additional save config
+            if ( $(trigger.target ).hasClass( 'no-flash' ) )    {
+                flashFeedback = false;
+            }
+        }
 
         // sort projects - I think it's best to run sorting at this stage
         if ( $( '#env_projects_autosorting' ).is( ':checked' ) ) {
@@ -47,10 +55,10 @@ var ExtOptions = {
         // marks new, finds duplicates, scrolls to them
         ExtOptions.checkItems();
 
-        var projects = ExtOptions.collectProjects();
-    
-        chrome.storage.sync.set({
-    
+        let projects = ExtOptions.collectProjects();
+        
+        
+        let options = {
             'switch_fe_openSelectedPageUid' :   $( '#switch_fe_openSelectedPageUid' ).is( ':checked' ),
             'switch_be_useBaseHref' :           $( '#switch_be_useBaseHref' ).is( ':checked' ),
             'env_enable' :                      $( '#env_enable' ).is( ':checked' ),
@@ -68,9 +76,12 @@ var ExtOptions = {
             'env_favicon_position' :            $( '#env_favicon_position' ).val(),
             'env_favicon_composite' :           $( '#env_favicon_composite' ).val(),
             'env_projects_autosorting' :        $( '#env_projects_autosorting' ).is( ':checked' ),
-            'ext_debug' :                       $( '#ext_debug' ).is( ':checked' )
+            'ext_debug' :                       $( '#ext_debug' ).is( ':checked' ),
+            'ext_dark_mode':					$( '#ext_dark_mode' ).is( ':checked' )
+        };
 
-        }, function() {
+    
+        chrome.storage.sync.set( options, function() {
 
             // in case of problems show info and end operation
             if (chrome.runtime.lastError)   {
@@ -78,6 +89,8 @@ var ExtOptions = {
             }
             // if options saved ok, now save projects
             else    {
+                ExtOptions.options = options;
+                ExtOptions.handleDarkMode();
 
                 chrome.storage.sync.set(
 
@@ -88,6 +101,7 @@ var ExtOptions = {
                     ExtOptions.updateStorageInfo();
                     ExtOptions.debugStorageData();
                     ExtOptions.fillExportData();
+
                     // update status message and show error if any
                     if (chrome.runtime.lastError)   {
                         ExtOptions.displayMessage( 'Options save problem -  ' + chrome.runtime.lastError.message, 'error', null, 100000 );
@@ -95,8 +109,10 @@ var ExtOptions = {
                     else    {
                         ExtOptions.displayMessage( 'Options saved.', 'success' );
                         // blink window after saveflashContainer
-                        $('body').addClass('flashContainer');
-                        setTimeout(function() { $('body').removeClass('flashContainer'); }, 1000);
+                        if ( flashFeedback )    {
+                            $('body').addClass('flashContainer');
+                            setTimeout(function() { $('body').removeClass('flashContainer'); }, 1000);
+                        }
 
 
                         // todo: remove & cleanup in next major release
@@ -159,10 +175,17 @@ var ExtOptions = {
             'env_favicon_position' :            'bottom',
             'env_favicon_composite' :           'source-over',
             'ext_debug' :                       false,
+            'ext_dark_mode' :                   false,
             'repo_url' :                        '',
             'repo_key' :                        '',
 
         }, function(options) {
+
+            let loadingTransitionDelay = setTimeout(function(){
+                clearTimeout(loadingTransitionDelay);
+                $( 'body' ).removeClass('loading');
+            }, 100);
+
 
             $( '#switch_fe_openSelectedPageUid' ).attr( 'checked',  options.switch_fe_openSelectedPageUid );
             $( '#switch_be_useBaseHref' ).attr( 'checked',          options.switch_be_useBaseHref );
@@ -186,11 +209,13 @@ var ExtOptions = {
             $( '#env_favicon_composite' ).val(                      options.env_favicon_composite );
             $( '#env_projects_autosorting' ).attr( 'checked',       options.env_projects_autosorting );
             $( '#ext_debug' ).attr( 'checked',                      options.ext_debug );
+            $( '#ext_dark_mode' ).attr( 'checked',                  options.ext_dark_mode );
 
             ExtOptions.DEV = options.ext_debug;
             ExtOptions.options = options;
 
             ExtOptions.initFoldableSections();
+            ExtOptions.handleDarkMode();
             
             ExtOptions.setFaviconPreview();
             ExtOptions.setBadgePreview();
@@ -213,6 +238,7 @@ var ExtOptions = {
 
                     ExtOptions.populateEnvSettings( projects );
                     ExtOptions.fillExportData();
+                    ExtOptions.initCheckboxes();
                     
                     // if urlAddEdit came, handle it on load
                     chrome.storage.local.get({ 'urlAddEdit': '' }, function(local) {
@@ -235,7 +261,7 @@ var ExtOptions = {
             ExtOptions.debugStorageData();
 
             if ( ExtOptions.DEV )   {
-                $( 'body > .main' ).addClass('debug_mode');
+                $( 'body' ).addClass('debug-mode');
             }
         });
     },
@@ -500,10 +526,10 @@ var ExtOptions = {
     /**
      * Add project item block
      * @param projectItem object
-     * @param string classes - additional classes to set to item
+     * @param classes string - additional classes to set to item
      */
     insertProjectItem : function(projectItem, classes)   {
-        var project = $( '.projectItem._template' ).clone().removeClass( '_template' )
+        const project = $( '.projectItem._template' ).clone().removeClass( '_template' )
             .appendTo( $( '.projects-container' ) );
         
         if (typeof classes === 'string')
@@ -535,29 +561,35 @@ var ExtOptions = {
 
         // bind buttons
         project.find( 'button.env_contextAdd' ).click( function() {
-            var context = ExtOptions.insertContextItem( project, {} );
+            const context = ExtOptions.insertContextItem( project, {} );
             context.find( '[name="context[name]"]' ).focus();
         });
+
         project.find( 'button.env_contextAddDefaultSet' ).click( function() {
             ExtOptions.insertDefaultContextSet( project );
         });
+
         project.find( 'button.env_linkAdd' ).click( function() {
-            var link = ExtOptions.insertLinkItem( project, {} );
+            const link = ExtOptions.insertLinkItem( project, {} );
             link.find( '[name="link[name]"]' ).focus();
         });
+
         project.find( 'button.env_projectRemove' ).click( function() {
-			var trigger = $(this);
+            const trigger = $(this);
 			ExtOptions.confirmDialog( 'Delete project', 'Are you sure?',function() {
 				ExtOptions.deleteProjectItem( trigger.closest('.projectItem') );
                 //ExtOptions.optionsSave(); // probably is problematic to call it right after
             });
         });
+
         project.find( '> .hide input' ).on( 'change', function() {
             project.toggleClass( 'hidden' );
         });
+
         project.find( '.toggle.project' ).click( function() {
             project.toggleClass( 'collapse' );
         });
+
         project.find( 'button.env_projectExport' ).click( function() {
             ExtOptions.exportProjectsDownloadFile( project );
         });
@@ -571,6 +603,9 @@ var ExtOptions = {
             project.addClass('active-focus');
         });
 
+        // reinit nice checkboxes
+        ExtOptions.initCheckboxes();
+
         return project;
     },
 
@@ -580,7 +615,7 @@ var ExtOptions = {
      * @param contextItem object with data
      */
     insertContextItem : function(project, contextItem)   {
-        var context = project.find( '.contextItem._template' ).clone().removeClass( '_template' )
+        const context = $( '.contextItem._template' ).clone().removeClass( '_template' )
             .appendTo( project.find( '.contexts-container' ) );
 
         // populate data
@@ -599,8 +634,13 @@ var ExtOptions = {
                 ExtOptions.optionsSave();
             });
         });
+
         context.find( '> .hide input' ).on( 'change', function() {
             context.toggleClass( 'hidden' );
+        });
+
+        context.find( '.btn.opentab' ).on('click', function() {
+            window.open( contextItem.url, '_blank' );
         });
 
         // color picker - set text input
@@ -623,6 +663,9 @@ var ExtOptions = {
             context.toggleClass( 'collapse' );
         });
 
+        // reinit nice checkboxes
+        ExtOptions.initCheckboxes();
+
         return context;
     },
 
@@ -632,7 +675,7 @@ var ExtOptions = {
      * @param linkItem object with data
      */
     insertLinkItem : function(project, linkItem)   {
-        var link = project.find( '.linkItem._template' ).clone().removeClass( '_template' )
+        const link = $( '.linkItem._template' ).clone().removeClass( '_template' )
             .appendTo( project.find( '.links-container' ) );
 
         // populate data
@@ -651,6 +694,9 @@ var ExtOptions = {
         link.find( '> .hide input' ).on( 'change', function() {
             link.toggleClass( 'hidden' );
         });
+
+        // reinit nice checkboxes
+        ExtOptions.initCheckboxes();
 
         return link;
     },
@@ -1151,8 +1197,8 @@ var ExtOptions = {
 
         // bind buttons after creating dialog - we need to have dialog instance to pass to callback
         let content = $( '<h3>' ).html( message )
-            .add( $( '<button class="btn confirm">' ).html( 'Yes' ) )
-            .add( $( '<button class="btn decline">' ).html( 'No' ) );
+            .add( $( '<button class="btn remove confirm">' ).html( '<span class="icon"></span><span class="text">Yes</span>' ) )
+            .add( $( '<button class="btn decline">' ).html( '<span class="text">No</span>' ) );
 
         let dialog = ExtOptions.openDialog(title, content);
 
@@ -1279,7 +1325,7 @@ var ExtOptions = {
             callback( dialog );
         }
         
-        ExtOptions.dialogToCloseOnGlobalEvents = dialog; 
+        ExtOptions.dialogToCloseOnGlobalEvents = dialog;
         
         return dialog;
     },
@@ -1393,7 +1439,10 @@ var ExtOptions = {
             var canvas = Favicon.renderFaviconWithOverlay( originalIconImageObject, params );
             newFaviconSrc = canvas.toDataURL();
 
-            $('#favicon-preview').prop('src', newFaviconSrc);
+            $('#favicon-preview').prop('src', newFaviconSrc)
+                .on('dblclick', function (){
+                    $(this).prop('width', '64').prop('height', '64');
+                });
         };
     },
 
@@ -1458,34 +1507,34 @@ var ExtOptions = {
             
             // text: on enter key pressed in text input
             .on( 'keypress', 'input[type=text]:not(.no-autosave)', function(e) {
-                if ( e.which === 13 )       ExtOptions.optionsSave();
+                if ( e.which === 13 )       ExtOptions.optionsSave( e );
             })
             // text: on input loose focus 
             .on( 'blur', 'input[type=text]:not(.no-autosave)', function(e) {
                 if ($(this).data('hasChanged')) {
-                    ExtOptions.optionsSave();
+                    ExtOptions.optionsSave( e );
                     $(this).data('hasChanged', false);
                 }
             })
             // checkbox: click
             .on( 'click', 'input[type=checkbox]:not(.no-autosave)', function(e) {
-                ExtOptions.optionsSave();
+                ExtOptions.optionsSave( e );
             })
             // radio: change
             .on( 'change', 'input[type=radio]:not(.no-autosave)', function(e) {
-                ExtOptions.optionsSave();
+                ExtOptions.optionsSave( e );
             })
             // select: change
             .on( 'change', 'select:not(.no-autosave)', function(e) {
-                ExtOptions.optionsSave();
+                ExtOptions.optionsSave( e );
             })
             // range: change
             .on( 'change', 'input[type=range]:not(.no-autosave)', function(e) {
-                ExtOptions.optionsSave();
+                ExtOptions.optionsSave( e );
             })
             // color: change
             .on( 'change', 'input[type=color]:not(.no-autosave)', function(e) {
-                ExtOptions.optionsSave();
+                ExtOptions.optionsSave( e );
             })
             ;
     },
@@ -1537,6 +1586,89 @@ var ExtOptions = {
             });
         }
     },
+    
+    handleDarkMode : function() {
+    	if ( ExtOptions.options.ext_dark_mode === true ) {
+    		$('body').addClass( 'dark' );
+        } else {
+            $('body').removeClass('dark');
+    	}
+    },
+
+    /**
+     * Build nice checkboxes instead of real ones
+     */
+    initCheckboxes : function()    {
+
+        // set state of fake checkbox
+        let syncState_setFake = function( input, niceCheck )  {
+            if ( input.is(':checked') )    niceCheck.addClass('checked');
+            else                            niceCheck.removeClass('checked');
+        };
+
+        // set back state of input from fake
+        let syncState_setReal = function( input, niceCheck )  {
+            if ( niceCheck.hasClass('checked') )    input.prop('checked', true);
+            else                                       input.prop('checked', false);
+        };
+        
+        
+        // reversed
+        let syncState_setFake_reversed = function( input, niceCheck )  {
+            if ( input.is(':checked') )    niceCheck.removeClass('checked');
+            else                            niceCheck.addClass('checked');
+        };
+
+        let syncState_setReal_reversed = function( input, niceCheck )  {
+            if ( niceCheck.hasClass('checked') )    input.prop('checked', false);
+            else                                       input.prop('checked', true);
+        };
+        
+
+        // process unprocessed checkboxes
+        $( '.main input[type="checkbox"]:not(.nice)' ).each(function (i) {
+            let input = $(this);
+            let inputId = input.prop( 'id' );
+
+            if ( !inputId ) {
+                inputId = 'checkbox-'+makeRandomUuid(4);
+                input.prop( 'id', inputId );
+            }
+            let niceCheck = $( '<span class="nice-checkbox" id="nice__'+inputId+'"> ');
+            
+            
+            // Make checkbox work inverse (for "disabled" or similar state options)
+            if ( input.hasClass( 'inverse' ) )  {
+                niceCheck.addClass( 'inverse' );
+                syncState_setFake_reversed( input, niceCheck );
+    
+                input.on( 'change', function () {
+                    syncState_setFake_reversed( input, niceCheck );
+                });
+                
+                niceCheck.on( 'click', function () {
+                    syncState_setReal_reversed( input, niceCheck );
+                });
+    
+                niceCheck.insertAfter(input);
+                input.addClass('nice');
+            }
+            else    {
+                syncState_setFake( input, niceCheck );
+    
+                input.on( 'change', function () {
+                    syncState_setFake( input, niceCheck );
+                });
+                
+                niceCheck.on( 'click', function () {
+                    syncState_setReal( input, niceCheck );
+                });
+    
+                niceCheck.insertAfter(input);
+                input.addClass('nice');
+            }
+        });
+    }
 };
 
 
@@ -1560,6 +1692,7 @@ $(function() {
     ExtOptions.bindFaviconControlsForPreview();
     ExtOptions.bindBadgeControlsForPreview();
     ExtOptions.bindAutosave();
+
 	$(document).on('keydown',function(e) {
         if (e.keyCode === 27) {
             ExtOptions.closeDialog( ExtOptions.dialogToCloseOnGlobalEvents );
@@ -1568,8 +1701,8 @@ $(function() {
 });
 
 // bind basic buttons
-$( 'button.save' ).click( function () {
-    ExtOptions.optionsSave();
+$( 'button.save' ).click( function (e) {
+    ExtOptions.optionsSave( e );
     //ExtOptions.debugSaveEnv();
 });
 
@@ -1595,8 +1728,9 @@ $( 'button#env_export_download' ).click( function() {
 
 $( 'button#flush-storage' ).click( function() {
     ExtOptions.confirmDialog( 'FLUSH STORAGE KEY', 'Are you sure?',function() {
-        ExtOptions.flushStorageKey( $( '#flush-storage-key' ).val() );
-        $( '#flush-storage-key' ).val('');
+        let $flushStorageKey = $( '#flush-storage-key' );
+        ExtOptions.flushStorageKey( $flushStorageKey.val() );
+        $flushStorageKey.val('');
     });
 });
 

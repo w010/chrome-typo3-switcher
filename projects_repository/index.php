@@ -5,11 +5,11 @@
  * 
  * 
  * Subpackage: Projects Repository
- * Version: 0.2.0
+ * Version: 0.2.1
  * 
  * 
  * wolo.pl '.' studio
- * 2017-2020
+ * 2017-2021
  * wolo.wolski(at)gmail.com
  * http://wolo.pl/
  * 
@@ -41,7 +41,7 @@
  */
 
 
-define ('REPO_VERSION', '0.2.0');
+define ('REPO_VERSION', '0.2.1');
 
 
 error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING ^ E_STRICT ^ E_DEPRECATED);
@@ -68,7 +68,9 @@ class ProjectsRepository {
     /**
      * @var string
      */
-    protected $dataDir = 'data';
+    const DATA_DIR = 'data';
+
+    const CONFIG_FILE = 'config/config.php';
 
     /**
      * @var array
@@ -78,8 +80,8 @@ class ProjectsRepository {
 
     public function __construct() {
         // include optional config
-        if (file_exists('config/config.php'))   {
-            $this->config = @include_once('config/config.php');
+        if (file_exists(self::CONFIG_FILE))   {
+            $this->config = @include_once(self::CONFIG_FILE);
         } else {
             $this->config = [
                 'repo_key' => '',
@@ -129,6 +131,7 @@ class ProjectsRepository {
 
 	/**
 	 * Read projects and build output. Since they are json files already, glue them together into one json array
+     * 
 	 * @return array
 	 */
 	protected function getProjects() {
@@ -139,13 +142,13 @@ class ProjectsRepository {
 		$projectsFiltered = [];
 
 
-		if (is_dir($this->dataDir)){
+		if (is_dir(self::DATA_DIR)) {
 
-	        foreach (scandir($this->dataDir) as $file)   {
+	        foreach (scandir(self::DATA_DIR) as $file) {
 	        	
 	            if (substr($file, 0, 1) != '.'  &&  substr($file, -5, 5) === '.json') {
 		            // read file content
-		            $fileContent = file_get_contents($this->dataDir . '/' . $file);
+		            $fileContent = file_get_contents(self::DATA_DIR . '/' . $file);
 		            $fileParsedArray = @json_decode($fileContent, true);
 
 		            // allow both: files with single project, as single json object / json starting with {

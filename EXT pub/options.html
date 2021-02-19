@@ -3,10 +3,11 @@
 <head>
     <title>TYPO3 - Backend-Frontend Handy Switcher</title>
     <link href="options.css" rel="stylesheet" type="text/css">
+    <link href="options-dark.css" rel="stylesheet" type="text/css">
     <link rel="shortcut icon" href="Icons/icon-32.png">
 </head>
 
-<body>
+<body class="loading">
 <div class="main">
     <div class="settings-block __saveblock heading">
         <header>
@@ -227,64 +228,6 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
         <br>
 
         <div class="projects-container"></div>
-        <div class="projectItem collapse _template">
-
-            <input type="text" name="project[name]" placeholder="Name" class="required">
-
-            <div class="contexts">
-
-                <h4>Environments / contexts</h4>
-
-                <div class="contexts-container"></div>
-                <div class="contextItem collapse _template">
-
-                    <label><input type="text" name="context[name]" placeholder="Name" class="required"></label>
-                    <label><input type="text" name="context[url]" placeholder="Url" class="required"></label>
-                    <label>Badge color:
-                        <input type="color" class="color-picker">
-                        <input type="text" name="context[color]" placeholder="#Hex" class="color-text" maxlength="7">
-                    </label>
-
-                    <!--<div class="moreSettings">
-                        <label>
-                            <input type="text" name="context[altBackendUrl]" placeholder="Alternative backend url">
-                        </label>
-                    </div>
-
-                    <div class="toggle context"><span class="icon"></span></div>-->
-
-                    <label class="check hide"><input type="checkbox" name="context[hidden]"> Disable </label>
-                    <button class="btn remove env_contextRemove" title="Remove"><span class="icon"></span></button>
-                </div>
-
-                <button class="btn add env_contextAdd"><span class="icon"></span> <span class="text">Add new Context</span></button>
-                <span class="between-buttons">or</span>
-                <button class="btn add env_contextAddDefaultSet"><span class="icon"></span> <span class="text">Generate standard <abbr title="Adds some default predefined environments">Contexts set</abbr></span></button>
-            </div>
-
-            <div class="links">
-
-                <h4>External links</h4>
-
-                <div class="links-container"></div>
-                <div class="linkItem _template">
-
-                    <label><input type="text" name="link[name]" placeholder="Name" class="required"></label>
-                    <label><input type="text" name="link[url]" placeholder="Url" class="required"></label>
-
-                    <label class="check hide"><input type="checkbox" name="link[hidden]"> Disable </label>
-                    <button class="btn remove env_linkRemove" title="Remove"><span class="icon"></span></button>
-                </div>
-
-                <button class="btn export env_projectExport to-right"><span class="icon"></span> <span class="text">Download <abbr title="Export json with only this one project">Project config</abbr></span></button>
-                <button class="btn add env_linkAdd"><span class="icon"></span> <span class="text">Add Link</span></button>
-            </div>
-
-            <div class="toggle project"><span class="icon"></span></div>
-
-            <label class="check hide"><input type="checkbox" name="project[hidden]"> Disable </label>
-            <button class="btn remove env_projectRemove" title="Remove"><span class="icon"></span></button>
-        </div>
 
         <br>
         <label class="primary check">
@@ -367,8 +310,14 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
         <h2>Misc / advanced</h2>
 
         <label class="primary check">
+            <input type="checkbox" id="ext_dark_mode" class="no-flash">
+            <span>Dark mode<br>
+                <i>(options panel)</i></span>
+        </label>
+
+        <label class="primary check">
             <input type="checkbox" id="ext_debug" class="no-autosave">
-            <span>Debug info <br>
+            <span>Debug info / dev mode<br>
                 <i>(show some console messages and vars values)</i></span>
         </label>
         
@@ -396,6 +345,76 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
     <div id="debugExtInfo"></div>
     <div id="storageInfo"></div>
     <div id="debugStorageContent"></div>
+</div>
+
+
+<div id="templates">
+
+    <div class="projectItem collapse _template">
+
+        <input type="text" name="project[name]" placeholder="Name" class="required">
+
+        <div class="contexts">
+
+            <h4>Environments / contexts</h4>
+
+            <div class="contexts-container"></div>
+
+            <button class="btn add env_contextAdd"><span class="icon"></span> <span class="text">Add new Context</span></button>
+            <span class="between-buttons">or</span>
+            <button class="btn add env_contextAddDefaultSet"><span class="icon"></span> <span class="text">Generate standard <abbr title="Adds some default predefined environments">Contexts set</abbr></span></button>
+        </div>
+
+        <div class="links">
+
+            <h4>External links</h4>
+
+            <div class="links-container"></div>
+
+            <button class="btn export env_projectExport to-right"><span class="icon"></span> <span class="text">Download <abbr title="Export json with only this one project">Project config</abbr></span></button>
+            <button class="btn add env_linkAdd"><span class="icon"></span> <span class="text">Add Link</span></button>
+        </div>
+
+        <div class="toggle project"><span class="icon"></span></div>
+
+        <label class="check hide" title="Visibility"><input type="checkbox" name="project[hidden]" class="inverse"> </label>
+        <button class="btn noborder remove env_projectRemove" title="Remove"><span class="icon"></span></button>
+    </div>
+    
+    
+    <div class="contextItem collapse _template">
+        <label><input type="text" name="context[name]" placeholder="Name" class="required"></label>
+        <label><input type="text" name="context[url]" placeholder="Url" class="required"></label>
+        
+        <button class="btn noborder opentab" title="Open in new tab"><span class="icon"></span></button>
+                            
+        <label class="color">Color:
+            <input type="color" class="color-picker">
+            <input type="text" name="context[color]" placeholder="#Hex" class="color-text" maxlength="7">
+        </label>
+    
+        <!--<div class="moreSettings">
+            <label>
+                <input type="text" name="context[altBackendUrl]" placeholder="Alternative backend url">
+            </label>
+        </div>
+    
+        <div class="toggle context"><span class="icon"></span></div>-->
+    
+        <label class="check hide" title="Visibility"><input type="checkbox" name="context[hidden]" class="inverse"> </label>
+        <button class="btn noborder remove env_contextRemove" title="Remove"><span class="icon"></span></button>
+    </div>
+
+    <div class="linkItem _template">
+        <label><input type="text" name="link[name]" placeholder="Name" class="required"></label>
+        <label><input type="text" name="link[url]" placeholder="Url" class="required"></label>
+
+        <button class="btn noborder opentab" title="Open in new tab"><span class="icon"></span></button>
+
+        <label class="check hide" title="Visibility"><input type="checkbox" name="link[hidden]" class="inverse"> </label>
+        <button class="btn noborder remove env_linkRemove" title="Remove"><span class="icon"></span></button>
+    </div>
+</div>
 
     <script src="Vendor/jquery-3.5.1.min.js"></script>
     <script src="Vendor/jquery-ui-1.12.1-custom.min.js"></script>
@@ -403,6 +422,6 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
     <script src="setFavicon.js"></script>
     <script src="setBadge.js"></script>
 	<script src="projectsRepo.js"></script>
-</div>
+
 </body>
 </html>

@@ -5,6 +5,7 @@
 body {
 	font-size: 80%;
 	background: #f9f9f9;
+	transition: color .3s, background-color .3s, opacity .3s;
 }
 .main   {
 	padding: 90px 10px 10px;
@@ -31,10 +32,24 @@ h4  {
 p   {
 	font-size: 1.1em;
 }
+a {
+	color: #000;
+}
 a.external::before {
 	content: "\2197\0020";
 	white-space: nowrap;
 }
+
+.to-left    {   float: left;    }
+.to-right   {   float: right;   }
+
+.row    {
+	display: flex;
+}
+.col-6  {
+	width: 50%;
+}
+
 .settings-block  {
 	margin: 0 auto 15px;
 	padding-bottom: 15px;
@@ -43,16 +58,12 @@ a.external::before {
 .heading    {
 	position: fixed;
 	top: 0;
-	z-index: 1;
 	padding-top: 10px;
     width: inherit;
 	background: #f9f9f9;
 	z-index: 10;
 }
 .heading header {
-	/*position: absolute;
-	top: 0;
-	right: 0;*/
 	text-align: right;
 	float: right;
 }
@@ -89,12 +100,66 @@ label.radio-item {
 label.radio span    {
 	margin-right: 16px;
 }
-input[type="checkbox"]    {
+select  {
+	cursor: pointer;
+}
+/*input[type="checkbox"]    {
 	margin-right: 8px;
 	cursor: pointer;
 	vertical-align: top;
 	margin-top: 2px;
+}*/
+
+
+input[type="checkbox"].nice {
+	display: none;
 }
+
+.nice-checkbox  {
+    display: inline-block;
+	background: #c14747;
+    color: #cabfbf;
+	border: 1px solid #525252cf;
+    width: 30px;
+    height: 20px;
+    position: relative;
+    border-radius: 10px;
+	transition: background-color 0.5s;
+	vertical-align: top;
+	cursor: pointer;
+}
+	.nice-checkbox::before    {
+		content: ' \2299';
+		position: absolute;
+		top: -2px;
+		left: 2px;
+		font-size: 15px;
+		background: none;
+		transition: left .3s, color .4s;
+		cursor: pointer;
+	}
+	.nice-checkbox:hover    {
+		background: #e44444;
+        color: #fdbaba;
+	}
+
+		.nice-checkbox.checked    {
+			background-color: #1e8f1e;
+			color: #c1deb5;
+		}
+		.nice-checkbox.checked::before    {
+			left: 12px;
+		}
+		.nice-checkbox.checked:hover    {
+			background-color: #28a528;
+			color: #dbecd0;
+		}
+
+
+.settings-block .nice-checkbox  {
+	left: -10px;
+}
+
 input[type="radio"]    {
 	margin-right: 8px;
 	cursor: pointer;
@@ -139,6 +204,10 @@ input[type=range]   {
 	width: 50%;
 }
 
+label.color {
+	margin-left: 20px;
+	vertical-align: top;
+}
 label.hide  {
 	position: absolute;
 	padding: 3px 0 0 0 !important;
@@ -232,24 +301,19 @@ button  {
 		vertical-align: top;
 	}
 
-button.btn.remove   {
-	position: absolute;
-	top: 10px;  right: 10px;
-	padding: 8px 9px;
-	background-color: transparent;
-	/*background-size: 60% 60%;*/
-}
 button.remove .icon  {  background-image: url(/Icons/Options/Delete.svg);   }
 button.add .icon  {     background-image: url(/Icons/Options/Add.svg);  }
 button.save .icon  {    background-image: url(/Icons/Options/Save.svg);  }
 button.import .icon  {  background-image: url(/Icons/Options/Import.svg);  }
 button.export .icon  {  background-image: url(/Icons/Options/Export.svg);  }
-button.repodialog .icon  {   background-image: url(/Icons/Options/Repository.svg);  }
+button.repodialog .icon{background-image: url(/Icons/Options/Repository.svg);  }
 button.fetch .icon  {   background-image: url(/Icons/Options/Refresh.svg);  }
-button.getAll .icon  {   background-image: url(/Icons/Options/GetWholePack.svg);  }
+button.getAll .icon  {  background-image: url(/Icons/Options/GetWholePack.svg);  }
 button.compare .icon  { background-image: url(/Icons/Options/Compare.svg);  }
 button.replace .icon  { background-image: url(/Icons/Options/Replace.svg);  }
-button.clipboard .icon  { background-image: url(/Icons/Options/Clipboard.svg);  }
+button.clipboard .icon{ background-image: url(/Icons/Options/Clipboard.svg);  }
+button.opentab .icon {  background-image: url(/Icons/Options/TabOpen.svg); }
+
 
 button.env_contextAddDefaultSet {
 	display: none;
@@ -271,28 +335,16 @@ button.env_contextAddDefaultSet {
 	max-height: 250em;
 }
 
+
+/* projects editor list */
+
 .projects-container {
 	padding-right: 10px;    /* make some space for shadow drop on project hover */ 
-}
-.projects-container input[type="text"]    { /* possibly also all other text-like modern inputs */
-	background-color: transparent;
-	border-color: transparent;
-}
-.projects-container input[type="text"]:focus,
-.projects-container input[type="text"]:hover    {
-	background-color: #fff;
-	border-color: #bfbfbf;
 }
 
 .contexts,
 .links {
 	padding-top: 16px;
-}
-
-.projectItem:hover,
-.contextItem:hover,
-.linkItem:hover    {
-	box-shadow: 3px 2px 6px 0px #aaa5;
 }
 
 .projectItem    {
@@ -323,6 +375,12 @@ button.env_contextAddDefaultSet {
 	background: #edcece;
 	border: 1px solid #f7abab;
 }
+.projectItem.active-focus   {
+	border: 1px solid #888;
+}
+.projectItem.filtered-out   {
+	display: none;
+}
 
 .projectItem input[name="project[name]"],
 .projectItem input[name="context[name]"]  {
@@ -334,7 +392,7 @@ button.env_contextAddDefaultSet {
 	display: block;
 }
 .projectItem .btn   {
-	background-color: #efefef;
+	/*background-color: #efefef;*/
 }
 .projectItem .btn:hover   {
 	background-color: rgba(140, 218, 233, 0.4);
@@ -354,6 +412,10 @@ button.env_contextAddDefaultSet {
 .linkItem:focus    {
 	border: 1px solid #eee;
 }
+.contextItem > *,
+.linkItem > *    {
+	vertical-align: middle;
+}
 ._template  {
 	display: none;
 }
@@ -368,7 +430,7 @@ button.env_contextAddDefaultSet {
 		display: block;
 		width: 16px;    height: 16px;
 		position: absolute;
-		top: 17px;
+		top: 18px;
 		right: 10px;
 		background: transparent url(Icons/Options/Expand.svg) no-repeat 0 0;
 		opacity: 0;
@@ -408,13 +470,36 @@ button.env_contextAddDefaultSet {
 	opacity: .7;
 }
 
-.projectItem.active-focus   {
-	border: 1px solid #888;
+.projectItem input[type="text"]    { /* possibly also all other text-like modern inputs */
+	background-color: transparent;
+	border-color: transparent;
+}
+.projectItem input[type="text"]:focus,
+.projectItem input[type="text"]:hover    {
+	background-color: #fff;
+	border-color: #bfbfbf;
 }
 
-.projectItem.filtered-out   {
-	display: none;
+.projectItem .btn    {
+	background-color: transparent;
 }
+
+.projectItem .btn.remove   {
+	position: absolute;
+	top: 10px;  right: 10px;
+	padding: 8px 9px;
+	background-color: transparent;
+}
+.projectItem .btn.remove:hover  {
+	background-color: rgba(140, 218, 233, 0.4);
+}
+
+.projectItem:hover,
+.contextItem:hover,
+.linkItem:hover    {
+	box-shadow: 3px 2px 6px 0px #aaa5;
+}
+
 
 .projects-filter    {
 	position: relative;
@@ -452,7 +537,6 @@ button.env_contextAddDefaultSet {
 }
 .projects-list-control a {
 	text-decoration: none;
-	color: #000;
 	margin: 0 4px;
 	padding: 6px 20px;
 	position: relative;
@@ -486,6 +570,7 @@ label.primary   {
 	font-size: 110%;
 	font-weight: 500;
 	margin-bottom: 20px;
+	transition: background-color .2s;
 }
 	label.primary:hover {
 		background: #f1f1f1;
@@ -523,6 +608,10 @@ label.primary span  {
 .settings-block.__importexport {
 	position: relative; /* to show import notifications there */
 }
+
+
+/* status & notifications */
+
 .status-notice.info, .status-import.info        {background: rgb(140, 218, 233);} 
 .status-notice.success, .status-import.success  {background: rgb(156, 233, 144);} 
 .status-notice.warn, .status-import.warn        {background: rgb(233, 232, 160);} 
@@ -541,17 +630,34 @@ label.primary span  {
 	opacity: 0.7;
 	z-index: 20;
 }
+
+.flashContainer    {
+	animation: flash ease-in-out 0.5s 1;
+}
+@keyframes flash {
+	0% { background-color: #fff; }
+	30% { background-color: #f6ffe2; }
+	100% { background-color: #fff; }
+}
+
+
+
+/* dialogs */
+
 .dialog {
+    display: flex;
 	position: fixed;
-	top: 0; left: 0;
-	width: 100%;    height: 100%;
+    justify-content: center;
+    align-items: center;
+	top: 0;
+	width: 100%;
+    height: 100%;
 	text-align: center;
 	z-index: 30;
+	transition: top 3.3s;
 }
 .dialog-inner {
 	position: relative;
-	margin: 20px auto;
-		margin-top: 5%;
 	background: #e7e7e7;
 	padding: 15px;
 	width: 50%;
@@ -574,13 +680,16 @@ label.primary span  {
 	font-size: 1.5em;
 }
 .dialog-body input[type=text]   {
-	background: #fff;
+	/*background: #fff;*/
 	margin: 3px;
 }
 .dialog button  {
 	margin: 3px 5px;
 	vertical-align: top;
 }
+
+
+
 .btn.confirm,
 .btn.decline    {
 	padding: 6px 16px;
@@ -600,23 +709,16 @@ label.primary span  {
 }
 .ui-sortable-helper {
 }
+/* dnd drop area */
 .ui-state-highlight {
 	min-height: 51px;
 	padding: 10px;
 	margin-bottom: 10px;
 	background: #eaf5e0;
-	border: 1px dashed #ccc !important;
+	border: 2px dashed #ccc !important;
 }
 
-.to-left    {   float: left;    }
-.to-right   {   float: right;   }
 
-.row    {
-	display: flex;
-}
-.col-6  {
-	width: 50%;
-}
 
 .blinkText    {
 	color: #e7e7e7;
@@ -650,6 +752,7 @@ label.primary span  {
 	font-size: 120%;
 	padding: 6px;
 	border: 1px solid #eee;
+	transition: background 0.2s, border-color 0.2s;
 }
 .jump-toolbar > div:hover {
 	background: #ddd;
@@ -733,10 +836,10 @@ input#repo_key  {
 .dialog-fetch .fetch-controls   {
 	margin: 20px 0;
 }
-.dialog-fetch button.fetch:hover  {
+.dialog-fetch .btn.fetch:hover  {
 	background: rgb(140, 218, 233);
 }
-.dialog-fetch button.getAll:hover  {
+.dialog-fetch .btn.getAll:hover  {
 	background: rgb(156, 233, 144);
 }
 .dialog-fetch .fetch-inner  {
@@ -744,7 +847,7 @@ input#repo_key  {
 }
 
 .fetched-projects   {
-	max-height: 65vh;
+	max-height: 50vh;
 	overflow-y: scroll;
 	position: relative;
 	/*transition: height ease-in 0.1s; doesn't work*/
@@ -767,6 +870,7 @@ input#repo_key  {
 	display: inline-block;
 	margin-top: 0;
 	font-size: 18px;
+	width: calc(100% - 300px);   /* width of buttons */
 }
 .project-item-preview h4   {
 	font-weight: bold;
@@ -823,8 +927,8 @@ input#repo_key  {
 }
 
 .project-item-preview.local-exists > h3 .infoicon   {
-    display: inline-block;
-	margin-left: 80px;
+    display: block;
+    margin-top: 8px;
 }
 .project-item-preview.differs > h3    {
 	color: #ff8700;
@@ -941,14 +1045,6 @@ h3.url_value:active {
 	/*cursor: grabbing;*/
 }
 
-.flashContainer    {
-	animation: flash ease-in-out 0.5s 1;
-}
-@keyframes flash {
-	0% { background-color: #fff; }
-	30% { background-color: #f6ffe2; }
-	100% { background-color: #fff; }
-}
 
 #projectSelector    {
 	text-align: left;
@@ -1003,6 +1099,19 @@ h3.url_value:active {
 .debug-mode-restricted  {
 	display: none;
 }
-.debug_mode .debug-mode-restricted  {
+.debug-mode .debug-mode-restricted  {
 	display: initial;
+}
+
+.btn.noborder,
+.projectItem .btn.noborder   {
+	border-color: transparent;
+}
+
+body.loading {
+	opacity: 0.2;
+	background-color: #666666;
+}
+body.loading .heading {
+	background-color: #666666;
 }
