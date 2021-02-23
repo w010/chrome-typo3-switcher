@@ -457,9 +457,10 @@ var Env = {
 
             // -- Custom shortcut 1
             if ( typeof options.env_menu_short_custom1 !== 'undefined'  &&  options.env_menu_short_custom1 !== '' ) {
+                let linkParts_short1 = options.env_menu_short_custom1.split(" | ");
 
                 contextMenuItems.push({
-                    title : options.env_menu_short_custom1,
+                    title : typeof linkParts_short1[1] !== 'undefined' ? linkParts_short1[1] : linkParts_short1[0],
                     id :    'project-' + p + '-shortcustom-1'
                 });
             }
@@ -467,9 +468,10 @@ var Env = {
 
             // -- Custom shortcut 2
             if ( typeof options.env_menu_short_custom2 !== 'undefined'  &&  options.env_menu_short_custom2 !== '' ) {
+                let linkParts_short2 = options.env_menu_short_custom2.split(" | ");
 
                 contextMenuItems.push({
-                    title : options.env_menu_short_custom2,
+                    title : typeof linkParts_short2[1] !== 'undefined' ? linkParts_short2[1] : linkParts_short2[0],
                     id :    'project-' + p + '-shortcustom-2'
                 });
             }

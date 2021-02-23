@@ -163,7 +163,7 @@ const ExtOptions = {
             'env_enable' :                      true,
             //'env_switching' :                   true,
             'env_menu_show_allprojects' :       true,
-            'env_menu_short_custom1' :          '/typo3/install.php',
+            'env_menu_short_custom1' :          '/typo3/install.php | Install Tool',
             'env_menu_short_custom2' :          '',
             'env_badge' :                       true,
             'env_badge_projectname' :           true,

@@ -161,10 +161,11 @@ var Switcher = {
     /**
      * 
      * @param siteUrl
-     * @param shortcutValue
+     * @param shortcutValueFull
      * @param customShortcutNumber
      */
-    openCustomShortcut : function( siteUrl, shortcutValue, customShortcutNumber ) {
+    openCustomShortcut : function( siteUrl, shortcutValueFull, customShortcutNumber ) {
+        let shortcutValue = shortcutValueFull.split(" | ")[0];
 
         chrome.tabs.query( {active: true, currentWindow: true}, function (tabs) {
             let _currentTab = tabs[0];
