@@ -252,8 +252,8 @@ var Env = {
                                     continue;
 
                                 // compare ignoring schema (& trailing slash in configured url)
-                                if ( context.url  &&  tab.url.replace( /^https?:\/\//, '/')
-                                        .match( context.url.replace( /^https?:\/\//, '/').replace( /\/$/, '') ) ) {
+                                if ( context.url  &&  tab.url.replace( /^https?:\/\//, '//')
+                                        .match( context.url.replace( /^https?:\/\//, '//').replace( /\/$/, '') ) ) {
 
                                     isProjectFound = true;
 

@@ -694,6 +694,10 @@ const ExtOptions = {
         link.find( '> .hide input' ).on( 'change', function() {
             link.toggleClass( 'hidden' );
         });
+        
+        link.find( '.btn.opentab' ).on('click', function() {
+            window.open( linkItem.url, '_blank' );
+        });
 
         // reinit nice checkboxes
         ExtOptions.initCheckboxes();
