@@ -1,9 +1,10 @@
 
-TYPO3 - BE/FE/Env Handy Switcher
+Handy Switcher TYPO3/BE/FE/Env
+(a.k.a. Magic server teleporter for TYPO3 & other webprojects)
 
 
 wolo.pl '.' studio
-2017-2020
+2017-2021
 wolo.wolski(at)gmail.com
 http://wolo.pl/
 
@@ -11,51 +12,85 @@ https://chrome.google.com/webstore/detail/typo3-backend-frontend-ha/ohemimdlihjd
 https://github.com/w010/chrome-typo3-switcher
 
 
+
 **
-What does it do?
+What's that (and for who)?
 
-Simple yet advanced
-This extension adds button to the Chrome's toolbar that opens a tab with TYPO3 Backend of current site (base href-based),
-or a Frontend, if detects it is in Backend.
+It's a productivity everyday time saver / navigation helper for (mainly) TYPO3 web projects, originally dedicated to TYPO3
+CMS integrators / devs / editors / project managers.
+Especially recommended for those who works with a large number of projects that runs multiple instances / continuous integrated etc.
+- But it's a great work improvement for everyone who works with TYPO3 on everyday basis.
+(I've got feedback that non-TYPO3 people also finds some of its elements very usable - so in future the "/typo3" segment will be 
+configurable, making the ext system-independent and universal)
 
-Second thing is you can quickly jump between project live/dev/staging instances (contexts) keeping current url path, also you can
-add set of project's helper links like its task manager, wiki, etc. to quick navigate between all of them. Also jump
-to install tool and a very handy menu with all projects with all contexts.
-All of this within one right-click.
+In short words, simple yet advanced - it can drastically simplify everyday navigating through your projects instances / their backends /
+trackers / repos / whatsoever. Forget searching for bookmarks, which usually throws you to homepage anyway, forget clicking
+again and again through some sub-sub-menus looking for that one subpage on stage that you just edited on dev, or copy-pasting paths
+from domain to domain every time...
+Have all instances within a click, teleporting from one to another in a second, always landing exactly where you wanted.
++ With minimum effort and easy config exchange it helps to keep full url sets always up to date for all team members. (More coming soon)
 
-It displays info badge and favicon overlay of chosen color to visually distinguish between a number of open instances during
-everyday integrations.
 
-Project configurations may be exported (all or separately) to share with your team. Easy json importing.
-(in current development is a project-repository functionality, to make the exchange much faster)  
 
-Note, that you may disable all environment-related functionality, to use only BE/FE switching and keep the ext more
-lightweight. But why give up all these wonderful features?!
 
-Switching to Frontend opens last selected page in backend page tree (works similar as View webpage button in backend,
-but works even if currently some module without page tree /or such button/ is open).
-(tested in versions 6.2, 7.6, 8.7, 9.5. any between should work as well)
-(Also, I would like to make it expand the pagetree and select current page, best will be basing on url, when switching 
-to backend - but current TYPO3 architecture doesn't allow such trick. I hope to achieve this state one day. It would be
-excellent productivity boost. Have to push some change requests to TYPO3 source...)   
+**
+So what does it do?
+
+- One basic function is the toolbar button which opens TYPO3 Backend of current site (base href-based), or returns 
+to Frontend, if already there. But it offers much more than that.
+
+
+- Magic starts when you work with many projects that runs on multiple staging environments and frequently jump between them.
+Go to the options and start using Projects configurations - create or import from your teammates.
+Name the new project and set all urls for environments / contexts / servers. Now you can quick jump between them keeping path (go straight
+to the very same subpage).
+It shows color badge and favicon overlay on each one to visually distinguish and always have a good overview where you are
+(and avoid mistakes like messing on the wrong one - set red for public servers and you never miss that again).
+You can also add some project-related links (like issue tracker, wiki, repo etc) to show in project's context menu.
+
+
+- Projects can be easy exported/imported in json format (all or separately) to share with your team / post to wiki / etc.
+More advanced functions wip, comes in next big release!  
+
+
+- Switching to Frontend tries to use current pagetree-selected page id and open it instead of just base url (similar to
+"View webpage" button in backend, but works even if you're in a module without page tree or such button).
+(you can turn off this behaviour) [note, it doesn't respect multidomains - probably impossible to implement easy]
+(tested in versions 6.2 - 10.4)
+
+
+- If you rather go simply, you may turn off all that fancy environment-related functions, and use only BE/FE switch button to keep lightweight.
+(but why give up all these great features?)
+Note, that this ext doesn't load any js libs in its background instance (only some in options panel) so it doesn't eat too much memory.
+
+
+- Also, I'd like to make it expand the pagetree and select current page, best will be based on url, when switching  to backend.
+It would be a huge productivity boost.
+This will probably work in TYPO3 11 once it lands, which will introduce backend direct links. But current TYPO3 architecture doesn't allow such trick.
+(I'm experimenting with some js hacks & workarounds to make it work in <= 10.x, but no success yet)
+
+
 
 Security Trust:
 See FAQ
 
 
+
 **
 Story:
 
-Some time ago there was an extension for switching to backend, but it was only opening current domain + /typo3/ segment - I've used it
-for a long time though. Thanks to the author of original ext, Patrick Lischka, for inspirations to improve this idea.
+There was that Chrome ext for opening backend, some time ago ("Fast TYPO3 CMS Backend switch"), but it only opened current domain + /typo3/ segment - I've used it
+for a long time though. Thanks to the author of it, Patrick Lischka, for inspirations to improve this idea.</p>
 
-- My ext goes further and it can open back the Frontend from Backend, also it can not only add a path to a domain, but
-tries to extract the <base> tag from a page source, then uses it for a backend url (or just a domain, if not found).
-So it works as expected when running TYPO3 project in subdirectory, ie. on your dev environment.
-(For this, it needs that you set <base href="[url]"> in <head>)
+- My ext goes much further and it can open back the Frontend from Backend, also it can not only add a path to a domain, but
+tries to fetch the <base> tag from source, then uses it for a backend url build (or just a domain, if not found).
+So it works as expected when running project in a subdirectory, ie. on your dev environment. (even though that approach is not recommended
+and usually leads to misc problems with some extensions - like buggy ajax in formhandler - many people works that way
+and I needed to handle that to avoid everyday frustration)
+(For this to work, it needs that <base href="[url]"> is set in <head>, so if you rather use absRefPrefix, I have no idea, how to help you)
 
-
-Please write me any problems, suggestions or ideas.
+Please write me any problems, suggestions or ideas and feel free to report issues on Github.
+https://github.com/w010/chrome-typo3-switcher/issues
 
 
 
@@ -81,8 +116,12 @@ In multi-domain sites better just use the built-in backend View button.
 Q: I'm on some page id in Frontend, and when I use the button to open Backend, I'm getting the "About modules" screen.
  Could it detect that page id and expand the tree for me?
 
-A: It would be great, but as far as I know it's not possible to make Backend preselect a page in tree from any
- external call. I'll try some workaround in future, but it will need a special TYPO3 extension just for that.
+A: It would be great, I'm experimenting with some js tricks to achieve that, but not yet ready. But the backend hardlinks are coming in 11.x
+ and it should be possible there (I didn't check if it's already implemented or we have to wait for final/LTS).<br> 
+ - But for older versions - AFAIK it's not possible to make Backend preselect a page in tree from any
+ external call. So it needs some hacks and tricks to manipulate backend's js and force it to do something from the outside.<br>
+ It would be of course possible using dedicated TYPO3 extension, but I really, really don't wanna relate any functionality from adding custom code in the projects.
+ It have to be independent and work everywhere.
 
 
 Q: Why there's suddenly a "project-name" submenu in icon context menu, and my envs goes there, instead to be in top-level?
@@ -105,6 +144,25 @@ A: No, this extension doesn't do anything with the urls it reads. All it does it
 
 **
 Changelog:
+		
+v2.0.0
+3.03.2021
+Main changes & news:
+- env/options: feature "Add/Edit current uri" added to menu (submenu Tools). It speeds up projects configuration, jumps right where you need  
+- env: pagetree selection when switching to FE rebuild/fix + it now works in 10.x
+- env: major fix & rebuild of project init code (locks & event handling). now detecting and setup project should be more stable (and show badges and favicons where needed - resolves the disappearing badge problem in 98% cases)
+- env: major menu generating and handling rebuild. + now All Projects shows also on rmb context menu
+- options/env: removed options "Show Install tool" & "DUMP", these checks are now replaced by text inputs, allows to set two own links or shortcuts in action menu (why two? Chrome's menu items limit.)
+- options: tune overall look / better readability / jumpmenu / open links / fancy checkboxes...
+- options: Dark Mode option added (thanks to Paweł Schwałkowski)
+More:
+- options: projects - search/filter added
+- options: projects - autosort option added
+- options: mark conflicted uuid projects (like when importing project with uuid that already exist) also mark freshly imported items
+- options: modals slightly reworked
+- options: basics of projects repo functionality (wip / hidden for now)
+- options: added possibility to flush given item from storage (dev mode)
+- options: lots of other improvements
 
 v1.0.0
 28.04.2020
