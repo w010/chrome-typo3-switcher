@@ -56,6 +56,7 @@ const ExtOptions = {
         ExtOptions.checkItems();
 
         let projects = ExtOptions.collectProjects();
+        ExtOptions.checkPermissions(projects);
         
         
         let options = {
@@ -902,6 +903,37 @@ const ExtOptions = {
         }
     },
 
+
+    /**
+     * Check permissions for every single host added in config (at least in not hidden items)
+     *
+     * @param projects
+     */
+    checkPermissions : function(projects)  {
+      
+        $.each(projects, function(projectId, project)    {
+
+            if (!project.hidden)    {
+                $.each(project.contexts, function(c, context)    {
+                    if (!context.hidden)    {
+                        // Permissions must be requested from inside a user gesture, like a button's click handler.
+                        chrome.permissions.request({
+                            // TODO: add this /* path only if no trailing slash and only domain without path
+                            origins: [ context.url + '/*' ]
+                        }, function(granted) {});
+                    }
+                });
+                $.each(project.links, function(l, link)    {
+                    if (!link.hidden)    {
+                        chrome.permissions.request({
+                            origins: [ link.url + '/*' ]
+                        }, function(granted) {});
+                    }
+                });
+            }
+        });
+    },
+    
 
     /**
      * Find and mark duplicate uuid projects, mark freshly imported etc.
