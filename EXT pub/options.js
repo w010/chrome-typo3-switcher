@@ -966,7 +966,7 @@ const ExtOptions = {
             dialog.find('.request-permissions-all-hosts').click( function() {
                 ExtOptions.closeDialog( dialog );
                 ExtOptions.requestHostPermission( '*://*/*' );
-                ExtOptions.optionsSave();
+                $('.projects-container .unpermitted').removeClass('unpermitted');
                 chrome.storage.sync.set({'internal_permissions_acknowledged': true});
             });
         }
@@ -1078,7 +1078,7 @@ const ExtOptions = {
                             if ( !hostPermitted ) {
                                 console.log('-- Not permitted');
 
-                                ExtOptions.requestHostPermission( formattedHostUrl );
+                                ExtOptions.requestHostPermission( formattedHostUrl, item );
                             }
                             
                             ExtOptions.checkHostsPermissions( [] );
@@ -1091,7 +1091,10 @@ const ExtOptions = {
         /* */
     },
     
-    requestHostPermission : function( formattedHostUrl )  {
+    requestHostPermission : function( formattedHostUrl, item )  {
+        if (typeof item === 'undefined')
+            item = {url: ''};
+
         console.log('-- Not permitted. Request for host permission: ' + formattedHostUrl);
 
         // "Permissions must be requested from inside a user gesture, like a button's click handler."
@@ -1103,8 +1106,8 @@ const ExtOptions = {
                 console.error(' -- permission.request last error: ' + chrome.runtime.lastError.message);
                 ExtOptions.displayMessage( 'Permission request problem - usually means bad url. Check your config. Returned message:<br>'
                         + '<b>' + chrome.runtime.lastError.message + '</b><br><br>'
-                        + ' -- requested url/host: <b>' + ExtOptions.controlUrlHostFormat( item.url ) + '</b><br>'
-                        + ' -- original url value: <b>' + item.url + '</b>'
+                        + ' -- requested url/host: <b>' + formattedHostUrl + '</b><br>'
+                        + ( item.url ? ' -- original url value: <b>' + item.url + '</b>' : '')
                     , 'error', '.status-permissions', 30000 );
                 $('html,body').animate({scrollTop: $(".status-permissions").offset().top - 250}, 300);
             }
