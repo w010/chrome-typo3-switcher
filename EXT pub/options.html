@@ -17,7 +17,7 @@
         </header>
 
         <button class="btn save"><span class="icon"></span> <span class="text">Save</span></button>
-        <span class="status-notice"></span>
+        <span class="status status-notice"></span>
         <br>
         <br>
     </div>
@@ -212,8 +212,9 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
         <button class="btn repodialog env_projectRepo"><span class="icon"></span> <span class="text">Get from <abbr title="It's a good idea to host your own repo to share projects with your team/company. It's a 15-minut-work, so don't forget to check details.">Project Repository</abbr></span></button>
         <p class="level-info">You've found hidden test feature! The repository functionality is not yet finished / tested well enough (works in basics though, so you can give it a try)</p>
     </span>
-        <br>
-        <br>
+
+        <span class="status status-permissions"></span>
+        <br><br>
 
         <div class="projects-filter">
             <input id="projects_filter" placeholder="Filter - search by name / url">
@@ -246,7 +247,7 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
         <h2>Import / export projects</h2>
         <h3>Backup or share with your team</h3>
         
-        <span class="status-import"></span>
+        <span class="status status-import"></span>
 
         <div class="row">
             <div class="col-6">
@@ -324,12 +325,42 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
         <div class="section-foldable" data-visibility-trigger="#ext_debug">
             <div id="flush-storage-feedback"></div>
             <label class="primary text">
-                <span>Flush storage key (use with care):</span>
+                <span>Flush storage key (USE WITH CARE):</span>
                 <input type="text" id="flush-storage-key" class="no-autosave">
-                <button class="btn" id="flush-storage">! ! !</button>
+                <button class="btn confirm-warn" id="flush-storage"><span class="text">Remove item!</span></button>
                 <br>
                 <i>(write _ALL! to wipe whole storage for this ext - in case of problems or to make a fresh start)</i>
             </label>
+        </div>
+    </div>
+    
+    
+    <div class="settings-block __permissions">
+
+        <h2>Permissions</h2>
+        <h3>Modify</h3>
+
+        <span class="status status-set-permission">PERMS</span>
+        <div id="permission-set-feedback"></div>
+        <label class="primary text">
+            <span>Host - origin:</span>
+            <input type="text" id="origin" class="no-autosave">
+            <button class="btn add" id="origin-grant"><span class="text">Grant</span></button>
+            <button class="btn confirm-warn" id="origin-decline"><span class="text">Decline</span></button>
+            <br>
+            <i>(write _ALL! to decline all permitted origins - see list below. try * to grant all hosts and not ask anymore)</i>
+        </label>
+
+
+        <h3>Summary</h3>
+
+        <label class="primary check">
+            <input type="checkbox" id="expand_origins" class="no-autosave">
+            <span>Expand list of permitted origins<br>
+                <i>(domains/hosts with granted permission. (list doesn't autorefresh after manipulation!)</i></span>
+        </label>
+
+        <div class="section-foldable container-permitted-origins" data-visibility-trigger="#expand_origins">
         </div>
     </div>
     
@@ -382,9 +413,9 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
     </div>
     
     
-    <div class="contextItem collapse _template">
+    <div class="item contextItem collapse _template">
         <label><input type="text" name="context[name]" placeholder="Name" class="required"></label>
-        <label><input type="text" name="context[url]" placeholder="Url" class="required"></label>
+        <label><input type="text" name="context[url]" placeholder="Url" class="url required"></label>
         
         <button class="btn noborder opentab" title="Open in new tab"><span class="icon"></span></button>
                             
@@ -405,9 +436,9 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
         <button class="btn noborder remove env_contextRemove" title="Remove"><span class="icon"></span></button>
     </div>
 
-    <div class="linkItem _template">
+    <div class="item linkItem _template">
         <label><input type="text" name="link[name]" placeholder="Name" class="required"></label>
-        <label><input type="text" name="link[url]" placeholder="Url" class="required"></label>
+        <label><input type="text" name="link[url]" placeholder="Url" class="url required"></label>
 
         <button class="btn noborder opentab" title="Open in new tab"><span class="icon"></span></button>
 

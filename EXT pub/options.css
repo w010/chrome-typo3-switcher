@@ -131,7 +131,7 @@ input[type="checkbox"].nice {
 	.nice-checkbox::before    {
 		content: ' \2299';
 		position: absolute;
-		top: -2px;
+		top: -2.75px;
 		left: 2px;
 		font-size: 15px;
 		background: none;
@@ -215,7 +215,7 @@ label.hide  {
 	right: 60px;
 	cursor: pointer;
 }
-label.text span    {
+label.text > span    {
 	margin-right: 8px;
 }
 label.text.short span   {
@@ -270,7 +270,7 @@ button  {
 	margin-bottom: 0;
 	font-weight: normal;
 	text-align: center;
-	vertical-align: middle;
+	vertical-align: top;
 	background-image: none !important;
 	background-color: #dedede;
 	border: 1px solid #c4c4c4;
@@ -372,12 +372,20 @@ button.env_contextAddDefaultSet {
 	background: #d8f0f7;
 }
 .projectItem.uuid-collision    {
-	background: #edcece;
-	border: 1px solid #f7abab;
+	background: #ede9ce;
+	border: 1px solid #f7f7ab;
 }
 .projectItem.active-focus   {
 	border: 1px solid #888;
 }
+.projectItem.unpermitted    {
+	border: 1px solid #f56868;
+}
+	.contextItem.unpermitted,
+	.linkItem.unpermitted    {
+		/*background: #edcece;*/
+		border: 1px solid #f56868;
+	}
 .projectItem.filtered-out   {
 	display: none;
 }
@@ -583,7 +591,7 @@ label.primary span  {
 	font-weight: revert;
 }
 
-.status-notice, .status-import {
+.status {
     position: absolute;
 	color: rgba(34, 34, 34, 0.61);
 	display: none;
@@ -594,9 +602,9 @@ label.primary span  {
 	top: 10px;
 	background: rgb(192, 192, 192);
 	opacity: 0.95;
-	z-index: 99;
+	z-index: 5;
 }
-.status-import  {
+.status-import, .status-permissions, .status-set-permission  {
 	position: relative;
 	left: auto;
 	top: auto;
@@ -612,10 +620,10 @@ label.primary span  {
 
 /* status & notifications */
 
-.status-notice.info, .status-import.info        {background: rgb(140, 218, 233);} 
-.status-notice.success, .status-import.success  {background: rgb(156, 233, 144);} 
-.status-notice.warn, .status-import.warn        {background: rgb(233, 232, 160);} 
-.status-notice.error, .status-import.error      {background: rgb(233, 151, 127);} 
+.status.info, .status.info        {background: rgb(140, 218, 233);} 
+.status.success, .status.success  {background: rgb(156, 233, 144);} 
+.status.warn, .status.warn        {background: rgb(233, 232, 160);} 
+.status.error, .status.error      {background: rgb(233, 151, 127);} 
 
 .level-info       { color: rgb(140, 218, 233);}
 .level-success    { color: rgb(156, 233, 144);}
@@ -665,6 +673,9 @@ label.primary span  {
 	max-height: 80vh;
 	overflow-y: auto;
 }
+.dialog.text-left .dialog-body    {
+	text-align: left;
+}
 .dialog-close  {
 	position: absolute;
 	top: 4px;
@@ -677,7 +688,8 @@ label.primary span  {
     text-shadow: 2px 1px 3px #888;
 }
 .dialog-head    {
-	font-size: 1.5em;
+	font-size: 2em;
+	margin: .5em 1em 1.5em;
 }
 .dialog-body input[type=text]   {
 	/*background: #fff;*/
@@ -687,14 +699,22 @@ label.primary span  {
 	margin: 3px 5px;
 	vertical-align: top;
 }
-
-
-
-.btn.confirm,
-.btn.decline    {
-	padding: 6px 16px;
+.dialog-body h3 {
+    margin: 1.2em 0 .8em;
+    font-size: 1.45em;
+    line-height: 1.60em;
 }
-.btn.confirm    {
+.dialog-body p {
+	font-size: 1.25em;
+}
+
+
+
+.btn.confirm-warn,
+.btn.decline    {
+	/*padding: 6px 16px;*/
+}
+.btn.confirm-warn    {
 	background: rgba(233, 151, 127, .5);
 }
 .btn.add    {

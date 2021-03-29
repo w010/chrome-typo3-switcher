@@ -144,7 +144,7 @@ body.dark {
 } 
 
 /* special buttons */
-.dark .btn.confirm    {
+.dark .btn.confirm-warn    {
 	background-color: rgba(210, 88, 53, .5);
 }
 .dark .btn.add  {
@@ -199,10 +199,17 @@ body.dark {
 	background-color: #617c84;
 }
 .dark .projectItem.uuid-collision    {
-	background-color: #5b3b3b;
-	border-color: #906060;
+	background: #ede9ce;
+	border: 1px solid #f7f7ab;
 }
-
+.dark .projectItem.unpermitted  {
+	border: 1px solid #f56868;
+}
+	.dark .contextItem.unpermitted,
+	.dark .linkItem.unpermitted    {
+		/*background: #edcece;*/
+		border: 1px solid #f56868;
+	}
 .dark .projectItem:hover > .toggle .icon {
     opacity: 0.4;
 }
@@ -261,16 +268,16 @@ body.dark {
 
 /* status & notifications */
 
-.dark .status-notice, .dark .status-import {
+.dark .status   {
 	color: rgba(34, 34, 34, 0.61);
 	background-color: rgb(192, 192, 192);
 }
-			
-			
-.dark .status-notice.info, .dark .status-import.info        {background: rgb(140, 218, 233);} 
-.dark .status-notice.success, .dark .status-import.success  {background: rgb(156, 233, 144);} 
-.dark .status-notice.warn, .dark .status-import.warn        {background: rgb(233, 232, 160);} 
-.dark .status-notice.error, .dark .status-import.error      {background: rgb(233, 151, 127);} 
+
+
+.dark .status.info, .dark .status.info        {background: rgb(140, 218, 233);} 
+.dark .status.success, .dark .status.success  {background: rgb(156, 233, 144);} 
+.dark .status.warn, .dark .status.warn        {background: rgb(233, 232, 160);} 
+.dark .status.error, .dark .status.error      {background: rgb(233, 151, 127);} 
 
 .dark  .level-info       { color: rgb(140, 218, 233);}
 .dark  .level-success    { color: rgb(156, 233, 144);}

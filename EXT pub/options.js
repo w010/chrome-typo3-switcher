@@ -56,7 +56,7 @@ const ExtOptions = {
         ExtOptions.checkItems();
 
         let projects = ExtOptions.collectProjects();
-        ExtOptions.checkPermissions(projects);
+        ExtOptions.requestPermissions( projects );
         
         
         let options = {
@@ -176,9 +176,12 @@ const ExtOptions = {
             'env_favicon_position' :            'bottom',
             'env_favicon_composite' :           'source-over',
             'ext_debug' :                       false,
-            'ext_dark_mode' :                   false,
+            'ext_dark_mode' :                   false,  // todo: detect initial value, try this: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
             'repo_url' :                        '',
             'repo_key' :                        '',
+            // after updating to the version where the per-host permissions are introduced, it requires going once to the options and call Save
+            // - to trigger permission request for each of hosts found in user's projects. this keeps the state it's already done or not needed. state is used to display a notification about that.
+            'internal_permissions_acknowledged' : false,
 
         }, function(options) {
 
@@ -897,6 +900,10 @@ const ExtOptions = {
         });
 
 
+        // when project list is ready, check configured there urls/hosts against permissions grant state 
+        ExtOptions.checkHostsPermissions( projects );
+
+
         if ( !$( '#env_projects_autosorting' ).is( ':checked' ) ) {
             // init drag & drop
             $( '.projects-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer', update: function() { ExtOptions.sortDropCallback(); } });
@@ -905,33 +912,233 @@ const ExtOptions = {
 
 
     /**
-     * Check permissions for every single host added in config (at least in not hidden items)
+     * Make a check of permissions state (and migration notification about them)
+     * 
+     * @param projects
+     */
+    checkHostsPermissions : function( projects ) {
+        console.log('CHECK PERMISSIONS START');
+        
+        // When the ext was just updated to a version with the new host-permissions, it won't work until the permissions are granted.
+        // We need to inform the user about that situation and let him go to the options and trigger save, that will start the procedure of granting access to each of his hosts.
+        // So we show an additional position in ext menus (everyone should notice that info there) which opens options screen.
+        // There we display some more clear info what to do. (modal)
+        //  (We show the info in menus and modal only for current users after update, who have any stored project/s - for which we'd need to ask about that permission.
+        //  Don't show this to new users, if no projects exist, or if ..._acknowledged = true)
+
+
+
+        // display modal infobox about needed actions 
+        if ( !ExtOptions.options.internal_permissions_acknowledged  &&  typeof projects !== 'undefined'  &&  projects.length )  {
+            let content = $( '<h3>' ).html( 'Due to the new, straightforward downgraded permission config, instead of previous global access to all hosts - we now use explicit optional host permission for each domain.')
+                    .add( $( '<h3>' ).html( 'The global Host Permission declaration is now removed, so it must be confirmed again that Handy Switcher still has access to the hosts from your stored Projects.' ))
+
+                    .add( $( '<br>' ))
+                    .add( $( '<h3>' ).html( '- But why?' ))
+                    .add( $( '<p>' ).html( 'The main reason we made that change is the additional in-depth Chrome Store\'s review of ext source, done for all extensions which uses the Host permission. '
+                        + 'That process seems to take a ridiculous amounts of time to wait every time, for your ext update to be finally published (weeks). So to avoid that, '
+                        + 'and avoid any current (+ most likely future) problems with Chrome\'s new security policy, now it will ask you for a permission when adding Context/Link url with a new domain. (we work to find somehow better solution)' ))
+
+                    .add( $( '<br>' ))
+                    .add( $( '<h3>' ).html( '- What must I do, is it really necessary, I have work to do / dog to go for a walk' ))
+                    .add( $( '<p>' ).html( 'For the same reason, to continue using Switcher like before with your existing Projects, it needs you to confirm that permission for all the domains found in your stored Projects, to make the Switcher be able '
+                        + 'to access these sites and work like before. Not granting asked host makes the Badge and Favicon not show on that domain. (can\'t access tab\'s DOM/html to inject these elements to source, + possibly some other limitations)' ))
+
+                    .add( $( '<br>' ))
+                    .add( $( '<h3>' ).html( '- OK, how? Just quick.' ))
+                    .add( $( '<p>' ).html( 'Close this dialog and click Save in options. The browser will do all that asking by itself. After confirming all your hosts, it will be working again. (you can later review or reject these decisions)' ))
+                    .add( $( '<br>' ))
+
+                    .add( $( '<button class="btn confirm-warn request-permissions-all-hosts"> <span class="text">OK, ALLOW NOW ALL</span> </button> <span>...request permission to ALL hosts and don\'t ask again</span>' ))
+                    .add( $( '<br><br>' ))
+                    .add( $( '<button class="btn confirm-close"> <span class="text">OK, understood, I\'ll save LATER</span> </button> <span>...to decide each domain whether allow or not</span>' ))
+                ;
+
+            let dialog = ExtOptions.openDialog('Handy Switcher was updated recently - permissions must be reconfirmed', content, 'text-left');
+
+            dialog.find('.dialog-close').remove();  // remove X button - force to make a choose from buttons
+            ExtOptions.dialogToCloseOnGlobalEvents = null;  // prevent dismiss modal using esc key
+
+            dialog.find('.confirm-close').click( function() {
+                ExtOptions.closeDialog( dialog );
+                chrome.storage.sync.set({'internal_permissions_acknowledged': true});
+            });
+            dialog.find('.request-permissions-all-hosts').click( function() {
+                ExtOptions.closeDialog( dialog );
+                ExtOptions.requestHostPermission( '*://*/*' );
+                ExtOptions.optionsSave();
+                chrome.storage.sync.set({'internal_permissions_acknowledged': true});
+            });
+        }
+
+
+
+
+        // permissions info
+
+        chrome.permissions.getAll( function( permissions )  {
+            // display permissions list
+            let containerPermittedOrigins = $('.container-permitted-origins');
+            let originsContent = ''; 
+            $.each( permissions.origins, function (o, origin)  {
+                originsContent += '<li>' + origin + '</li>';
+            });
+            containerPermittedOrigins.html( '<ul>' + originsContent + '</ul>' );
+
+
+
+
+            // mark projects / url with unpermitted host/domain
+            
+            // reset
+            $('.projects-container .unpermitted').removeClass('unpermitted');
+
+
+            let checkUrlIsPermitted = function( url, callback ) {
+                let formattedHostUrl = ExtOptions.controlUrlHostFormat( url );
+
+                chrome.permissions.contains({   
+                        permissions: ['tabs'],
+                        origins: [ formattedHostUrl ]
+                    }, function( hostPermitted ) {
+
+                        callback( hostPermitted );
+                });
+            };
+
+
+
+            // iterate all projects on list
+            $('.projects-container .projectItem').each( function(p, project){
+                let $project = $(project);
+                if ($project.hasClass('hidden'))
+                    return;
+
+
+                $project.find( '.item input.url' ).each( function(i, itemInput){
+                    let $itemInput = $(itemInput);
+                    if ( $itemInput.val() ) { 
+
+                        checkUrlIsPermitted( $itemInput.val(), function( permitted ){
+
+                            // in check callback mark context as unpermitted
+                            if ( !permitted )   {
+                                $itemInput.closest('.item').addClass('unpermitted')
+                                    .attr('title', 'Host not permitted! Save and allow access to this domain when asked');
+                            }
+
+                            // check Project, if contains any 'unpermitted' items 
+                            if ( $project.find('.unpermitted').length ) {
+                                $project.addClass('unpermitted');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    },
+
+
+    /**
+     * Request permissions for every single domain added in config (at least in not hidden items - or maybe it should take all?)
      *
      * @param projects
      */
-    checkPermissions : function(projects)  {
-      
-        $.each(projects, function(projectId, project)    {
+    requestPermissions : function( projects )  {
+        
+        // requesting every each host, marking permissions and all this handling seems to be way overcomplicated. try to request wildcard and maybe that's enough
+        
+        // dismiss any previous permission error message
+        $('.status-permissions').html('').removeClass('show');
 
-            if (!project.hidden)    {
-                $.each(project.contexts, function(c, context)    {
-                    if (!context.hidden)    {
-                        // Permissions must be requested from inside a user gesture, like a button's click handler.
-                        chrome.permissions.request({
-                            // TODO: add this /* path only if no trailing slash and only domain without path
-                            origins: [ context.url + '/*' ]
-                        }, function(granted) {});
-                    }
-                });
-                $.each(project.links, function(l, link)    {
-                    if (!link.hidden)    {
-                        chrome.permissions.request({
-                            origins: [ link.url + '/*' ]
-                        }, function(granted) {});
+
+        /* comment out this lopp in case of problems with individual requests and uncomment wildcard */
+        $.each( projects, function(projectId, project)    {
+
+            if ( !project.hidden )    {
+                // merge links + contexts to do all in one iteration 
+                let contextsAndLinks = project.contexts.concat( project.links );
+                
+                $.each( contextsAndLinks, function(c, item)    {
+                    if ( !item.hidden  &&  item.url )    {
+                        let formattedHostUrl = ExtOptions.controlUrlHostFormat( item.url );
+                        
+                        console.log('- Check for host permission: ' + formattedHostUrl);
+
+        //let formattedHostUrl = '*://*/*';
+
+
+        /* end */
+                        // check permission and request if false
+
+                        chrome.permissions.contains({   
+                            permissions: ['tabs'],
+                            origins: [ formattedHostUrl ]
+                        }, function( hostPermitted ) {
+                            if ( !hostPermitted ) {
+                                console.log('-- Not permitted');
+
+                                ExtOptions.requestHostPermission( formattedHostUrl );
+                            }
+                            
+                            ExtOptions.checkHostsPermissions( [] );
+                        });
+        /* */
                     }
                 });
             }
         });
+        /* */
+    },
+    
+    requestHostPermission : function( formattedHostUrl )  {
+        console.log('-- Not permitted. Request for host permission: ' + formattedHostUrl);
+
+        // "Permissions must be requested from inside a user gesture, like a button's click handler."
+        chrome.permissions.request({
+            origins: [ formattedHostUrl ]
+        }, function( granted ) {
+
+            if ( chrome.runtime.lastError )    {
+                console.error(' -- permission.request last error: ' + chrome.runtime.lastError.message);
+                ExtOptions.displayMessage( 'Permission request problem - usually means bad url. Check your config. Returned message:<br>'
+                        + '<b>' + chrome.runtime.lastError.message + '</b><br><br>'
+                        + ' -- requested url/host: <b>' + ExtOptions.controlUrlHostFormat( item.url ) + '</b><br>'
+                        + ' -- original url value: <b>' + item.url + '</b>'
+                    , 'error', '.status-permissions', 30000 );
+                $('html,body').animate({scrollTop: $(".status-permissions").offset().top - 250}, 300);
+            }
+
+            if ( granted )  {
+                console.info(' - GRANTED permission for host: ' + formattedHostUrl);
+            }
+            else    {
+                console.info(' - Permission DECLINED for host: ' + formattedHostUrl);
+            }
+        });
+    },
+    
+    /**
+     * Make sure the url string has valid format expected by permissions.request      https://developer.chrome.com/docs/extensions/mv3/match_patterns/
+     * - check if url has a schema or add one, append the path wildcard (/*) (if no trailing slash and only domain without path is given. otherwise keep as is)
+     * @param value
+     * @return string
+     */
+    controlUrlHostFormat : function( value )    {
+        let url = '' + value.toString();
+        // if url in project is only a domain without scheme, request permission for all
+        if ( !url.startsWith('http') )    {
+            url = '*://' + url;
+        }
+        else    {
+            url = url.replace(/https?:\/\//, '*://');
+        }
+
+        // extract domain, ask for permission to a host + wildcard
+        let urlParts = url.split(/\//);
+        url = urlParts[0] + '//' + urlParts[2] + '/*';
+
+        return url;
     },
     
 
@@ -1233,12 +1440,12 @@ const ExtOptions = {
 
         // bind buttons after creating dialog - we need to have dialog instance to pass to callback
         let content = $( '<h3>' ).html( message )
-            .add( $( '<button class="btn remove confirm">' ).html( '<span class="icon"></span><span class="text">Yes</span>' ) )
-            .add( $( '<button class="btn decline">' ).html( '<span class="text">No</span>' ) );
+            .add( $( '<button class="btn remove confirm-warn">' ).html( '<span class="icon"></span> <span class="text">YES</span>' ) )
+            .add( $( '<button class="btn decline">' ).html( '<span class="text">No, keep it</span>' ) );
 
         let dialog = ExtOptions.openDialog(title, content);
 
-        dialog.find('.confirm').click( function() {
+        dialog.find('.confirm-warn').click( function() {
             callbackConfirm();
             ExtOptions.closeDialog( dialog );
         });
@@ -1623,6 +1830,69 @@ const ExtOptions = {
         }
     },
     
+    permissionOriginGrant : function ( value )   {
+        if ( !value )  {
+            return;
+        }
+
+        value = ExtOptions.controlUrlHostFormat( value );
+
+        chrome.permissions.request({
+            origins: [ value ]
+        }, function( granted ) {
+            if ( chrome.runtime.lastError )    {
+                ExtOptions.displayMessage( 'Permission request problem - must be in valid host pattern format. Returned message:<br>'
+                        + '<b>' + chrome.runtime.lastError.message + '</b><br><br>'
+                        + ' requested url/host: <b>' + value + '</b>'
+                    , 'error', '.status-set-permission', 30000 );
+            }
+
+            if ( granted )  {
+                ExtOptions.displayMessage( 'Permission set. Requested url/host: <b>' + value + '</b>'
+                    , 'success', '.status-set-permission', 30000 );
+            }
+            else    {
+                ExtOptions.displayMessage( 'Permission was not set. Requested url/host: <b>' + value + '</b>'
+                    , 'warn', '.status-set-permission', 30000 );
+            }
+        });
+    },
+    
+    permissionOriginDecline : function ( value )   {
+        if ( !value )  {
+            return;
+        }
+        
+        if ( value === '_ALL' )  {
+            chrome.permissions.getAll( function( permissions )  {
+                $.each( permissions.origins, function (o, origin)  {
+                    ExtOptions.permissionOriginDecline( origin );
+                });
+            });
+            return;
+        }
+
+        chrome.permissions.remove({
+            origins: [ value ]
+        }, function( removed ) {
+            if ( chrome.runtime.lastError )    {
+                ExtOptions.displayMessage( 'Permission request problem - must be in valid host pattern format. Returned message:<br>'
+                        + '<b>' + chrome.runtime.lastError.message + '</b><br><br>'
+                        + ' requested url/host: <b>' + value + '</b>'
+                    , 'error', '.status-set-permission', 30000 );
+            }
+
+            if ( removed )  {
+                ExtOptions.displayMessage( 'Origin removed. Requested url/host: <b>' + value + '</b>'
+                    , 'success', '.status-set-permission', 30000 );
+            }
+            else    {
+                ExtOptions.displayMessage( 'Origin was not removed. Requested url/host: <b>' + value + '</b>'
+                    , 'warn', '.status-set-permission', 30000 );
+            }
+        });
+    },
+
     handleDarkMode : function() {
     	if ( ExtOptions.options.ext_dark_mode === true ) {
     		$('body').addClass( 'dark' );
@@ -1768,6 +2038,17 @@ $( 'button#flush-storage' ).click( function() {
         ExtOptions.flushStorageKey( $flushStorageKey.val() );
         $flushStorageKey.val('');
     });
+});
+
+$( 'button#origin-grant' ).click( function() {
+    let $origin = $( '#origin' );
+    ExtOptions.permissionOriginGrant( $origin.val() );
+    $origin.val('');
+});
+$( 'button#origin-decline' ).click( function() {
+    let $origin = $( '#origin' );
+    ExtOptions.permissionOriginDecline( $origin.val() );
+    $origin.val('');
 });
 
 $( '#jump-to-top' ).click( function () {

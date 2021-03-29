@@ -352,6 +352,41 @@ var Env = {
             var options = Env.options;
 
 
+
+            // New permissions info
+            //   When the ext was just updated to a version with the new host-permissions, it won't work until the permissions are granted.
+            //   We need to inform the user about that situation and let him go to the options and save them to trigger permission check.
+            //
+            //   Here we show the info as an additional position in ext menus (only for current users after update, with stored projects / urls
+            //   for which we need to request for that permission.)
+
+
+            // display info as temporary menu position about needed actions - to make user see this when tries to first use updated Switcher, which will not work yet -
+            // it will show the message on an existing initiated project and points to options screen
+            // won't show to new users (identify by empty options storage), if no project is currently set, or if ..._acknowledged = true)
+            if ( typeof project.uuid !== 'undefined'    // we don't have all projects array here, but this way we can check if some project is currently set in this tab 
+                    &&  options.env_enable      // check existence of one of basic config options - if no such, it means user wasn't in option yet and is a new user
+                    &&  ! options.internal_permissions_acknowledged )  {
+
+
+                let tempMenuContexts = [ "page", "frame", "selection", "link", "editable", "image", "video", "audio", "page_action", "browser_action" ];
+                chrome.contextMenus.create({
+                    title :     '!!!  IMPORTANT  !!!  Your attention needed - open Options / SEE DETAILS ->',
+                    contexts :  tempMenuContexts,
+                    id :        'TEMP-message_perms'
+                });
+                chrome.contextMenus.create({
+                    title :     'TEMP-message_perms_separator',
+                    id :        'TEMP-message_perms_separator',
+                    contexts :  tempMenuContexts,
+                    type :      'separator',
+                });
+            }
+
+
+
+
+
             // -- ENVIRONMENTS (CONTEXTS)
             if ( typeof project.contexts !== 'undefined' ) {
 
@@ -916,6 +951,24 @@ chrome.storage.sync.get( null, function(options) {
             console.log(idParts);
 
             
+
+
+            // menu position: TEMPORARY MESSAGE / go to options
+
+            if ( itemType === 'message_perms' )   {
+                console.info(':: OPEN OPTIONS & EXIT');
+                console.groupEnd();
+
+                chrome.tabs.create({
+                    'url':     'options.html',
+                    'index':   tab.index + 1
+                });
+
+                return;
+            }
+
+
+
             // menu position: TOOLS
             
             if ( itemType === 'tool'  &&  itemSubType === 'add_edit' )   {
