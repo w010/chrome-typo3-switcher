@@ -193,6 +193,10 @@ var Env = {
      * @param tabId
      */
     findAndApplyProjectConfigForCurrentTabUrl : function(options, projectsAll, _debugEventTriggered, tabId) {
+        
+        if ( typeof options.env_enable === 'undefined'  ||  options.env_enable === false )  {
+            return;
+        }
 
         var loadFavicon = _debugEventTriggered === 'onUpdated';
         var loadBadge = _debugEventTriggered === 'onUpdated';
@@ -364,8 +368,8 @@ var Env = {
             // display info as temporary menu position about needed actions - to make user see this when tries to first use updated Switcher, which will not work yet -
             // it will show the message on an existing initiated project and points to options screen
             // won't show to new users (identify by empty options storage), if no project is currently set, or if ..._acknowledged = true)
-            if ( typeof project.uuid !== 'undefined'    // we don't have all projects array here, but this way we can check if some project is currently set in this tab 
-                    &&  options.env_enable      // check existence of one of basic config options - if no such, it means user wasn't in option yet and is a new user
+            if ( /*typeof project.uuid !== 'undefined'    // we don't have all projects array here, but this way we can check if some project is currently set in this tab 
+                    &&*/  options.env_enable      // check existence of one of basic config options - if no such, it means user wasn't in option yet and is a new user
                     &&  ! options.internal_permissions_acknowledged )  {
 
 
@@ -887,7 +891,7 @@ var Env = {
 chrome.storage.sync.get( null, function(options) {
 
         // exit now, if whole env functionality is disabled
-        if ( typeof options.env_enable !== 'undefined'  &&  options.env_enable === false )
+        if ( typeof options.env_enable === 'undefined'  ||  options.env_enable === false )
             return;
 
         Env.options = options;     // store to use in onclick

@@ -217,6 +217,8 @@ const ExtOptions = {
 
             ExtOptions.DEV = options.ext_debug;
             ExtOptions.options = options;
+            
+            ExtOptions.permissionsInfo();
 
             ExtOptions.initFoldableSections();
             ExtOptions.handleDarkMode();
@@ -621,6 +623,11 @@ const ExtOptions = {
     insertContextItem : function(project, contextItem)   {
         const context = $( '.contextItem._template' ).clone().removeClass( '_template' )
             .appendTo( project.find( '.contexts-container' ) );
+        
+        // default color when adding new empty context and not specify
+        if ( !contextItem.color )   {
+            contextItem.color = '#1499ff';
+        }
 
         // populate data
         context.find( "[name='context[name]']" ).val( contextItem.name );
@@ -910,6 +917,118 @@ const ExtOptions = {
         }
     },
 
+    
+    /**
+     * Show permissions info to new user
+     */
+    permissionsInfo : function( ) {
+
+        // For new users:
+        // Ext won't work until the permissions are granted. We need to inform the user and let him allow all or close and decide each host.
+
+
+        // display modal infobox about needed actions 
+        if ( !ExtOptions.options.internal_permissions_acknowledged )  {
+            let content = $( '<h3>' ).html( 'Because of browser\'s security policy, our extension must ask you for a host permission.')
+
+                    .add( $( '<h3>' ).html( '- Why does it need such a permission?' ))
+                    .add( $( '<p>' ).html( 'This is the essential of how this ext works - to inject color infobadge and modify favicon on your projects, it needs to be able to'
+                        + 'read / write to tab\'s DOM (html) content. If you don\'t trust what the ext do, please just uninstall (or analyse the source).' ))
+
+                    .add( $( '<h3>' ).html( '- You may:' ))
+                    .add( $( '<p>' ).html( 'a) - Allow now <b>access to all</b> hosts, to not be bothered, using the red button below.' ))
+                    .add( $( '<p>' ).html( 'b) - Decide about <b>each domain</b> - browser will ask every time you add your projects.' ))
+                    .add( $( '<p>' ).html( 'or c) - Close and Decide / edit <b>later</b> (you can use an option to request all again)' ))
+                    .add( $( '<br>' ))
+                    
+                    .add( $( '<button class="btn confirm-warn request-permissions-all-hosts"> <span class="text">OK - ALLOW ALL</span> </button> <span>...request permission to ALL hosts and don\'t ask again (make sure you know what it means)</span>' ))
+                    .add( $( '<br><br>' ))
+                    .add( $( '<button class="btn confirm-close"> <span class="text">Close - I want to be asked</span> </button> <span>...to decide each domain is allowed.</span>' ))
+                ;
+
+            let dialog = ExtOptions.openDialog('Handy Switcher - permissions', content, 'text-left');
+
+            dialog.find('.dialog-close').remove();  // remove X button - force to make a choose from buttons
+            ExtOptions.dialogToCloseOnGlobalEvents = null;  // prevent dismiss modal using esc key
+
+            dialog.find('.confirm-close').click( function() {
+                ExtOptions.closeDialog( dialog );
+                chrome.storage.sync.set({'internal_permissions_acknowledged': true});
+            });
+            dialog.find('.request-permissions-all-hosts').click( function() {
+                ExtOptions.closeDialog( dialog );
+                ExtOptions.requestHostPermission( '*://*/*' );
+               // $('.projects-container .unpermitted').removeClass('unpermitted');
+                chrome.storage.sync.set({'internal_permissions_acknowledged': true});
+            });
+        }
+
+
+        return;
+
+        // permissions info
+
+        chrome.permissions.getAll( function( permissions )  {
+            // display permissions list
+            let containerPermittedOrigins = $('.container-permitted-origins');
+            let originsContent = ''; 
+            $.each( permissions.origins, function (o, origin)  {
+                originsContent += '<li>' + origin + '</li>';
+            });
+            containerPermittedOrigins.html( '<ul>' + originsContent + '</ul>' );
+
+
+
+
+            // mark projects / url with unpermitted host/domain
+            
+            // reset
+            //$('.projects-container .unpermitted').removeClass('unpermitted');
+
+
+            let checkUrlIsPermitted = function( url, callback ) {
+                let formattedHostUrl = ExtOptions.controlUrlHostFormat( url );
+
+                chrome.permissions.contains({   
+                        permissions: ['tabs'],
+                        origins: [ formattedHostUrl ]
+                    }, function( hostPermitted ) {
+
+                        callback( hostPermitted );
+                });
+            };
+
+
+
+            // iterate all projects on list
+            $('.projects-container .projectItem').each( function(p, project){
+                let $project = $(project);
+                if ($project.hasClass('hidden'))
+                    return;
+
+
+                $project.find( '.item input.url' ).each( function(i, itemInput){
+                    let $itemInput = $(itemInput);
+                    if ( $itemInput.val() ) { 
+
+                        checkUrlIsPermitted( $itemInput.val(), function( permitted ){
+
+                            // in check callback mark context as unpermitted
+                            if ( !permitted )   {
+                                $itemInput.closest('.item').addClass('unpermitted')
+                                    .attr('title', 'Host not permitted! Save and allow access to this domain when asked');
+                            }
+
+                            // check Project, if contains any 'unpermitted' items 
+                            if ( $project.find('.unpermitted').length ) {
+                                $project.addClass('unpermitted');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    },
 
     /**
      * Make a check of permissions state (and migration notification about them)
@@ -934,24 +1053,25 @@ const ExtOptions = {
                     .add( $( '<h3>' ).html( 'The global Host Permission declaration is now removed, so it must be confirmed again that Handy Switcher still has access to the hosts from your stored Projects.' ))
 
                     .add( $( '<br>' ))
-                    .add( $( '<h3>' ).html( '- But why?' ))
-                    .add( $( '<p>' ).html( 'The main reason we made that change is the additional in-depth Chrome Store\'s review of ext source, done for all extensions which uses the Host permission. '
-                        + 'That process seems to take a ridiculous amounts of time to wait every time, for your ext update to be finally published (weeks). So to avoid that, '
-                        + 'and avoid any current (+ most likely future) problems with Chrome\'s new security policy, now it will ask you for a permission when adding Context/Link url with a new domain. (we work to find somehow better solution)' ))
+                    .add( $( '<h3>' ).html( '- Details?' ))
+                    .add( $( '<p>' ).html( 'The main reason of that change is the additional in-depth Chrome Store\'s review of ext source, of all extensions which uses the Host permission. '
+                        + 'That seems to take a ridiculous amounts of time to wait for each ext update to be finally published (weeks). So, to avoid that, '
+                        + 'and any current (+ possibly future) problems with Chrome\'s security policy, now you will be asked for a permission when adding Context/Link url with a new domain (unless you allow all).' ))
 
                     .add( $( '<br>' ))
-                    .add( $( '<h3>' ).html( '- What must I do, is it really necessary, I have work to do / dog to go for a walk' ))
-                    .add( $( '<p>' ).html( 'For the same reason, to continue using Switcher like before with your existing Projects, it needs you to confirm that permission for all the domains found in your stored Projects, to make the Switcher be able '
-                        + 'to access these sites and work like before. Not granting asked host makes the Badge and Favicon not show on that domain. (can\'t access tab\'s DOM/html to inject these elements to source, + possibly some other limitations)' ))
+                    .add( $( '<h3>' ).html( '- What must I do? Is it really necessary? I have work to do / dog to go for a walk' ))
+                    .add( $( '<p>' ).html( 'For the same reason, to continue using Switcher like before with your existing Projects, it needs you to confirm that permission for all / the domains found in your stored Projects, to make the Switcher be able '
+                        + 'to access these sites and work like before. Not granting a host makes the Badge and Favicon not show on that domain. (can\'t access tab\'s DOM/html to inject these elements to source, + other limitations)' ))
 
                     .add( $( '<br>' ))
-                    .add( $( '<h3>' ).html( '- OK, how? Just quick.' ))
-                    .add( $( '<p>' ).html( 'Close this dialog and click Save in options. The browser will do all that asking by itself. After confirming all your hosts, it will be working again. (you can later review or reject these decisions)' ))
+                    .add( $( '<h3>' ).html( '- OK, how?' ))
+                    .add( $( '<p>' ).html( 'a) Close this dialog and call Save in Options screen. The browser will do all that asking by itself. After confirming all your hosts, it will be working again. (you can later review or reject these decisions)' ))
+                    .add( $( '<p>' ).html( 'or b) Request allow all using the red button here:' ))
                     .add( $( '<br>' ))
 
-                    .add( $( '<button class="btn confirm-warn request-permissions-all-hosts"> <span class="text">OK, ALLOW NOW ALL</span> </button> <span>...request permission to ALL hosts and don\'t ask again</span>' ))
+                    .add( $( '<button class="btn confirm-warn request-permissions-all-hosts"> <span class="text">OK - ALLOW NOW ALL</span> </button> <span>...request permission to ALL hosts and don\'t ask again (make sure you know what it means)</span>' ))
                     .add( $( '<br><br>' ))
-                    .add( $( '<button class="btn confirm-close"> <span class="text">OK, understood, I\'ll save LATER</span> </button> <span>...to decide each domain whether allow or not</span>' ))
+                    .add( $( '<button class="btn confirm-close"> <span class="text">Acknowledged. I\'ll save LATER</span> </button> <span>...to decide each domain is allowed. (note - it will ask many times, if you have many projects)</span>' ))
                 ;
 
             let dialog = ExtOptions.openDialog('Handy Switcher was updated recently - permissions must be reconfirmed', content, 'text-left');
@@ -966,13 +1086,13 @@ const ExtOptions = {
             dialog.find('.request-permissions-all-hosts').click( function() {
                 ExtOptions.closeDialog( dialog );
                 ExtOptions.requestHostPermission( '*://*/*' );
-                $('.projects-container .unpermitted').removeClass('unpermitted');
+               // $('.projects-container .unpermitted').removeClass('unpermitted');
                 chrome.storage.sync.set({'internal_permissions_acknowledged': true});
             });
         }
 
 
-
+        return;
 
         // permissions info
 
@@ -991,7 +1111,7 @@ const ExtOptions = {
             // mark projects / url with unpermitted host/domain
             
             // reset
-            $('.projects-container .unpermitted').removeClass('unpermitted');
+            //$('.projects-container .unpermitted').removeClass('unpermitted');
 
 
             let checkUrlIsPermitted = function( url, callback ) {
