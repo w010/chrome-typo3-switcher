@@ -1717,6 +1717,14 @@ const ExtOptions = {
     },
 
     /**
+     * Set some additional non-critical (visual) elements
+     */
+    initVisualDetails : function()    {
+        // set extension version number
+        $('.ext-version').html( 'v ' + chrome.runtime.getManifest().version );
+    },
+
+    /**
      * Show storage usage
      */
     updateStorageInfo : function()    {
@@ -2121,6 +2129,7 @@ $(function() {
     ExtOptions.bindFaviconControlsForPreview();
     ExtOptions.bindBadgeControlsForPreview();
     ExtOptions.bindAutosave();
+    ExtOptions.initVisualDetails();
 
 	$(document).on('keydown',function(e) {
         if (e.keyCode === 27) {
@@ -2143,7 +2152,7 @@ $( 'button.env_projectAdd' ).click( function () {
 $( 'button.env_projectRepo' ).click( function () {
     ExtOptions.repoDialog('Get projects from repository');
 });
-$( 'button#env_import' ).click( function () {
+$( 'button#env_import' ).on( 'mousedown', function () {
     ExtOptions.importProjectsFromTextarea( {} )
 });
 

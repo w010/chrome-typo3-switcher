@@ -69,16 +69,26 @@ a.external::before {
 }
 .heading h1 {
 	margin-top: 0px;
+    margin-bottom: 0.5em;
 }
 .heading h2 {
 	font-size: 1.3em;
 	color: #666;
 	font-weight: normal;
+	margin-top: 0px;
+    margin-bottom: 16px;
 }
 .heading a.link-block {
 	position: absolute;
 	width: 40%;    height: 100%;
 	top: 0; right: 0;
+}
+.heading .ext-version   {
+	display: inline-block;
+    position: absolute;
+	right: 0;   bottom: 5px;
+    font-size: 95%;
+    opacity: 0.5;
 }
 .clear  {
 	clear: both;
