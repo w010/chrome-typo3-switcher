@@ -144,7 +144,13 @@ A: No, this extension doesn't do anything with the urls it reads. All it does it
 
 **
 Changelog:
-		
+
+v2.1.0
+17.04.2021
+Important change:
+- permissions: instead of global access to all hosts now it handles permission per domain<br>
+(this change was necessary, because of WebStore's strict policy, with global * permission it's now very hard to publish the ext there)
+
 v2.0.0
 3.03.2021
 Main changes & news:
