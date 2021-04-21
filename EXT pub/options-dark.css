@@ -55,6 +55,25 @@ body.dark {
 		border-color: #737373;
 	}
 
+.dark input[type=range]::-webkit-slider-runnable-track {
+	background: #bbb;
+	border-color: #cfcfcf;
+}
+.dark input[type=range]::-webkit-slider-thumb {
+	border-color: #888;
+}
+.dark input[type=range]:focus::-webkit-slider-thumb,
+.dark input[type=range]:hover::-webkit-slider-thumb {
+	border-color: #727272;
+	box-shadow: rgba(123, 123, 123, 0.33) 1px 1px 4px;
+}
+.dark input[type=range]:focus::-webkit-slider-runnable-track,
+.dark input[type=range]:hover::-webkit-slider-runnable-track {
+	background: #ddd;
+	border-color: #575757;
+	box-shadow: rgba(147, 147, 147, 0.19) 1px 1px 4px;
+}
+
 
 .dark .textarea-cover    {
 	box-shadow: inset -20px -20px 30px -10px rgb(45, 44, 44);

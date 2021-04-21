@@ -18,8 +18,8 @@ var Favicon = {
 
         if (Favicon.DEV) {
             console.group('FAVICO');
-            console.log('- from event: ' + params._debugEventTriggered);
-            console.log('- params:');
+            //console.log('- from event: ' + params._debugEventTriggered);
+            //console.log('- params:');
             console.log(params);
         }
         // return;
