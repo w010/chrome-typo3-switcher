@@ -131,6 +131,7 @@ input[type=range] {
 }
 .dark input[type="color"]   {
 	background-color: #94949433;
+    border-color: #404040;
 }
 .dark select {
 	text-shadow: rgb(59, 59, 59) 0px 1px 0px;

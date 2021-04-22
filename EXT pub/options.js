@@ -152,6 +152,8 @@ const ExtOptions = {
      * stored in chrome.storage
      */
     optionsRestore : function() {
+        
+        let darkModeSystemDetected = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
         chrome.storage.sync.get({
 
@@ -176,7 +178,7 @@ const ExtOptions = {
             'env_favicon_position' :            'bottom',
             'env_favicon_composite' :           'source-over',
             'ext_debug' :                       false,
-            'ext_dark_mode' :                   false,  // todo: detect initial value, try this: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+            'ext_dark_mode' :                   darkModeSystemDetected, 
             'repo_url' :                        '',
             'repo_key' :                        '',
             // after updating to the version where the per-host permissions are introduced, it requires going once to the options and call Save
@@ -244,7 +246,6 @@ const ExtOptions = {
 
                     ExtOptions.populateEnvSettings( projects );
                     ExtOptions.fillExportData();
-                    ExtOptions.initCheckboxes();
                     
                     // if urlAddEdit came, handle it on load
                     chrome.storage.local.get({ 'urlAddEdit': '' }, function(local) {
@@ -264,6 +265,7 @@ const ExtOptions = {
                 ExtOptions.fillExportData();
             }
 
+            ExtOptions.initCheckboxes();
             ExtOptions.debugStorageData();
 
             if ( ExtOptions.DEV )   {
