@@ -1,30 +1,28 @@
 
-*   {
-	box-sizing: border-box;
-}
 body {
 	font-size: 80%;
 	background: #f9f9f9;
 	transition: color .3s, background-color .3s, opacity .3s;
 }
 .main   {
-	padding: 90px 10px 10px;
+	padding: 110px 10px 10px;
 	width: 990px;
 	margin: 0 auto;
     position: relative;
 }
 h1  {
-	font-weight: 600;
+	font-weight: 601;
 	font-size: 2em;
 }
 h2  {
 	margin: .1em 0 .7em;
 	font-size: 1.6em;
-	font-weight: 500;
+	font-weight: 501;
 }
 h3  {
 	margin: 1em 0 .7em;
 	font-size: 1.25em;
+	font-weight: 501;
 }
 h4  {
 	margin: 10px 0;
@@ -43,13 +41,15 @@ a.external::before {
 .to-left    {   float: left;    }
 .to-right   {   float: right;   }
 
+.clear  {
+	clear: both;
+}
 .row    {
 	display: flex;
 }
 .col-6  {
 	width: 50%;
 }
-
 .settings-block  {
 	margin: 0 auto 15px;
 	padding-bottom: 15px;
@@ -62,6 +62,7 @@ a.external::before {
     width: inherit;
 	background: #f9f9f9;
 	z-index: 10;
+	margin: 0 -1px;
 }
 .heading header {
 	text-align: right;
@@ -90,8 +91,15 @@ a.external::before {
     font-size: 95%;
     opacity: 0.5;
 }
-.clear  {
-	clear: both;
+
+#top-shadow {
+    position: absolute;
+    left: 0;
+    bottom: -41px;
+    height: 40px;
+    width: 100%;
+    pointer-events: none;
+    box-shadow: inset 0 23px 30px -10px rgb(255 255 255);
 }
 /* default inputs & labels */
 label   {
@@ -218,48 +226,83 @@ input[type=range] {
     -webkit-appearance: none;
     margin: 18px 0;
 	transition: margin .1s;
+	border: none;
+	background: none;
 }
 input[type=range]:focus,
 input[type=range]:hover {
     outline: none;
-	margin: 16px 0;
 }
-input[type=range]::-webkit-slider-runnable-track {
+/* it all must be doubled - doesn't work with multi selectors for some reason */
+input[type=range]::-webkit-slider-runnable-track    {
 	height: 4px;
 	cursor: pointer;
 	background-color: #fff;
 	border: 0.2px solid #cfcfcf;
-	transition: background-color .2s, border-color .2s, box-shadow .2s, height .1s;
+	transition: background-color .2s, border-color .2s, box-shadow .2s/*, height .1s*/;
 }
+	input[type=range]::-moz-range-track {
+        height: 1px; /* ! */
+		cursor: pointer;
+		background-color: #fff;
+		border: 0.2px solid #cfcfcf;
+		transition: background-color .2s, border-color .2s, box-shadow .2s/*, height .1s*/;
+	}
 input[type=range]::-webkit-slider-thumb {
 	border: 1px solid rgba(82, 82, 82, 0.67);
 	height: 14px;
 	width: 14px;
-	/*margin-top: -6px;*/
 	margin-top: -6px;
-	transition: background-color .2s, border-color .2s, box-shadow .2s, width .1s, height .1s, margin-top .1s;
+	transition: background-color .2s, border-color .2s, box-shadow .2s/*, width .1s, height .1s, margin-top .1s*/;
 	border-radius: 8px;
     background: #fd9e44;
     cursor: pointer;
 	-webkit-appearance: none;
 }
+	input[type=range]::-moz-range-thumb {
+		border: 1px solid rgba(82, 82, 82, 0.67);
+		height: 14px;
+		width: 14px;
+		margin-top: -6px;
+		transition: background-color .2s, border-color .2s, box-shadow .2s/*, width .1s, height .1s, margin-top .1s*/;
+		border-radius: 8px;
+	    background: #fd9e44;
+	    cursor: pointer;
+	}
 input[type=range]:focus::-webkit-slider-thumb,
-input[type=range]:hover::-webkit-slider-thumb {
+input[type=range]:hover::-webkit-slider-thumb   {
 	background: #ff8600;
 	border-color: #525252aa;
-	height: 16px;
-	width: 16px;
 	box-shadow: #66666644 1px 1px 4px;
-	margin-top: -5px;
 }
+	input[type=range]:focus::-moz-range-thumb,
+	input[type=range]:hover::-moz-range-thumb {
+		background: #ff8600;
+		border-color: #525252aa;
+		box-shadow: #66666644 1px 1px 4px;
+	}
 input[type=range]:focus::-webkit-slider-runnable-track,
-input[type=range]:hover::-webkit-slider-runnable-track {
+input[type=range]:hover::-webkit-slider-runnable-track  {
 	background-color: #eee;
 	border-color: #bbb;
-	/*height: 6px;*/
-	height: 8px;
 	box-shadow: #adadad44 1px 1px 4px;
 }
+	input[type=range]:focus::-moz-range-track,
+	input[type=range]:hover::-moz-range-track   {
+		background-color: #eee;
+		border-color: #bbb;
+		box-shadow: #adadad44 1px 1px 4px;
+	}
+	
+	input[type=range]::-moz-range-progress  {
+		background: #fd9e44;
+		transition: background-color .2s, border-color .2s;
+	}
+	input[type=range]:focus::-moz-range-progress,
+	input[type=range]:hover::-moz-range-progress {
+		background: #ff8600;
+	}
+
 
 label.color {
 	margin-left: 20px;
