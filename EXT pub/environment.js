@@ -611,6 +611,16 @@ var Env = {
                 showForMenuType:    'rightClickOnly',
             });
 
+            
+            // assume it's firefox
+            if ( typeof browser !== 'undefined' ) {
+                contextMenuItems.push({
+                    title :     'Options',
+                    id :        'tool--options',
+                    parentId :    'tools',
+                    showForMenuType:    'actionMenuOnly',
+                });
+            }
 
 
             // when item array ready,
@@ -992,6 +1002,18 @@ chrome.storage.sync.get( null, function(options) {
                     });
                 });
 
+                return;
+            }
+            
+            if ( itemType === 'tool'  &&  itemSubType === 'options' )   {
+                console.info(':: OPEN OPTIONS & EXIT');
+                console.groupEnd();
+                        
+                // open options screen (I don't know other way to have this shorthand somewhere)
+                chrome.tabs.create({
+                    'url':     'options.html',
+                    'index':   tab.index + 1
+                });
                 return;
             }
 
