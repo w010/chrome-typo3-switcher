@@ -240,10 +240,10 @@ input[type=range] {
 }
 
 .dark .projectItem.new    {
-	background-color: #617c84;
+	background-color: #617c848f;
 }
 .dark .projectItem.uuid-collision    {
-	background: #ede9ce;
+	background: #e9e1ad47;
 	border: 1px solid #f7f7ab;
 }
 .dark .projectItem.unpermitted  {

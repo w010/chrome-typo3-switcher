@@ -611,8 +611,13 @@ var Env = {
                 showForMenuType:    'rightClickOnly',
             });
 
+            contextMenuItems.push({
+                title :             'Options',
+                id :                'tool--options',
+                showForMenuType:    'rightClickOnly',
+            });
             
-            // assume it's firefox
+            // assume it's firefox - add Options to icon menu - it's not there by default like in chrome
             if ( typeof browser !== 'undefined' ) {
                 contextMenuItems.push({
                     title :     'Options',

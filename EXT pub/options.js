@@ -1487,6 +1487,24 @@ const ExtOptions = {
                     });
                 });
                 break;
+                
+            case 'domain_visualizer':
+                projects = JSON.parse( dataString );
+                $.each( projects, function( url, project ) {
+                    if ( !url )
+                        return true;    // continue in $.each
+                    var contexts = [{
+                        name: project.name,
+                        url: url,
+                        color: project.backgroundColor
+                    }];
+
+                    importData.push({
+                        name : project.name,
+                        contexts : contexts
+                    });
+                });
+                break;
         }
 
         return importData;
