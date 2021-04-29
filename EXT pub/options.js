@@ -1815,7 +1815,7 @@ const ExtOptions = {
 
         Favicon.DEV = ExtOptions.DEV;
 
-        var faviconUrl = 'Icons/favicon-options-test.ico';
+        var faviconUrl = 'Icons/favicon-options-test.svg';
         var newFaviconSrc = '';
         var params = {
             'contextColor' :    '#dd0000',     // preview using red. do we need this configurable?
@@ -1834,7 +1834,9 @@ const ExtOptions = {
             newFaviconSrc = canvas.toDataURL();
 
             $('#favicon-preview').prop('src', newFaviconSrc)
-                .on('dblclick', function (){
+                .prop('width', '20')
+                .prop('height', '20')
+                .on('click', function (){
                     $(this).prop('width', '64').prop('height', '64');
                 });
         };

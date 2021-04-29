@@ -414,6 +414,11 @@ button.replace .icon  { background-image: url(/Icons/Options/Replace.svg);  }
 button.clipboard .icon{ background-image: url(/Icons/Options/Clipboard.svg);  }
 button.opentab .icon {  background-image: url(/Icons/Options/TabOpen.svg); }
 
+#favicon-preview {
+    top: 4px;
+    position: relative;
+    cursor: zoom-in;
+}
 
 button.env_contextAddDefaultSet {
 	display: none;
