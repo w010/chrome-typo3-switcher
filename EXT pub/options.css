@@ -623,7 +623,7 @@ button.env_contextAddDefaultSet {
 .input-reset    {
 	position: absolute;
 	right: 1px;
-	top: 1px;
+	top: -1px;
 	padding: 0;
 	background: none;
 	border: none;
