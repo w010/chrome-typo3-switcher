@@ -78,7 +78,8 @@ const ExtOptions = {
             'env_favicon_composite' :           $( '#env_favicon_composite' ).val(),
             'env_projects_autosorting' :        $( '#env_projects_autosorting' ).is( ':checked' ),
             'ext_debug' :                       $( '#ext_debug' ).is( ':checked' ),
-            'ext_dark_mode':					$( '#ext_dark_mode' ).is( ':checked' )
+            'ext_dark_mode':					$( '#ext_dark_mode' ).is( ':checked' ),
+            'internal_permissions_acknowledged': true,
         };
 
     
@@ -954,14 +955,17 @@ const ExtOptions = {
             ExtOptions.dialogToCloseOnGlobalEvents = null;  // prevent dismiss modal using esc key
 
             dialog.find('.confirm-close').click( function() {
-                ExtOptions.closeDialog( dialog );
                 chrome.storage.sync.set({'internal_permissions_acknowledged': true});
+                ExtOptions.options.internal_permissions_acknowledged = true;
+                ExtOptions.closeDialog( dialog );
+                
             });
             dialog.find('.request-permissions-all-hosts').click( function() {
+                chrome.storage.sync.set({'internal_permissions_acknowledged': true});
+                ExtOptions.options.internal_permissions_acknowledged = true;
                 ExtOptions.closeDialog( dialog );
                 ExtOptions.requestHostPermission( '*://*/*' );
                // $('.projects-container .unpermitted').removeClass('unpermitted');
-                chrome.storage.sync.set({'internal_permissions_acknowledged': true});
             });
         }
 
@@ -1082,14 +1086,16 @@ const ExtOptions = {
             ExtOptions.dialogToCloseOnGlobalEvents = null;  // prevent dismiss modal using esc key
 
             dialog.find('.confirm-close').click( function() {
-                ExtOptions.closeDialog( dialog );
                 chrome.storage.sync.set({'internal_permissions_acknowledged': true});
+                ExtOptions.options.internal_permissions_acknowledged = true;
+                ExtOptions.closeDialog( dialog );
             });
             dialog.find('.request-permissions-all-hosts').click( function() {
+                chrome.storage.sync.set({'internal_permissions_acknowledged': true});
+                ExtOptions.options.internal_permissions_acknowledged = true;
                 ExtOptions.closeDialog( dialog );
                 ExtOptions.requestHostPermission( '*://*/*' );
                // $('.projects-container .unpermitted').removeClass('unpermitted');
-                chrome.storage.sync.set({'internal_permissions_acknowledged': true});
             });
         }
 
