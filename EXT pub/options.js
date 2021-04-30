@@ -1902,7 +1902,7 @@ const ExtOptions = {
             
             // prepare text inputs to check state
             .on( 'change', 'input[type=text]:not(.no-autosave)', function(e) {
-                // create custom property - can't check this out-of-the-box
+                // store this state in property - can't check this out-of-the-box
                 $(this).data('hasChanged', true);
             })
             
@@ -1913,10 +1913,13 @@ const ExtOptions = {
             })
             // text: on input loose focus 
             .on( 'blur', 'input[type=text]:not(.no-autosave)', function(e) {
-                if ($(this).data('hasChanged')) {
-                    ExtOptions.optionsSave( e );
-                    $(this).data('hasChanged', false);
-                }
+                // delay needed to run other events first, - like handle button clicked when blurring. if still happens, try to increase time
+                setTimeout(() => {
+                    if ($(this).data('hasChanged')) {
+                        ExtOptions.optionsSave( e );
+                        $(this).data('hasChanged', false);
+                    }
+                }, 150);
             })
             // checkbox: click
             .on( 'click', 'input[type=checkbox]:not(.no-autosave)', function(e) {
@@ -2243,11 +2246,13 @@ $( 'textarea#env_importexport-data' )
         $(this).animate({height: 600}, 200);
     })
     .on( 'blur', function(){
-        $(this).animate({width: 457, height: 80}, 200);
+        setTimeout(() => {  
+            $(this).animate({width: 457, height: 80}, 200);
 
-        // scroll to only if we are lower than textarea begin
-        if ( $(document).scrollTop() > $("#settings_block_importexport").offset().top )
-            $('html,body').animate({scrollTop: $("#settings_block_importexport").offset().top}, 300);
+            // scroll to only if we are lower than textarea begin
+            if ( $(document).scrollTop() > $("#settings_block_importexport").offset().top )
+                $('html,body').animate({scrollTop: $("#settings_block_importexport").offset().top}, 300);
+        }, 150);
     });
 
 
