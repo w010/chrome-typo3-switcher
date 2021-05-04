@@ -1,0 +1,50 @@
+
+# Handy Switcher
+# Projects Repository
+
+# Example htaccess - tune to your needs
+
+# Access block for files
+# Apache < 2.3
+<IfModule !mod_authz_core.c>
+	<FilesMatch "(?i:/\.|\.json|\.php|.*~)$">
+		Order allow,deny
+		Deny from all
+		Satisfy All
+	</FilesMatch>
+	<FilesMatch "(?i:/\.|index\.php|.*~)$">
+		Order deny,allow
+		Allow from all
+		Satisfy Any
+	</FilesMatch>
+</IfModule>
+# Apache ≥ 2.3
+<IfModule mod_authz_core.c>
+	<If "%{REQUEST_URI} =~ m#(?i:/\.|\.json|\.php|.*~)$#">
+		Require all denied
+	</If>
+	<If "%{REQUEST_URI} =~ m#(?i:/\.|index\.php|.*~)$#">
+		Require all granted
+	</If>
+</IfModule>
+
+# Block access to vcs directories
+<IfModule mod_alias.c>
+	RedirectMatch 404 /\.(?:git|svn|hg)/
+</IfModule>
+
+
+
+# todo: reverse, disable htauth on local
+
+<IfVersion >= 2.4>
+	<If "%{HTTP_HOST} =~ /^localhost/">
+		# Auth stuff
+		AuthType Basic
+		AuthName "Protected Area"
+		AuthUserFile /var/www/htdocs/.htpasswd
+		order deny,allow
+		allow from all
+		require valid-user
+	</If>
+</IfVersion>
