@@ -1564,8 +1564,8 @@ const ExtOptions = {
         if ( typeof errorLevel !== 'string' )  errorLevel = 'info';
 
         var status = $( target );
-        status.removeClass( 'info success warn error' );
-        status.addClass( errorLevel );
+        status.removeClass( 'level-info level-success level-warn level-error' );
+        status.addClass( 'level-'+errorLevel );
         status.html( msg );
         status.addClass( 'show' );
         if (time >= 0)
@@ -1607,89 +1607,7 @@ const ExtOptions = {
         return dialog;
     },
     
-    /**
-     * Dialog about fetching projects from repo
-     * @param title string
-     * @param message string
-     */
-    repoDialog : function(title, message)   {
-        
-        // help info displayed if no repo url set
-        let info_repo_default = '';
 
-        if ( !ExtOptions.options.repo_url ) {
-            info_repo_default = '<p><a id="repo_test" href="#">Test how it works using example dummy repo</a><br>' +
-                'You may easily host your own project repo, <a class="external" href="https://chrome.wolo.pl/projectrepo/" target="_blank">see details how</a>.</p>';
-        }
-
-        let content = $( '<div class="repo-config">' +
-                '<label>Repo url:</label> <input type="text" id="repo_url"> <label>Key:</label> <input type="text" id="repo_key">' +
-                '<button class="btn save" id="repo_config_save"><span class="icon"></span> <span class="text">Save</span></button>' +
-                '<div class="notice"></div>' +
-            '</div>' +
-            '<div class="fetch-inner">' +
-                info_repo_default +
-                '<div class="fetch-controls">' +
-                    '<input type="text" id="repo_fetch_filter" placeholder="Filter by name"> <button class="btn fetch" id="repo_fetch" disabled><span class="icon"></span> <span class="text">Fetch available items list</span></button>' +
-                '</div>' +
-                '<div class="fetched-projects ajax-target"></div>' +
-            '</div>'
-        );
-
-
-        ExtOptions.openDialog(title, content, 'dialog-fetch', function(caller)    {
- 
-            // set variables from storage, control fetch button de/activation
-            $('#repo_url')
-                .on('change paste keyup', function(){
-                    if ($(this).val()) {
-                        $('#repo_fetch').attr('disabled', false);
-                    }
-                    else    {
-                        $('#repo_fetch').attr('disabled', true);
-                    }
-                })
-                .val( ExtOptions.options.repo_url )
-                .trigger('change');
-            $('#repo_key').val( ExtOptions.options.repo_key );
-            
-            // bind save repo settings button
-            content.find('#repo_config_save').on('click', function() {
-                chrome.storage.sync.set({
-                    'repo_url' :   $( '#repo_url' ).val(),
-                    'repo_key' :   $( '#repo_key' ).val(),
-                }, function() {
-                    if (chrome.runtime.lastError)   {
-                        ExtOptions.displayMessage( 'Options save problem -  ' + chrome.runtime.lastError.message, 'level-error', '.dialog-fetch .repo-config .notice', 100000 );
-                    }
-                    else    {
-                        ExtOptions.displayMessage( 'Saved', 'level-info', '.dialog-fetch .repo-config .notice', 2000 );
-                        // have to be set in case of reopen modal to show up-to-date state
-                        ExtOptions.options.repo_url = $( '#repo_url' ).val();
-                        ExtOptions.options.repo_key = $( '#repo_key' ).val();
-                    }
-                });
-            });
-
-            // bind fetch button
-            content.find('#repo_fetch').on('click', function() {
-                RepoHelper.fetchProjects(caller);
-            });
-            
-            // on enter key pressed in filter input
-            content.find('#repo_fetch_filter').focus().on( 'keypress', function(e) {
-                if ( e.which === 13 )       RepoHelper.fetchProjects(caller);
-            })
-    
-            // bind additional test link
-            content.find('#repo_test').on('click', function() {
-                $('#repo_url')
-                    .val('https://chrome.wolo.pl/repoexample/')
-                    .trigger('change');
-                return false;
-            });
-        });
-    },
 
     /**
      * Open simple modal dialog
@@ -1918,6 +1836,8 @@ const ExtOptions = {
                     if ($(this).data('hasChanged')) {
                         ExtOptions.optionsSave( e );
                         $(this).data('hasChanged', false);
+                        // refocus - because it now blurs input, if blurred by clicking on another input
+                        //$(e).focus();
                     }
                 }, 150);
             })
@@ -1987,7 +1907,8 @@ const ExtOptions = {
         }
         else    {
             chrome.storage.sync.remove( key, function() {
-                ExtOptions.displayMessage( 'Removed key ' + key, 'level-info', '#flush-storage-feedback', 10000 );
+                ExtOptions.displayMessage( 'Removed key <b>' + key+'</b>', 
+                    'info', '.status-flush-storage-key', 30000 );
             });
         }
     },
@@ -2070,7 +1991,7 @@ const ExtOptions = {
 
         // set state of fake checkbox
         let syncState_setFake = function( input, niceCheck )  {
-            if ( input.is(':checked') )    niceCheck.addClass('checked');
+            if ( input.is(':checked') )     niceCheck.addClass('checked');
             else                            niceCheck.removeClass('checked');
         };
 
@@ -2181,7 +2102,7 @@ $( 'button.env_projectAdd' ).click( function () {
     newProject.find( '[name="project[name]"]' ).focus();
 });
 $( 'button.env_projectRepo' ).click( function () {
-    ExtOptions.repoDialog('Get projects from repository');
+    RepoHelper.repoDialog('Get projects from repository');
 });
 $( 'button#env_import' ).on( 'mousedown', function () {
     ExtOptions.importProjectsFromTextarea( {} )

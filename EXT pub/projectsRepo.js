@@ -32,17 +32,32 @@ let RepoHelper = {
         $.ajax({
             url: $('#repo_url').val(),
             data: {
-                key: $('#repo_key').val(),
+                //key: $('#repo_key').val(),
                 action: 'fetch',
                 filter: $('#repo_fetch_filter').val(),
             },
             dataType: 'json',
+            headers: {
+                // one sure way to detect xhr call is to just pass that info by yourself
+                'XCore-Request-Type': 'Ajax',
+                'Switcher-Repo-Key': $('#repo_key').val(),
+                'Switcher-Repo-Version-Request': '0.2.0',    // repo performs auto-check and sends info about incomatibility or deprecation
+            },
         })
             .done(function(data) {
+                // reset message box - todo later: make this better, clear notice automatically
+                $( '.dialog-fetch .fetch-inner .status' ).html('').removeClass('show');
+
                 caller.find('.ajax-target').html(
                     '<p>Found items: <b>'+ data.result.length +'</b></p>' +
-                    '<button class="btn getAll"><span class="icon"></span> <span class="text">Import all <abbr title="Only imports new, doesn\'t update these uuids which are found to already exist in config">missing</abbr></span></button>'
+                    ( data.result.length ?
+                        // todo: make this confirmable
+                        '<button class="btn getAll"><span class="icon"></span> <span class="text">Import all <abbr title="Only imports new, doesn\'t update these uuids which are found to already exist in config">missing</abbr></span></button>' : '' )
                 );
+
+                if ( typeof (data.message) === "object") {
+                    ExtOptions.displayMessage( data.message[0], data.message[1], '.dialog-fetch .fetch-inner .status', 99999 );
+                }
 
                 $('.dialog-fetch button.getAll').on('click', function(){
                     let importableItems = caller.find('.ajax-target button.get');
@@ -66,7 +81,7 @@ let RepoHelper = {
             })
             .fail(function(jqXHR, textStatus, errorThrown) {
                 let message = errorThrown + ', status: ' + jqXHR.status;
-                caller.find('.ajax-target').html('<p class="level-error">Ajax repo call failed: ' + message + '</p>');
+                ExtOptions.displayMessage( 'Ajax repo call failed: ' + message, 'error', '.dialog-fetch .fetch-inner .status', 99999 );
             })
             .always(function() {
                 caller.find('.ajax-target').removeClass('ajax-loading');
@@ -184,6 +199,93 @@ let RepoHelper = {
     },
     
     
+    /**
+     * Dialog about fetching projects from repo
+     * @param title string
+     * @param message string
+     */
+    repoDialog : function(title, message)   {
+        
+        // help info displayed if no repo url set
+        let info_repo_default = '';
+
+        if ( !ExtOptions.options.repo_url ) {
+            info_repo_default = '<p><a id="repo_test" href="#">Test how it works using example dummy repo</a><br>' +
+                'You can easily host your own project repo, <a class="external" href="https://wolo.pl/handyswitcher/projectrepo/" target="_blank">see details how</a>.</p>';
+        }
+
+        let content = 
+            $( '<div class="repo-config">' +
+                '<label>Repo url:</label> <input type="text" id="repo_url"> <label>Key:</label> <input type="text" id="repo_key">' +
+                '<button class="btn save" id="repo_config_save"><span class="icon"></span> <span class="text">Save</span></button>' +
+                '<div class="notice"></div>' +  // only color notice, no status box here
+            '</div>' +
+            '<div class="fetch-inner">' +
+                info_repo_default +
+                '<div class="fetch-controls">' +
+                    '<input type="text" id="repo_fetch_filter" placeholder="Filter by name"> <button class="btn fetch" id="repo_fetch" disabled><span class="icon"></span> <span class="text">Fetch available projects</span></button>' +
+                '</div>' +
+                '<div class="message status"></div>' +
+                '<div class="fetched-projects ajax-target"></div>' +
+            '</div>'
+        );
+
+
+        ExtOptions.openDialog(title, content, 'dialog-fetch', function(caller)    {
+ 
+            // set variables from storage, control fetch button de/activation
+            $('#repo_url')
+                .on('change paste keyup', function(){
+                    if ($(this).val()) {
+                        $('#repo_fetch').attr('disabled', false);
+                    }
+                    else    {
+                        $('#repo_fetch').attr('disabled', true);
+                    }
+                })
+                .val( ExtOptions.options.repo_url )
+                .trigger('change');
+            $('#repo_key').val( ExtOptions.options.repo_key );
+            
+            // bind save repo settings button
+            content.find('#repo_config_save').on('click', function() {
+                chrome.storage.sync.set({
+                    'repo_url' :   $( '#repo_url' ).val(),
+                    'repo_key' :   $( '#repo_key' ).val(),
+                }, function() {
+                    if (chrome.runtime.lastError)   {
+                        ExtOptions.displayMessage( 'Options save problem -  ' + chrome.runtime.lastError.message, 'error', '.dialog-fetch .repo-config .status', 100000 );
+                    }
+                    else    {
+                        ExtOptions.displayMessage( 'Saved', 'info', '.dialog-fetch .repo-config .notice', 4000 );
+                        // have to be set in case of reopen modal to show up-to-date state
+                        ExtOptions.options.repo_url = $( '#repo_url' ).val();
+                        ExtOptions.options.repo_key = $( '#repo_key' ).val();
+                    }
+                });
+            });
+
+            // bind fetch button
+            content.find('#repo_fetch').on('click', function() {
+                RepoHelper.fetchProjects(caller);
+            });
+            
+            // on enter key pressed in filter input
+            content.find('#repo_fetch_filter').focus().on( 'keypress', function(e) {
+                if ( e.which === 13 )       RepoHelper.fetchProjects(caller);
+            })
+    
+            // bind additional test link
+            content.find('#repo_test').on('click', function() {
+                $('#repo_url')
+                    .val('https://wolo.pl/handyswitcher/repoexample/')
+                    .trigger('change');
+                return false;
+            });
+        });
+    },
+    
+    
     animateAddProject : function (project)  {
         // due to problems with clipping positioned element inside box with overflow-y scroll (hides also x but it shouldn't)
         // make the animation workaround
@@ -266,6 +368,11 @@ let RepoHelper = {
         // comparison dialog closes all modals and you loose your fetch/search etc. better just do nothing, or try that: 
         // using this to keep modal to esc-close allows temporary disabling this handler
         ExtOptions.dialogToCloseOnGlobalEvents = $;
+    },
+    
+    versionToInt : function( string )   {
+        let parts = string.split('.');
+        return parseInt( parts[0].padStart(3, '') + parts[1].padStart(3, '') + parts[2].padStart(3, '') );
     },
 };
 

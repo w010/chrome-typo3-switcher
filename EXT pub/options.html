@@ -20,7 +20,7 @@
         </header>
 
         <button class="btn save"><span class="icon"></span> <span class="text">Save</span></button>
-        <span class="status status-notice"></span>
+        <span class="message status status-floating status-notice"></span>
         <div id="top-shadow"></div>
     </div>
 
@@ -215,7 +215,7 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
         <p class="level-info">You've found hidden test feature! The repository functionality is not yet finished / tested well enough (works in basics though, so you can give it a try)</p>
     </span>
 
-        <span class="status status-permissions"></span>
+        <span class="message status status-permissions"></span>
         <br><br>
 
         <div class="projects-filter">
@@ -249,7 +249,7 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
         <h2>Import / export projects</h2>
         <h3>Backup or share with your team</h3>
         
-        <span class="status status-import"></span>
+        <span class="message status status-import"></span>
 
         <div class="row">
             <div class="col-6">
@@ -326,7 +326,7 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
         </label>
         
         <div class="section-foldable" data-visibility-trigger="#ext_debug">
-            <div id="flush-storage-feedback"></div>
+            <span class="message status status-flush-storage-key"></span>
             <label class="primary text">
                 <span>Flush storage key (USE WITH CARE):</span>
                 <input type="text" id="flush-storage-key" class="no-autosave">
@@ -343,8 +343,7 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
         <h2>Permissions</h2>
         <h3>Modify</h3>
 
-        <span class="status status-set-permission">PERMS</span>
-        <div id="permission-set-feedback"></div>
+        <span class="message status status-set-permission"></span>
         <label class="primary text">
             <span>Host - origin:</span>
             <input type="text" id="origin" class="no-autosave">
