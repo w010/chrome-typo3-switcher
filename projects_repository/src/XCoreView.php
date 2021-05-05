@@ -1,15 +1,28 @@
 <?php
 
-
-
-
+/**
+ * General View object
+ */
 class XCoreView  {
+
+    const TYPE__BASE = 'base';
+    const TYPE__PAGE = 'page';
+    const TYPE__WIDGET = 'widget';
+
+    /**
+     * @var string View type - just in case, set if we are on Page view or Widget view
+     */
+    protected $type = '';
 
     /**
      * @var string View generated output
      */
     protected $output = '';
 
+    /**
+     * @var string Template
+     */
+    protected $template = '';
 
     /**
      * @var array Items to replace in view
@@ -23,6 +36,7 @@ class XCoreView  {
     protected $templatesPath = '';
 
 
+
     /**
      * XCore App
      * @var XCore|object 
@@ -30,110 +44,73 @@ class XCoreView  {
     protected $App = null;
 
 
-    public function __construct(XCore $XCoreApp)
+    /**
+     * XCoreView constructor.
+     * @param string $type ::TYPE__BASE|::TYPE__PAGE|::TYPE__WIDGET
+     */
+    public function __construct(string $type)
     {
-        $this->App = $XCoreApp;
+        $this->App = XCore::App();
         $this->templatesPath = PATH_site . rtrim(
-            ($this->App->getConfVar('templatesPath') ?? 'templates')
+            (XCoreUtil::getConfVar('templatesPath') ?? 'templates')
                 , '/').'/';
     }
 
 
 
-    public function buildContent()
-    {
-        $baseTemplate = $this->readTemplateFile('base.html');
-
-        try {
-            $this->assign('###BASE_HREF###', $this->App->getConfVar('baseHref'));
-            $this->assign('###MENU_MAIN###', $this->buildMenu());
-        } catch (Exception $e)  {
-            $this->App->msg('View exception ('.$e->getCode().'): ' . $e->getMessage());
-        }
-
-        $this->assign('###MESSAGES###', $this->displayMessages());
-        $this->assign('###PAGE_CONTENT###', $this->buildPageContent());
-
-        $this->output = $this->substituteMarkerArray($baseTemplate, $this->markers);
-    }
-    
-    
 
 
     /**
-     * @return string
-     * @throws Exception
-     */
-    protected function buildMenu(): string
-    {
-        if (!$this->App->getMenuMain())  
-            return '';
-        
-        $pages = $this->App->getPages();
-
-        $templateMenu = $this->readTemplateFile('menu.html');
-        $contentMenuMain = '';
-        foreach ($this->App->getMenuMain() as $menuItem) {
-            $ma = [
-                '###TITLE###' => $menuItem['pageId'] ? $pages[$menuItem['pageId']]['title'] : ($menuItem['title'] ?? 'NO TITLE!'),
-                '###HREF###' => $menuItem['href'],
-                '###LINK_CLASS###' => $this->App->getPageObject()->getId() === $menuItem['pageId'] ? 'active' : '',
-            ];
-            $contentMenuMain .= $this->substituteMarkerArray($templateMenu, $ma);
-        }
-
-        return $contentMenuMain;
-    }
-
-
-    
-
-
-    /**
-     * @return string
-     * @throws Exception
-     */
-    protected function buildPageContent(): string
-    {
-        if (!$pageId = $this->App->getPageObject()->getId())    {
-            return '';
-        }  
-
-        $templatePage = $this->readTemplateFile('page_'.$pageId.'.html');
-        $pageContentBuildMethodName = 'buildPageContent_'.$pageId;
-
-        if (!method_exists($this, $pageContentBuildMethodName)) {
-            Throw new Exception('View exception: No page content generate method: ::'.$pageContentBuildMethodName.' in object '.get_class($this), 3459832);
-        }
-
-        return $this->$pageContentBuildMethodName($templatePage);
-    }
-
-
-    /**
-     * @param string $marker
+     * @param string $marker Without ###
      * @param string $value
+     * @param string $wrap Add auto prefix and suffix to marker string
      */
-    protected function assign(string $marker, string $value): void
+    public function assign(string $marker, string $value, string $wrap = '###'): void
     {
+        $marker = XCoreUtil::markerName($marker, $wrap);
         $this->markers[$marker] = $value;
     }
 
+    /**
+     * @param array $markers As key => value pairs  (Without ###)
+     * @param string $wrap Add auto prefix and suffix to marker string
+     */
+    public function assignMultiple(array $markers, string $wrap = '###'): void
+    {
+        foreach ($markers as $marker => $value) {
+            $this->assign($marker, $value, $wrap);
+        }
+    }
+
+
 
     /**
-     * @param string $templateName
+     * @param string $fileName
      * @return string
      * @throws Exception
      */
-    protected function readTemplateFile(string $templateName): string
+    protected function readTemplateFile(string $fileName): string
     {
-        if (!file_exists($this->templatesPath . $templateName)) {
-            Throw new Exception('Template error - File doesn\'t exist: '.$templateName, 3459835);
+        if (!file_exists($this->templatesPath . $fileName)) {
+            Throw new Exception('Template error - File doesn\'t exist: '.$fileName, 3459835);
         }
-        if (!$template = file_get_contents($this->templatesPath . $templateName))    {
-            Throw new Exception('Template error - Cannot read file: '.$templateName, 3459836);
+        if (!$template = file_get_contents($this->templatesPath . $fileName))    {
+            Throw new Exception('Template error - Cannot read file: '.$fileName, 3459836);
         }
         return $template;
+    }
+
+
+    /**
+     * Read and sets the template for the current View
+     * @param string $templateName Template name (not filename)  
+     * @return void
+     * @throws Exception
+     */
+    public function setTemplate(string $templateName): void
+    {
+        $fileName = $templateName . '.html';
+        $this->template = $this->readTemplateFile($fileName);
     }
     
     
@@ -165,6 +142,14 @@ class XCoreView  {
 		return str_replace(array_keys($markerArray), array_values($markerArray), $subject);
 	}
 
+
+	/**
+     * Compile the body to output
+     */
+    public function render(): void
+    {
+        $this->output = $this->substituteMarkerArray($this->template, $this->markers);
+    }
 	
 	
     /**

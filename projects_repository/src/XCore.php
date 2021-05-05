@@ -1,6 +1,6 @@
 <?php
 
-const XCORE_VERSION = '0.1.993';
+const XCORE_VERSION = '0.2.0';
 
 
 
@@ -9,7 +9,7 @@ const XCORE_VERSION = '0.1.993';
  * XCore - Simple Standalone App Engine
  * @author wolo.pl '.' studio
  */
-abstract class XCore  {
+abstract class XCore implements XCoreSingleton {
 
     /**
      * Optional local app config path
@@ -114,16 +114,11 @@ abstract class XCore  {
 	protected $Page = null;
 	
 	/**
-     * View object
+     * Base general App view 
      * @var XCoreView|null 
      */
 	protected $View = null;
 
-	/**
-     * Util object
-     * @var XCoreUtil|null 
-     */
-	protected $Util = null;
     
         /**
          * Contents collection to output
@@ -137,7 +132,7 @@ abstract class XCore  {
 	public function __construct()
     {
 	    $this->configure();
-	    $this->init();
+	    //$this->init(); // don't do this in construct. init in separate call
 	}
 	
 	
@@ -145,8 +140,8 @@ abstract class XCore  {
     {
 	    // set config
         $localConfig = [];
-        if (file_exists(self::CONFIG_FILE))   {
-            $localConfig = @include_once(self::CONFIG_FILE);
+        if (file_exists(static::CONFIG_FILE))   {
+            $localConfig = @include_once(static::CONFIG_FILE);
         }
         $this->settings = array_merge($this->defaultSettingsXCore, $this->defaultSettingsApp, (array) $localConfig);
 
@@ -159,15 +154,14 @@ abstract class XCore  {
 
     /**
      * In most cases it should be able to be called in any App, without any interferences
-     * So no need to override this with custom code 
+     * So no need to override this with custom code unless you plan more custom-code pages 
      */
-    protected function init()
+    public function init()
     {
 	    $this->isAjaxCall = isset($_SERVER['HTTP_XCORE_REQUEST_TYPE']) && strtolower($_SERVER['HTTP_XCORE_REQUEST_TYPE']) === 'ajax';
-	    $this->Util = ClassLoader::makeInstance(XCoreUtil::class, $this);
 
 	    // optional, connects if finds config
-	    $this->dbConnection = $this->Util->databaseConnect();
+	    $this->dbConnection = XCoreUtil::databaseConnect($this->settings['dbAuth']);
 	    
 	    
         // init & sanitize input
@@ -176,13 +170,21 @@ abstract class XCore  {
 	    // clean this value after use, to prevent potential including this var in built urls - it's purpose is single-use
 		unset($this->vars['action']);
 
-        // page and view
+        // page object, selected on user requested id (p = page id)
 		$this->vars['p'] = XCoreUtil::cleanInputVar($_GET['p']);
         
-	    $this->Page = ClassLoader::makeInstance(XCorePage::class, $this, $this->vars['p']);
-        $this->View = ClassLoader::makeInstance(XCoreView::class, $this, $this->Page);
+	    $this->initPage();
     }
 
+    
+    /**
+     * In most cases it should be able to be called in any App, without any interferences
+     * So no need to override this with custom code 
+     */
+    protected function initPage()
+    {
+	    $this->Page = Loader::get(XCorePage::class, $this->vars['p']);
+    }
     
     
     /**
@@ -232,26 +234,51 @@ abstract class XCore  {
 	}
 
 
-    	
-
-	/**
-	 * Output xhr or html body
-	 * @param array $content
-	 */
-	protected function sendContent($content = [])
+    /**
+     * Output xhr or html body
+     * @param array $response Response data to include in output (both ajax and frontend)
+     * @throws Exception
+     */
+	protected function sendContent(array $response = [])
     {
 	    if ($this->isAjaxCall)  {
             header('Content-type:application/json;charset=utf-8');
-            print json_encode($content, JSON_PRETTY_PRINT);
+            print json_encode($response, JSON_PRETTY_PRINT);
         }
 	    else    {
-	        $this->View->buildContent();
+	        $this->buildAppOutput($response);
 	        print $this->View->getOutput();
         }
         exit;
 	}
 
 
+    /**
+     * Compiles main App output to display
+     *
+     * @param array $response Data returned from actions or other operations
+     * @throws Exception
+     */
+    public function buildAppOutput(array $response = []): void
+    {
+        $this->View = Loader::get(XCoreView::class, XCoreView::TYPE__BASE);
+        $this->View->setTemplate('base');
+
+        try {
+            $this->View->assign('BASE_HREF', $this->getConfVar('baseHref'));
+            $this->View->assign('MENU_MAIN', Loader::get(XCoreViewhelperMenu::class)->render('main'));
+        } catch (Exception $e)  {
+            $this->msg('View exception ('.$e->getCode().'): ' . $e->getMessage());
+        }
+
+        $this->Page->buildPageContent();
+        $content = $this->Page->getOutput()['content'];
+
+        $this->View->assign('PAGE_CONTENT', $content);
+        $this->View->assign('MESSAGES', $this->View->displayMessages());
+
+        $this->View->render();
+    }
 
 
 
@@ -285,7 +312,7 @@ abstract class XCore  {
 	 * @param string $class - class for notice p, may be error or info
 	 * @param string $index - index can be checked in tag markup, to indicate error class in form element
 	 */
-    public function msg($message, $class = '', $index = ''): void
+    public function msg(string $message, string $class = '', string $index = ''): void
     {
 		if ($index)  $this->messages[$index] = [$message, $class];
 		else         $this->messages[] = [$message, $class];
@@ -307,16 +334,16 @@ abstract class XCore  {
 	 * Get available pages
      * @return array
 	 */
-    public function getPages(): array
+    public function getPagesConfig(): array
     {
 		return $this->pages;
 	}
 
 	/**
 	 * Get Page object
-     * @return XCorePage
+     * @return XCorePage|null
      */
-    public function getPageObject(): XCorePage
+    public function getPageObject(): ?XCorePage
     {
 		return $this->Page;
 	}
@@ -365,4 +392,22 @@ abstract class XCore  {
 
 		return XCoreUtil::linkTo($link, $params);
 	}
+
+
+
+	/**
+     * Shorthand to main XCore - App object
+     * (basically it will return your /app/SomeApp.php instance, which extends XCore
+     * and the object is stored as singleton in Loader)
+     * Of course for that reason we cannot just return $this in here, it wouldn't have much sense.
+     * 
+     * Important - don't use this when App object may be not instantiated yet, like in it's own construct / init etc. 
+     * You will end in endless loop.
+     * 
+     * @return XCore|object
+     */
+	static public function App()
+    {
+	    return Loader::get(XCore::class);
+    }
 }

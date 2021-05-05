@@ -4,12 +4,7 @@
 
 
 class Util extends XCoreUtil {
-    
-    /**
-     * App object - update var type
-     * @var RepositoryApp|XCore|null 
-     */
-	protected $App = null;
+
 
 
     /**
@@ -18,7 +13,7 @@ class Util extends XCoreUtil {
      * @param $dataDir
      * @return array
      */
-	public function getProjects($dataDir): array
+	static public function getProjects($dataDir): array
     {
 		$filter = self::cleanInputVar($_GET['filter']);
 		

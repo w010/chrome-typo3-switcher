@@ -7,23 +7,18 @@ class View extends XCoreView  {
 
     
     
-    // custom: 
-
-
     /**
-     * @param string $template
-     * @return string
+     * Display generated messages with class if set 
      */
-    protected function buildPageContent_home(string $template): string
+	public function displayMessages(): string
     {
-        $ma = [
-            '###STATUS###' => '<b class="level-success">UP</b>',
-            '###REPO_VERSION###' => REPO_VERSION,
-            '###REPO_APP_VERSION###' => REPO_APP_VERSION,
-        ];
-
-        return $this->substituteMarkerArray($template, $ma);
-    }
+		$content = '';
+		foreach ($this->App->getMessages() as $message) {
+		    // override class
+			$content .= '<p'.($message[1] ? ' class="level-'.$message[1].'">':'>') . $message[0] . '</p>';
+		}
+		return $content;
+	}
 
 }
 

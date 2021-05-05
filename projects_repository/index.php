@@ -23,7 +23,7 @@
 
 call_user_func(function () {
     require_once __DIR__.'/app/AppRunner.php';
-    $AppRunner = new AppRunner();
-    $AppRunner->go();
+    AppRunner::ready();
+    AppRunner::set();
+    AppRunner::go();
 });
-

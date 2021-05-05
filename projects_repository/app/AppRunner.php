@@ -7,22 +7,37 @@ require_once __DIR__.'/../src/XCoreAppRunner.php';
 
 /**
  * Local AppRunner
+ * We can use here calls with XCore class instead our SomeApp, because Loader resolves this override automatically
  */
 class AppRunner extends XCoreAppRunner
 {
 
-    protected function init(): void
+    /**
+     * Prepare system
+     */
+    static public function ready(): void
     {
-        parent::init();
+        parent::ready();
     }
 
 
-    public function go(): void
+    /**
+     * Setup app
+     */
+    static public function set(): void
     {
-        include_once 'RepositoryApp.php';
-        /** @var $App RepositoryApp */
-        $App = ClassLoader::makeInstance(RepositoryApp::class);
-        $App->handleRequest();
+        Loader::get(XCore::class)
+            ->init();
+    }
+
+
+    /**
+     * Run
+     */
+    static public function go(): void
+    {
+        Loader::get(XCore::class)
+            ->handleRequest();
     }
 }
 
