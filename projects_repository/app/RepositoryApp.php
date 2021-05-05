@@ -10,7 +10,7 @@
  * 
  * Subpackage: Projects Repository
  *
- * based on XCore version: 0.1.993
+ * based on XCore version: 0.1.994
  */
 
 
@@ -79,7 +79,7 @@ class RepositoryApp extends XCore  {
      */
     const REPO_CONFIG_FILE = 'config/repo_config.php';
 
-    
+
     
     /**
      * Defaults
@@ -199,7 +199,32 @@ class RepositoryApp extends XCore  {
 
         $this->sendContent();
 	}
+	
+	
+	/**
+	 * Output xhr or html body
+	 * @param array $response Response data to include in output (both ajax and frontend)
+	 */
+	protected function sendContent($response = [])
+    {
+        // todo: to nie moze byc dodawane dopiero tu, powinno byc juz on handlerequest - czyli przekazywac jakos do runAction albo injectowac pozniej. wymyslic na to jakis patent 
+        //$response['message'] = ['Repo version lower than requested', 'warn'];
+        parent::sendContent($response);
+	}
 
+	
+	/**
+     * Custom action - HANDSHAKE
+     */
+	protected function action_handshake() {
+        $this->sendContent([
+            'success' => true,
+            'repo_version' => REPO_VERSION,
+            'access_level' => $this->accessLevel,
+            'result' => 'HELLO',
+        ]);
+    }
+    
 
     /**
      * Custom action - FETCH

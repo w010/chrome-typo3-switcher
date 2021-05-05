@@ -39,8 +39,11 @@ class XCoreView  {
     }
 
 
-
-    public function buildContent()
+    /**
+     * @param array $response Response data for a handled request (usually for ajax)
+     * @throws Exception
+     */
+    public function buildContent(array $response = [])
     {
         $baseTemplate = $this->readTemplateFile('base.html');
 

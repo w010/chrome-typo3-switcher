@@ -1,6 +1,6 @@
 <?php
 
-const XCORE_VERSION = '0.1.993';
+const XCORE_VERSION = '0.1.994-dev';
 
 
 
@@ -236,16 +236,16 @@ abstract class XCore  {
 
 	/**
 	 * Output xhr or html body
-	 * @param array $content
+	 * @param array $response Response data to include in output (both ajax and frontend)
 	 */
-	protected function sendContent($content = [])
+	protected function sendContent($response = [])
     {
 	    if ($this->isAjaxCall)  {
             header('Content-type:application/json;charset=utf-8');
-            print json_encode($content, JSON_PRETTY_PRINT);
+            print json_encode($response, JSON_PRETTY_PRINT);
         }
 	    else    {
-	        $this->View->buildContent();
+	        $this->View->buildContent($response);
 	        print $this->View->getOutput();
         }
         exit;
