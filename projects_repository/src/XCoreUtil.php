@@ -6,25 +6,21 @@
 class XCoreUtil  {
 
     /**
-     * XCore App
-     * @var XCore|object 
+     * Get configuration option value (don't even try to call this in XCore constructor)
+     * @param string $varName
+     * @return mixed|null
      */
-    protected $App = null;
-
-
-    public function __construct(XCore $XCoreApp)
+	static public function getConfVar(string $varName)
     {
-        $this->App = $XCoreApp;
+	    return XCore::App()->getConfVar($varName) ?? null;
     }
-
 
 
 	/**
      * Database connection 
      */
-	public function databaseConnect(): ?mysqli
+	static public function databaseConnect($auth): ?mysqli
     {
-		$auth = $this->App->getConfVar('dbAuth');
 		if ($auth['host'])  {
 			$connection = new mysqli($auth['host'], $auth['user'], $auth['password'], $auth['dbname']);
 		}
@@ -62,7 +58,7 @@ class XCoreUtil  {
 	static public function linkTo(string $link, array $params): string
     {
 		return $link . '?'. implode('&', array_map(
-			function($k, $v) { 
+			function($k, $v) {
 				return urlencode($k).'='.urlencode($v); 
 			},
 			array_keys($params),
@@ -70,6 +66,20 @@ class XCoreUtil  {
 		));
 	}
 	
+
+
+	// VIEW & TEMPLATING STUFF
+
+    /**
+     * Take care of the ### - adds where needed
+     * @param string $marker
+     * @param string $wrap Add auto prefix and suffix to marker string
+     * @return string
+     */
+    static public function markerName(string $marker, string $wrap = '###'): string
+    {
+        return $wrap . $marker . $wrap;
+    }
 	
 	
 	
@@ -111,6 +121,7 @@ class XCoreUtil  {
      */
 	private function exec_control($cmd, $saveCmd = true)
     {
+        die('exec_control implementation not yet finished');
 	    $output = '';
 		if ($this->options['dontExecCommands']) {
 			$this->msg('command not executed - exec is disabled - @see option dontExecCommands', 'info');

@@ -6,27 +6,31 @@
  */
 abstract class XCoreAppRunner
 {
-    
-    public function __construct()
-    {
-        $this->init();
-    }
-
     /**
-     * Setup system environment etc. 
+     * Prepare system environment and make sure it's ready and operational + other tech stuff
+     * Also setup XCore low-level essentials like filesystem, autoload etc.
+     * Often customized in local AppRunner, but no need to.
      */
-    protected function init(): void
+    static public function ready(): void
     {
         static::setErrorHandling();
         static::doTheClassicInit();
         static::runClassLoader();
     }
 
+    /**
+     * Create the App - prepare App/XCore object
+     * XCore is basically a singleton, so only touch it, to make it builds instance and possibly does some init
+     */
+    abstract static public function set(): void;
+
 
     /**
-     * Main method called to start operation 
+     * Run the App.
+     * Main method called to start operation.
+     * Usually it calls App->handleRequest() or does something similar.
      */
-    abstract public function go(): void;
+    abstract static public function go(): void;
 
 
 
@@ -48,7 +52,6 @@ abstract class XCoreAppRunner
      */
     static protected function doTheClassicInit(): void
     {
-//define('PATH_site', 'D:\WORK\_chrome\handyswitcher\projects_repository' . "\\");
         // return;
         if (!defined('PATH_site'))	{
             define('PATH_thisScript', str_replace('//', '/', str_replace('\\', '/',
@@ -68,10 +71,10 @@ abstract class XCoreAppRunner
      */
     static protected function runClassLoader(): void
     {
-        require_once PATH_site . '/src/XCoreClassLoader.php';
-        require_once PATH_site . '/app/ClassLoader.php';
+        require_once PATH_site . '/src/XCoreLoader.php';
+        require_once PATH_site . '/app/Loader.php';
         
-        ClassLoader::getLoader()->includeClasses();
+        Loader::includeClasses();
     }
     
 }

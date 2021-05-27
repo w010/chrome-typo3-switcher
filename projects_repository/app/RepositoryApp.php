@@ -19,7 +19,7 @@
 const REPO_VERSION = '0.2.2';
 
 // version of app itself - not interesting to calling api
-const REPO_APP_VERSION = '0.3.0';
+const REPO_APP_VERSION = '0.3.1';
 
 
 
@@ -160,7 +160,7 @@ class RepositoryApp extends XCore  {
     /**
      * Init object
      */
-	protected function init()
+	public function init()
     {
         parent::init();
         // for testing, but no need to control access
@@ -205,7 +205,7 @@ class RepositoryApp extends XCore  {
 	 * Output xhr or html body
 	 * @param array $response Response data to include in output (both ajax and frontend)
 	 */
-	protected function sendContent($response = [])
+	protected function sendContent(array $response = [])
     {
         // todo: to nie moze byc dodawane dopiero tu, powinno byc juz on handlerequest - czyli przekazywac jakos do runAction albo injectowac pozniej. wymyslic na to jakis patent 
         //$response['message'] = ['Repo version lower than requested', 'warn'];
@@ -234,7 +234,7 @@ class RepositoryApp extends XCore  {
             'success' => true,
             'repo_version' => REPO_VERSION,
             'access_level' => $this->accessLevel,
-            'result' => $this->Util->getProjects($this->dataDir)
+            'result' => Util::getProjects($this->dataDir)
         ]);
     }
     
