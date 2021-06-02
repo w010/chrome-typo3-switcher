@@ -1,0 +1,3 @@
+[submodule "projects_repository"]
+	path = projects_repository
+	url = git@github.com:w010/handy-switcher-project-repo.git
