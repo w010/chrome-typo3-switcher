@@ -79,6 +79,9 @@ const ExtOptions = {
             'env_projects_autosorting' :        $( '#env_projects_autosorting' ).is( ':checked' ),
             'ext_debug' :                       $( '#ext_debug' ).is( ':checked' ),
             'ext_dark_mode':					$( '#ext_dark_mode' ).is( ':checked' ),
+            'env_repo' :                        $( '#env_repo' ).is( ':checked' ),
+            'env_repo_url' :                    $( '#env_repo_url' ).val(),
+            'env_repo_key' :                    $( '#env_repo_key' ).val(),
             'internal_permissions_acknowledged': true,
         };
 
@@ -180,8 +183,9 @@ const ExtOptions = {
             'env_favicon_composite' :           'source-over',
             'ext_debug' :                       false,
             'ext_dark_mode' :                   darkModeSystemDetected, 
-            'repo_url' :                        '',
-            'repo_key' :                        '',
+            'env_repo' :                        false,
+            'env_repo_url' :                    '',
+            'env_repo_key' :                    '',
             // after updating to the version where the per-host permissions are introduced, it requires going once to the options and call Save
             // - to trigger permission request for each of hosts found in user's projects. this keeps the state it's already done or not needed. state is used to display a notification about that.
             'internal_permissions_acknowledged' : false,
@@ -217,6 +221,9 @@ const ExtOptions = {
             $( '#env_projects_autosorting' ).attr( 'checked',       options.env_projects_autosorting );
             $( '#ext_debug' ).attr( 'checked',                      options.ext_debug );
             $( '#ext_dark_mode' ).attr( 'checked',                  options.ext_dark_mode );
+            $( '#env_repo' ).attr( 'checked',                       options.env_repo );
+            $( '#env_repo_url' ).val(                               options.env_repo_url );
+            $( '#env_repo_key' ).val(                               options.env_repo_key );
 
             ExtOptions.DEV = options.ext_debug;
             ExtOptions.options = options;
@@ -591,7 +598,7 @@ const ExtOptions = {
             });
         });
 
-        project.find( '> .hide input' ).on( 'change', function() {
+        project.find( '> .hideItem input' ).on( 'change', function() {
             project.toggleClass( 'hidden' );
         });
 
@@ -649,7 +656,7 @@ const ExtOptions = {
             });
         });
 
-        context.find( '> .hide input' ).on( 'change', function() {
+        context.find( '> .hideItem input' ).on( 'change', function() {
             context.toggleClass( 'hidden' );
         });
 
@@ -705,7 +712,7 @@ const ExtOptions = {
                 ExtOptions.deleteLinkItem( link, project );
             });
         });
-        link.find( '> .hide input' ).on( 'change', function() {
+        link.find( '> .hideItem input' ).on( 'change', function() {
             link.toggleClass( 'hidden' );
         });
         
@@ -844,9 +851,14 @@ const ExtOptions = {
     readProjectData : function(project)   {
         var projectItem = {};
         projectItem['name'] = project.find( "[name='project[name]']" ).val();
-        projectItem['hidden'] = project.find( "[name='project[hidden]']" ).is( ':checked' );
+
+        projectItem['uuid'] = project.attr( "id" ).toString().replace(/^project_+/g, '')
+            || makeRandomUuid(6);
+
         projectItem['contexts'] = [];
         projectItem['links'] = [];
+        projectItem['hidden'] = project.find( "[name='project[hidden]']" ).is( ':checked' );
+        projectItem['tstamp'] = project.data('tstamp') ?? 0;
 
         project.find( '.contexts-container .contextItem' ).each( function() {
             var context = $(this);
@@ -869,11 +881,6 @@ const ExtOptions = {
             projectItem['links'].push( linkItem );
         });
 
-        var uuid = project.attr( "id" ).toString().replace(/^project_+/g, '');
-        if (!uuid)
-            uuid = makeRandomUuid(6);
-
-        projectItem.uuid = uuid;
         return projectItem;
     },
 
@@ -1559,7 +1566,7 @@ const ExtOptions = {
      * @param time integer - displaying time of the message
      */
     displayMessage : function(msg, errorLevel, target, time)   {
-        if ( typeof time !== 'number' )   time = 2000;
+        if ( typeof time !== 'number' )   time = 4000;
         if ( typeof target !== 'string' )  target = '.status-notice';
         if ( typeof errorLevel !== 'string' )  errorLevel = 'info';
 
@@ -1665,7 +1672,7 @@ const ExtOptions = {
      */
     initVisualDetails : function()    {
         // set extension version number
-        $('.ext-version').html( 'v ' + chrome.runtime.getManifest().version );
+        $('.ext-version').html( /*'v ' +*/ chrome.runtime.getManifest().version );
     },
 
     /**
@@ -2152,6 +2159,11 @@ $( '#projects-collapse-all' ).click( function (e) {
 $( '#projects-expand-all' ).click( function (e) {
     ExtOptions.expandAllProjects();
     e.preventDefault();
+});
+
+$( '.projects-container ' ).on('click', '.projectItem .env_projectPush', function (e) {
+    let project = $(this).closest('.projectItem');
+    RepoHelper.ajaxRequest_pushProject( project );
 });
 
 

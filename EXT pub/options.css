@@ -21,8 +21,11 @@ h2  {
 }
 h3  {
 	margin: 1em 0 .7em;
-	font-size: 1.25em;
+	font-size: 1.35em;
 	font-weight: 501;
+	line-height: 1.5em;
+	font-style: italic;
+	text-shadow: 2px 1px 1px #d8d8d8;
 }
 h4  {
 	margin: 10px 0;
@@ -37,9 +40,11 @@ a.external::before {
 	content: "\2197\0020";
 	white-space: nowrap;
 }
-
+.small  {   font-size: 0.6em; font-weight: normal;   }
 .to-left    {   float: left;    }
 .to-right   {   float: right;   }
+
+.hide   {   display: none !important; }
 
 .clear  {
 	clear: both;
@@ -51,8 +56,8 @@ a.external::before {
 	width: 50%;
 }
 .settings-block  {
-	margin: 0 auto 15px;
-	padding-bottom: 15px;
+	margin: 0 auto 40px;
+	padding-bottom: 20px;
 	border-bottom: 1px solid lightgray;
 }
 .heading    {
@@ -71,6 +76,7 @@ a.external::before {
 .heading h1 {
 	margin-top: 0px;
     margin-bottom: 0.5em;
+	text-shadow: 2px 1px 1px #d6d6d6;
 }
 .heading h2 {
 	font-size: 1.3em;
@@ -90,6 +96,14 @@ a.external::before {
 	right: 0;   bottom: 5px;
     font-size: 95%;
     opacity: 0.5;
+}
+.heading .brand   {
+	display: inline-block;
+    position: absolute;
+	right: 69px;   bottom: 5px;
+    font-size: 95%;
+    opacity: 0.3;
+	font-style: italic;
 }
 
 #top-shadow {
@@ -186,8 +200,9 @@ input[type="radio"]    {
 input[type="text"]    {
 	width: 260px;
 	min-height: 2em;
+	padding: 1px 7px;
 	transition: background-color 0.3s;
-	font-size: 1.2em;
+	font-size: 1.3em;
 	border-color: #ddd;
 }
 input[type="text"].required:placeholder-shown {
@@ -211,8 +226,10 @@ input[type="color"] {
 	cursor: pointer;
 }
 input.color-text    {
-	width: 64px;
-	margin-left: 8px;
+    width: 82px;
+    margin-left: 6px;
+    font-size: 1.2em;
+    text-transform: uppercase;
 }
 input[type=range]   {
 	margin: 0;
@@ -308,7 +325,7 @@ label.color {
 	margin-left: 20px;
 	vertical-align: top;
 }
-label.hide  {
+label.hideItem  {
 	position: absolute;
 	padding: 3px 0 0 0 !important;
 	top: 15px;
@@ -367,7 +384,7 @@ button  {
 }
 .btn {
 	display: inline-block;
-	margin-bottom: 0;
+	margin: 0 16px;
 	font-weight: normal;
 	text-align: center;
 	vertical-align: top;
@@ -414,17 +431,21 @@ button.replace .icon  { background-image: url(/Icons/Options/Replace.svg);  }
 button.clipboard .icon{ background-image: url(/Icons/Options/Clipboard.svg);  }
 button.opentab .icon {  background-image: url(/Icons/Options/TabOpen.svg); }
 
-#favicon-preview {
-    top: 4px;
-    position: relative;
-    cursor: zoom-in;
-}
+label.primary .btn:first-child  {   margin-left: 0; }
+label.primary .btn:last-child  {    margin-right: 0; }
 
 button.env_contextAddDefaultSet {
 	display: none;
 }
 .between-buttons    {
-	padding: 0 8px;
+    padding: 6px 8px;
+    display: inline-block;
+}
+
+#favicon-preview {
+    top: 4px;
+    position: relative;
+    cursor: zoom-in;
 }
 
 /* "Use max-height in the transition and not height. And set a value on max-height to something bigger than your box will ever get." */
@@ -457,12 +478,13 @@ button.env_contextAddDefaultSet {
 	border: 1px solid transparent;
 	background: #ddd;
 	border-radius: 3px;
-	padding: 10px;
+	padding: 10px 10px 22px;
 	margin-bottom: 10px;
 	transition: opacity 0.4s, box-shadow 0.3s, margin 0.3s, border 0.2s;
 }
 .projectItem.collapse    {
 	background: #eee;
+	padding: 10px;
 }
 .projectItem:not(.collapse) {
 	margin-top: 20px;
@@ -510,6 +532,10 @@ button.env_contextAddDefaultSet {
 .projectItem .btn:hover   {
 	background-color: rgba(140, 218, 233, 0.4);
 }
+.projectItem h3 {
+	font-style: italic;
+	opacity: 0.7;
+}
 .contextItem, .linkItem    {
 	position: relative;
 	border: 1px solid lightgray;
@@ -528,6 +554,9 @@ button.env_contextAddDefaultSet {
 .contextItem > *,
 .linkItem > *    {
 	vertical-align: middle;
+}
+.contextItem:last-child, .linkItem:last-child   {
+	margin-bottom: 25px;
 }
 ._template  {
 	display: none;
@@ -592,6 +621,10 @@ button.env_contextAddDefaultSet {
 	background-color: #fff;
 	border-color: #bfbfbf;
 }
+.projectItem input[name="project[name]"]    {
+	font-size: 1.5em;
+    text-shadow: 2px 1px 1px #d6d6d6;
+}
 
 .projectItem .btn    {
 	background-color: transparent;
@@ -616,7 +649,7 @@ button.env_contextAddDefaultSet {
 
 .projects-filter    {
 	position: relative;
-	float: left;
+	/*float: left;*/
 }
 .projects-filter input {
 	width: 300px;
@@ -636,6 +669,8 @@ button.env_contextAddDefaultSet {
 	min-height: 22px;
 	min-width: 22px;
 	display: none;
+	font-size: 1.5em;
+    box-shadow: none;
 }
 .input-reset:hover    {
 	font-weight: bold;
@@ -647,6 +682,7 @@ button.env_contextAddDefaultSet {
 
 .projects-list-control  {
 	margin-left: 40px;
+	margin-right: 40px;
 }
 .projects-list-control a {
 	text-decoration: none;
@@ -679,11 +715,13 @@ button.env_contextAddDefaultSet {
 
 label.primary   {
 	display: block;
-	padding-left: 20px;
+	padding: 10px 15px 10px 20px;
+	margin-right: 10px;
 	font-size: 110%;
 	font-weight: 500;
-	margin-bottom: 20px;
-	transition: background-color .2s;
+	margin-bottom: 14px;
+	transition: background-color .5s;
+	border-radius: 12px;
 }
 	label.primary:hover {
 		background: #f1f1f1;
@@ -712,11 +750,13 @@ label.primary span  {
 	display: none;
 }
 .status-floating {
-    position: absolute;
+    /*position: absolute;*/
+    position: fixed;
 	display: none;
-    left: 430px;
+    /*left: 430px;*/
+    left: 40%;
 	top: 10px;
-	z-index: 5;
+	z-index: 31;    /* more than modal */
 }
 .show   {
 	display: inline-block;
@@ -1108,30 +1148,32 @@ input#repo_key  {
 	background: rgb(140, 218, 233);
 }
 
-.dialog.dialog-compare .dialog-inner  {
+.dialog.dialog-compare .dialog-inner,
+.dialog.dialog-conflict .dialog-inner  {
     margin: 7% auto;
     background: #ddd;
     width: 75%;
 	text-align: left;
 }
 
-.dialog.dialog-compare .compare-diff    {
+.dialog .compare-diff    {
     font-family: Courier New, monospace;
     white-space: pre;
     background: #eee;
     padding: 6px;
     margin: 0 10px;
 }
-.dialog.dialog-compare .dialog-body    {
+.dialog.dialog-compare .diff-container,
+.dialog.dialog-conflict .diff-container    {
 	max-height: 65vh;
 	overflow-y: scroll;
 }
-.dialog.dialog-compare .compare-diff .inserted   {
+.dialog .compare-diff .inserted   {
 	color: #2ca545;
 	background: #c5f8b8;
 }
 
-.dialog.dialog-compare .compare-diff .deleted   {
+.dialog .compare-diff .deleted   {
 	color: #a52c2c;
 	background: #f8b8b8;
 }

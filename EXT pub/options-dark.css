@@ -13,6 +13,10 @@ body.dark {
 .dark h3 {
     color: #e1e1e1;
 }
+.dark h3 {
+    color: #e1e1e1;
+	text-shadow: 2px 1px 1px #1a1919;
+}
 
 .dark a {
 	color: #e1e1e1;
@@ -24,6 +28,10 @@ body.dark {
 
 .dark .heading {
 	background-color: #333;
+}
+
+.dark .heading h1  {
+	text-shadow: 3px 2px 1px #2e2929;
 }
 .dark .heading h2  {
 	color: #a1a1a1;
@@ -263,6 +271,9 @@ input[type=range] {
 	background-color: #2f2f2f;
 	border-color: #6f6f6f;
 }
+.dark .projectItem input[name="project[name]"]    {
+	text-shadow: 3px 2px 1px #333;
+}
 
 .dark .contextItem, .dark .linkItem    {
 	border-color: #4a4a4a;
@@ -404,19 +415,19 @@ input[type=range] {
 		
 /* dialog: compare */
 		
-.dark .dialog.dialog-compare .dialog-inner  {
+.dark .dialog .dialog-inner  {
     background: #514f4f;
 }
 
-.dark .dialog.dialog-compare .compare-diff    {
+.dark .dialog .compare-diff    {
     background: #5c5c5c;
 }
 
-.dark .dialog.dialog-compare .compare-diff .inserted   {
+.dark .dialog .compare-diff .inserted   {
     color: #0b140c;
     background: #4bc163;
 }
-.dark .dialog.dialog-compare .compare-diff .deleted   {
+.dark .dialog .compare-diff .deleted   {
     color: #2f1414;
     background: #d78383;
 }
