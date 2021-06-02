@@ -225,6 +225,13 @@ input[type="color"] {
 	margin-left: 8px;
 	cursor: pointer;
 }
+select{
+	transition: color .3s, border-color .3s, background-color .3s;
+	outline: none;
+}
+	:enabled:focus:-webkit-any(select)  {
+		border-color: rgba(0, 0, 0, 0.25);
+	}
 input.color-text    {
     width: 82px;
     margin-left: 6px;
@@ -382,7 +389,8 @@ button  {
 	cursor: pointer;
 	/*border: none !important;*/
 }
-.btn {
+
+body .btn {     /* define as child of body, to allow override default color while keeping default :hover */
 	display: inline-block;
 	margin: 0 16px;
 	font-weight: normal;
@@ -392,7 +400,7 @@ button  {
 	background-color: #dedede;
 	border: 1px solid #c4c4c4;
 	white-space: nowrap;
-	padding: 8px 16px;
+	padding: 7px 16px;
 	line-height: 0.9;
 	border-radius: 6px;
 	user-select: none;
@@ -401,35 +409,60 @@ button  {
 	min-height: 28px;
 	transition: background-color .15s, border-color .15s;
 }
-	.btn:hover {
+	body .btn:hover {
 		color: #333333;
 		/*background-color: #c4c4c4;*/
 		background-color: rgba(140, 218, 233, 0.4);
 		border-color: #a6a6a6;
 	}
 	.btn .icon  {
-		width: 16px;    height: 16px;
+		width: 20px;    height: 20px;
 		display: inline-block;
 		background: transparent no-repeat 0 0;
 	}
 	.btn .text {
 		display: inline-block;
-		line-height: 1.35em;
+		line-height: 1.60em;
 		vertical-align: top;
 	}
+	.btn .icon + .text  {
+		margin-left: 10px;
+	}
+.btn[disabled]  {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+.btn[disabled]:hover {
+	color: inherit;
+	background-color: inherit;
+	border-color: inherit;
+}
 
-button.remove .icon  {  background-image: url(/Icons/Options/Delete.svg);   }
 button.add .icon  {     background-image: url(/Icons/Options/Add.svg);  }
-button.save .icon  {    background-image: url(/Icons/Options/Save.svg);  }
-button.import .icon  {  background-image: url(/Icons/Options/Import.svg);  }
-button.export .icon  {  background-image: url(/Icons/Options/Export.svg);  }
-button.repodialog .icon{background-image: url(/Icons/Options/Repository.svg);  }
-button.fetch .icon  {   background-image: url(/Icons/Options/Refresh.svg);  }
-button.getAll .icon  {  background-image: url(/Icons/Options/GetWholePack.svg);  }
 button.compare .icon  { background-image: url(/Icons/Options/Compare.svg);  }
-button.replace .icon  { background-image: url(/Icons/Options/Replace.svg);  }
+button.connect .icon  { background-image: url(/Icons/Options/Refresh.svg);  }
+button.check .icon   {  background-image: url(/Icons/Options/Check.svg); }
 button.clipboard .icon{ background-image: url(/Icons/Options/Clipboard.svg);  }
+button.close .icon    { background-image: url(/Icons/Options/Close.svg);  } /* todo: rebuild modal close button */
+button.decline .icon  { background-image: url(/Icons/Options/Close.svg);  }
+button.download .icon { background-image: url(/Icons/Options/Download.svg);  }
+button.exchange .icon { background-image: url(/Icons/Options/Exchange.svg);  }
+button.export .icon  {  background-image: url(/Icons/Options/Export.svg);  }
+button.fetch .icon  {   background-image: url(/Icons/Options/Fetch.svg);  }
+button.getAll .icon  {  background-image: url(/Icons/Options/GetWholePack.svg);  }
+button.help .icon    {  background-image: url(/Icons/Options/Help.svg); }
+button.import .icon  {  background-image: url(/Icons/Options/Import.svg);  }
+button.merge .icon  {  background-image: url(/Icons/Options/Merge.svg);  }
 button.opentab .icon {  background-image: url(/Icons/Options/TabOpen.svg); }
+button.push .icon    {  background-image: url(/Icons/Options/Push.svg); }
+button.remove .icon  {  background-image: url(/Icons/Options/Delete.svg);   }
+button.replace-local .icon  { background-image: url(/Icons/Options/ReplaceLocal.svg);  }
+button.replace-localtest1 .icon  { background-image: url(/Icons/Options/ReplaceLocal1.svg);  }
+button.replace-localtest2 .icon  { background-image: url(/Icons/Options/ReplaceLocal2.svg);  }
+button.replace-remote .icon { background-image: url(/Icons/Options/ReplaceRemote.svg);  }
+button.repository .icon{background-image: url(/Icons/Options/Repository.svg);  }
+button.save .icon  {    background-image: url(/Icons/Options/Save.svg);  }
+
 
 label.primary .btn:first-child  {   margin-left: 0; }
 label.primary .btn:last-child  {    margin-right: 0; }
@@ -513,6 +546,9 @@ button.env_contextAddDefaultSet {
 		/*background: #edcece;*/
 		border: 1px solid #f56868;
 	}
+	.contextItem.new, .linkItem.new    {
+		background: #d8f0f7;
+	}
 .projectItem.filtered-out   {
 	display: none;
 }
@@ -525,12 +561,6 @@ button.env_contextAddDefaultSet {
 }
 .projectItem > label  {
 	display: block;
-}
-.projectItem .btn   {
-	/*background-color: #efefef;*/
-}
-.projectItem .btn:hover   {
-	background-color: rgba(140, 218, 233, 0.4);
 }
 .projectItem h3 {
 	font-style: italic;
@@ -628,8 +658,11 @@ button.env_contextAddDefaultSet {
 
 .projectItem .btn    {
 	background-color: transparent;
+	/*background-color: #efefef;*/
 }
-
+.projectItem .btn:hover   {
+	background-color: rgba(140, 218, 233, 0.4);
+}
 .projectItem .btn.remove   {
 	position: absolute;
 	top: 10px;  right: 10px;
@@ -820,10 +853,19 @@ label.primary span  {
 	box-shadow: 10px 10px 20px -3px #666;
 	max-height: 80vh;
 	overflow-y: auto;
+	border-radius: 8px;
+	transition: top .3s;
+	top: 0;
 }
-.dialog.text-left .dialog-body    {
-	text-align: left;
-}
+	.dialog-loading .dialog-inner   {
+		top: 20px;
+	}
+	.dialog.text-left .dialog-body    {
+		text-align: left;
+	}
+	.dialog.text-left .dialog-head    {
+		text-align: center;
+	}
 .dialog-close  {
 	position: absolute;
 	top: 4px;
@@ -854,6 +896,10 @@ label.primary span  {
 }
 .dialog-body p {
 	font-size: 1.25em;
+	color: #2d2d2d;
+}
+.dialog-body a {
+	color: #50be2c;
 }
 
 
@@ -990,30 +1036,46 @@ label.primary span  {
     }
 }
 
+/* ajax loader in small items - actions, not loaders */
+p.ajax-loading, div.ajax-loading  {   position: relative; }
+p.ajax-loading > *, div.ajax-loading > *  { opacity: 0.5; }
+p.ajax-loading .ajaxloader, div.ajax-loading .ajaxloader  {
+	opacity: 1;
+	position: absolute;
+	left: 0;
+	top: calc(50% - 16px);
+}
+
 /* repo fetch projects */
 .btn.repodialog:hover {
 	background: rgb(140, 218, 233);
 }
 
-input#repo_url  {
-	width: 50%; 
+input#env_repo_url  {
+	width: 72%; 
 }
-input#repo_key  {
-	width: 15%; 
+input#env_repo_key  {
+	width: 22%; 
 }
-.dialog.dialog-fetch   {
+#repo_link_external {
+	margin-left: 16px;
+	border-left: 1px solid #333;
+	padding-left: 16px;
+}
+
+.dialog.dialog-repo-fetch   {
 	text-align: left;
 }
-.dialog-fetch .fetch-controls   {
+.dialog-repo-fetch .fetch-controls   {
 	margin: 20px 0;
 }
-.dialog-fetch .btn.fetch:hover  {
+.dialog-repo-fetch .btn.fetch:hover  {
 	background: rgb(140, 218, 233);
 }
-.dialog-fetch .btn.getAll:hover  {
+.dialog-repo-fetch .btn.getAll:hover  {
 	background: rgb(156, 233, 144);
 }
-.dialog-fetch .fetch-inner  {
+.dialog-repo-fetch .fetch-inner  {
 	position: relative;
 }
 
@@ -1128,12 +1190,12 @@ input#repo_key  {
 }
 
 
-.project-item-preview button.replace,
+.project-item-preview button.replace-local,
 .project-item-preview button.compare,
 .project-item-preview.local-exists button.get    {
 	display: none;
 }
-.project-item-preview.local-exists button.replace,
+.project-item-preview.local-exists button.replace-local,
 .project-item-preview.local-exists button.compare    {
 	display: inline-block;
 }
@@ -1141,7 +1203,7 @@ input#repo_key  {
 .project-item-preview button.add:hover {
 	background: rgb(156, 233, 144);
 }
-.project-item-preview button.replace:hover {
+.project-item-preview button.replace-local:hover {
 	background: rgb(233, 151, 127);
 }
 .project-item-preview button.compare:hover {
@@ -1269,6 +1331,42 @@ h3.url_value:active {
 	margin: 18px 0 5px;
 }
 
+
+/* project list repo functionality */
+body.repo_auth__write .btn.push  {
+	display: inline-block !important;
+}
+
+
+/* help */
+.help-tour  {
+	border: 1px dotted #ffce93;
+	background-color: #fbefe0;
+}
+	.help-tour.col-6  {
+		margin: -21px;  /* compensate border */
+	    padding: 20px;
+	    width: calc(50% + 42px);
+	}
+	.help-tour .tour-mark    {
+		position: relative;
+	}
+		.tour-point { display: none;} 
+		.help-tour .tour-mark .tour-point    {
+			display: block;
+			position: absolute;
+		    color: #58b563;
+	        bottom: -60px; right: -80px;
+		    transform: rotate(220deg);
+		    font-size: 60px;
+			opacity: 0.5;
+			animation: pointerpoint 1.3s 0.5s infinite;
+		}
+		@keyframes pointerpoint {
+			from {bottom: -60px; right: -80px;}
+			to {bottom: -45px;  right: -40px;}
+		}
+
 .debug-mode-restricted  {
 	display: none;
 }
@@ -1276,9 +1374,13 @@ h3.url_value:active {
 	display: initial;
 }
 
-.btn.noborder,
+/*.btn.noborder,
 .projectItem .btn.noborder   {
 	border-color: transparent;
+}*/
+.btn.transparent    {
+	border-color: transparent;
+	background-color: transparent;
 }
 
 body.loading {

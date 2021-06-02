@@ -222,7 +222,7 @@ const ExtOptions = {
             $( '#ext_debug' ).attr( 'checked',                      options.ext_debug );
             $( '#ext_dark_mode' ).attr( 'checked',                  options.ext_dark_mode );
             $( '#env_repo' ).attr( 'checked',                       options.env_repo );
-            $( '#env_repo_url' ).val(                               options.env_repo_url );
+            $( '#env_repo_url' ).val(                               options.env_repo_url ).trigger('change');
             $( '#env_repo_key' ).val(                               options.env_repo_key );
 
             ExtOptions.DEV = options.ext_debug;
@@ -629,10 +629,12 @@ const ExtOptions = {
      * Add env context block
      * @param project element
      * @param contextItem object with data
+     * @param append automatically append to its parent. allows to only create item & return to insert manually
      */
-    insertContextItem : function(project, contextItem)   {
-        const context = $( '.contextItem._template' ).clone().removeClass( '_template' )
-            .appendTo( project.find( '.contexts-container' ) );
+    insertContextItem : function(project, contextItem, append = true)   {
+        const context = $( '.contextItem._template' ).clone().removeClass( '_template' );
+        if (append)
+            context.appendTo( project.find( '.contexts-container' ) );
         
         // default color when adding new empty context and not specify
         if ( !contextItem.color )   {
@@ -912,8 +914,8 @@ const ExtOptions = {
 
             ExtOptions.insertProjectItem( projectItem, markAsNew ? 'new' : '' );
 
-            if ( ExtOptions.DEV )
-                console.log(projectItem);
+            //if ( ExtOptions.DEV )
+                //console.log(projectItem);
         });
 
 
@@ -1629,14 +1631,17 @@ const ExtOptions = {
 
         if ( $( 'body > .dialog' ).length === 0 )
             var dialog_overlay = $( '<div class="dialog-overlay">' );
-        var dialog = $( '<div class="dialog '+ classname +'">' );
-        $( 'body' ).append( dialog_overlay ).append( dialog );
-        
-        $( '<div class="dialog-inner">' )
-            .append( $( '<h2 class="dialog-head">' ).html( title ) )
-            .append( $( '<span class="dialog-close" title="Close">' ).html( 'X' ).on('click', function(){ ExtOptions.closeDialog( dialog ); }) )
-            .append( $( '<div class="dialog-body">' ).html( content ) )
-            .appendTo( dialog );
+        let dialog = $( '<div class="dialog  '+ classname +'  dialog-loading">' )
+            .css('display', 'none')
+            .append(
+                $( '<div class="dialog-inner">' )
+                    .append( $( '<h2 class="dialog-head">' ).html( title ) )
+                    .append( $( '<span class="dialog-close" title="Close">' ).html( 'X' ).on('click', function(){ ExtOptions.closeDialog( dialog ); }) )
+                    .append( $( '<div class="dialog-body">' ).html( content ) )
+        );
+        $( 'body' ).append( dialog_overlay, dialog );
+        // must unhide right before removing load class to make transition work. create as hidden
+        dialog.show().removeClass('dialog-loading');
 
         if (callback instanceof Function) {
             callback( dialog );
@@ -1662,6 +1667,7 @@ const ExtOptions = {
      * @param element object
      */
     ajaxAddLoaderImage : function(element)    {
+        if ( !element.find('.ajaxloader').length )
         element.append(
             $('<span class="ajaxloader ajaxloader-size-default ajaxloader-state-default ajaxloader-spin"><span class="ajaxloader-markup"><img src="Images/ajax-loader.svg">')
         );
@@ -2108,9 +2114,7 @@ $( 'button.env_projectAdd' ).click( function () {
     newProject.removeClass( 'collapse' );
     newProject.find( '[name="project[name]"]' ).focus();
 });
-$( 'button.env_projectRepo' ).click( function () {
-    RepoHelper.repoDialog('Get projects from repository');
-});
+
 $( 'button#env_import' ).on( 'mousedown', function () {
     ExtOptions.importProjectsFromTextarea( {} )
 });
@@ -2163,7 +2167,7 @@ $( '#projects-expand-all' ).click( function (e) {
 
 $( '.projects-container ' ).on('click', '.projectItem .env_projectPush', function (e) {
     let project = $(this).closest('.projectItem');
-    RepoHelper.ajaxRequest_pushProject( project );
+    RepoHelper.ajaxRequest_pushProject( project, false, $(this) );
 });
 
 
@@ -2233,6 +2237,39 @@ $( 'button#projects_filter_reset' ).click( function() {
     $( '.projects-container .projectItem' ).removeClass( 'filtered-out' );
     $( '.projects-filter' ).removeClass('active');
     $( '.projects-filter input' ).val('');
+});
+
+// control fetch button de/activation
+let controlButtons_env_repo = function (){
+    if ( $('#env_repo_url').val() ) {
+        $('#env_repo_fetch').attr('disabled', false);
+        $('#env_repo_handshake').attr('disabled', false);
+        $('#repo_link_external').removeClass('hide').attr('href', $('#env_repo_url').val());
+    }
+    else    {
+        $('#env_repo_fetch').attr('disabled', true);
+        $('#env_repo_handshake').attr('disabled', true);
+        $('#repo_link_external').addClass('hide').attr('href', '');
+    }
+};
+controlButtons_env_repo();
+$('#env_repo_url')
+    .on('change paste keyup', function(){
+        controlButtons_env_repo()
+    })
+    .trigger('change');
+
+// bind the repo fetch button
+$( '#env_repo_fetch' ).click( function () {
+    RepoHelper.repoFetchDialog();
+});
+// bind the handshake repo button
+$('#env_repo_handshake').on('click', function() {
+    RepoHelper.ajaxRequest_handshake($(this));
+});
+// bind the repo help button
+$('#env_repo_help').on('click', function() {
+    RepoHelper.repoHelpDialog($(this));
 });
 
 

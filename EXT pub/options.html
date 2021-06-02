@@ -55,7 +55,7 @@ Base tag MUST be there, if you run Typo3 in subdirectory, instead of subdomain. 
 so BE switching using toolbar icon won't work in such projects and there's no other way to workaround that.
 (we need to know the exact webroot url to make that work, otherwise it just opens [domain]/typo3/)
 The BEST SOLUTION for that problem (and highly probable many others) is to just AVOID RUNNING TYPO3 IN SUBDIR when possible, if you care of your nerves.">to recognize backend url [ i ]</abbr> <br>
-                        <i>(disabled = use current domain, same as when base tag not found)</i></span>
+                        <i>(disabled = use current domain, same as when base tag <br>not found)</i></span>
                 </label>
 
             </div>
@@ -156,7 +156,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                 <label class="primary check">
                     <input type="checkbox" id="env_favicon">
                     <span>Show color overlay on favicon<br>
-                        <i>(this is a test feature, it seems to not show always when it should)</i></span>
+                        <i>(this is a test feature, it seems to not show always<br> when it should)</i></span>
                 </label>
 
                 <div class="section-foldable" data-visibility-trigger="#env_favicon">
@@ -255,26 +255,37 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                 <div class="section-foldable" data-visibility-trigger="#env_repo">
 
                     <label class="primary">
-                        <p class="level-info">You've found hidden test feature! The repository functionality is not yet finished / tested well enough (works in basics though, so you can give it a try)</p>
-
-
-                        <button class="btn connect" id="repo_handshake"><span class="icon"></span> <span class="text">Handshake repo</span></button>
-                        
-                        <span class="between-buttons"> &nbsp;</span>
-                        <button class="btn repodialog env_projectRepo"><span class="icon"></span> <span class="text">Fetch from 
-                            <abbr title="It's a good idea to host your own repo to share projects with your team/company. It's a 15-minut-work, so don't forget to check details.">Project Repository</abbr></span></button>
-
+                        <p class="level-info">You've found a hidden test feature! The repository functionality is not yet finished / tested well enough (works in basics though, so you can give it a try)</p>
                     </label>
 
-                    <label class="primary">
-                        <input type="text" id="repo_url" placeholder="URL of your repository"> 
-                    </label>
-                        
-                    <label class="primary">
-                        <label>Key: <input type="text" id="repo_key"></label>
-                        <!--<button class="btn save" id="repo_config_save"><span class="icon"></span> </button>-->
-                    </label>
+                    <p class="row config-repo">
+                        <input type="text" id="env_repo_url" placeholder="URL of your repository">
+                        <span class="between-buttons" title="Optional key for authorisation/permissions, depending on repo configuration">Key:</span>
+                        <input type="password" id="env_repo_key">
+                    </p>
 
+                    <p class="repo-status">Access level: <span id="repo_auth_level" class="level-info">(unknown yet)</span> <a id="repo_link_external" href="#" class="hide external" title="Open in new tab" target="_blank">Open url</a></p>
+                    <br>
+
+                    
+                    <p>
+                        <button class="btn  connect" id="env_repo_handshake"><span class="icon"></span> <span class="text">Handshake repo</span></button>
+                        <i>Test connection and <abbr title="This will set repo gui controls according to permissions level (like: show push buttons, if access = WRITE)">access</abbr></i>
+                    </p>
+
+                    <p>
+                        <button class="btn  repository" id="env_repo_fetch"><span class="icon"></span> <span class="text">Fetch
+                            <abbr title="It's a good idea to host your own repo to share projects with your team/company. It's a 15-minut-work, so don't forget to check details.">Projects list</abbr></span>
+                        </button>
+                        <!--<button class="btn  repository  tour-mark" id="env_repo_fetch"><span class="icon"></span> <span class="text">Fetch Projects list</span>
+                            <span class="tour-point">➨</span></button>-->
+                        <i>Check repo for available projects to import</i>
+                    </p>
+
+                    <p>
+                        <button class="btn  help transparent" id="env_repo_help" title="Info / Help"><span class="icon"></span><!-- <span class="text">Info / Help</span>--></button>
+                    </p>
+                    <br>
                 </div>
 
               </span>
@@ -282,6 +293,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
         </div>
 
 
+        <br>
         <br>
         <div class="projects-list-toolbar">
             
@@ -506,7 +518,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
 
             <div class="links-container"></div>
 
-            <button class="btn export env_projectExport to-right"><span class="icon"></span> <span class="text">DOWNLOAD <abbr title="Export json with only this one project">Project config</abbr></span></button> 
+            <button class="btn download env_projectExport to-right"><span class="icon"></span> <span class="text">DOWNLOAD <abbr title="Export json with only this one project">Project config</abbr></span></button> 
             <button class="btn push env_projectPush to-right hide"><span class="icon"></span> <span class="text">PUSH <abbr title="Send the project to Repository (add or update)">to Repo</abbr></span></button> 
             <button class="btn add env_linkAdd"><span class="icon"></span> <span class="text">Add Link</span></button>
         </div>
@@ -514,7 +526,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
         <div class="toggle project"><span class="icon"></span></div>
 
         <label class="check hideItem" title="Visibility"><input type="checkbox" name="project[hidden]" class="inverse"> </label>
-        <button class="btn noborder remove env_projectRemove" title="Remove"><span class="icon"></span></button>
+        <button class="btn transparent remove env_projectRemove" title="Remove"><span class="icon"></span></button>
     </div>
     
     
@@ -522,7 +534,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
         <label><input type="text" name="context[name]" placeholder="Name" class="required"></label>
         <label><input type="text" name="context[url]" placeholder="Url" class="url required"></label>
         
-        <button class="btn noborder opentab" title="Open in new tab"><span class="icon"></span></button>
+        <button class="btn transparent opentab" title="Open in new tab"><span class="icon"></span></button>
                             
         <label class="color">Color:
             <input type="color" class="color-picker">
@@ -538,17 +550,47 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
         <div class="toggle context"><span class="icon"></span></div>-->
     
         <label class="check hideItem" title="Visibility"><input type="checkbox" name="context[hidden]" class="inverse"> </label>
-        <button class="btn noborder remove env_contextRemove" title="Remove"><span class="icon"></span></button>
+        <button class="btn transparent remove env_contextRemove" title="Remove"><span class="icon"></span></button>
     </div>
 
     <div class="item linkItem _template">
         <label><input type="text" name="link[name]" placeholder="Name" class="required"></label>
         <label><input type="text" name="link[url]" placeholder="Url" class="url required"></label>
 
-        <button class="btn noborder opentab" title="Open in new tab"><span class="icon"></span></button>
+        <button class="btn transparent opentab" title="Open in new tab"><span class="icon"></span></button>
 
         <label class="check hideItem" title="Visibility"><input type="checkbox" name="link[hidden]" class="inverse"> </label>
-        <button class="btn noborder remove env_linkRemove" title="Remove"><span class="icon"></span></button>
+        <button class="btn transparent remove env_linkRemove" title="Remove"><span class="icon"></span></button>
+    </div>
+    
+    
+            
+    <div class="button-preview hide">
+        <p>Buttons preview:</p>
+        <button class="btn  save"><span class="icon"></span> <span class="text">Save</span></button>
+        <button class="btn  transparent remove"><span class="icon"></span></button>
+        <button class="btn  transparent opentab" title="Open in new tab"><span class="icon"></span></button>
+        <button class="btn  clipboard"><span class="icon"></span></button>
+        <button class="btn  add"><span class="icon"></span> <span class="text">Add</span></button>
+        <button class="btn  import"><span class="icon"></span> <span class="text">Import</span></button>
+        <button class="btn  export"><span class="icon"></span> <span class="text">Export</span></button>
+        <br><br>
+        <button class="btn  repository"><span class="icon"></span> <span class="text">Fetch</span></button>
+        <button class="btn  fetch"><span class="icon"></span> <span class="text">Fetch</span></button>
+        <button class="btn  getAll"><span class="icon"></span> <span class="text">Import all</span></button>
+        <button class="btn  compare"><span class="icon"></span> <span class="text">Compare</span></button>
+        <button class="btn  replace-local"><span class="icon"></span> <span class="text">Replace mine</span></button>
+        <button class="btn  replace-localtest1"><span class="icon"></span> <span class="text">Replace mine</span></button>
+        <button class="btn  replace-localtest2"><span class="icon"></span> <span class="text">Replace mine</span></button>
+        <button class="btn  replace-remote"><span class="icon"></span> <span class="text">Replace theirs</span></button>
+        <button class="btn  add replace"><span class="icon"></span> <span class="text">Replace /add</span></button>
+        <br><br>
+        <button class="btn  exchange"><span class="icon"></span> <span class="text">Sync</span></button>
+        <button class="btn  help"><span class="icon"></span> <span class="text">Info</span></button>
+        <button class="btn  confirm-warn"> <span class="text">Confirm!</span></button>
+        <button class="btn  decline"><span class="text">No</span></button>
+        <button class="btn  check"><span class="icon"></span> <span class="text">BBB</span></button>
+        <br><br>
     </div>
 </div>
 
