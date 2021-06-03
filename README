@@ -145,6 +145,12 @@ A: No, this extension doesn't do anything with the urls it reads. All it does it
 **
 Changelog:
 
+v2.2.0
+3.06.2021
+- options: project repo gui basically ready - now tests & tuning
+- options: general refresh & tune for readability
+- fix: firefox svg favicon preview, chrome -> ff unify
+
 v2.1.0
 17.04.2021
 Important change:
