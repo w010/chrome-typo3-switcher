@@ -13,6 +13,10 @@ body.dark {
 .dark h3 {
     color: #e1e1e1;
 }
+.dark h3 {
+    color: #e1e1e1;
+	text-shadow: 2px 1px 1px #1a1919;
+}
 
 .dark a {
 	color: #e1e1e1;
@@ -24,6 +28,10 @@ body.dark {
 
 .dark .heading {
 	background-color: #333;
+}
+
+.dark .heading h1  {
+	text-shadow: 3px 2px 1px #2e2929;
 }
 .dark .heading h2  {
 	color: #a1a1a1;
@@ -136,16 +144,23 @@ input[type=range] {
 .dark select {
 	text-shadow: rgb(59, 59, 59) 0px 1px 0px;
 	box-shadow: none;
-	
-	background-image: -webkit-image-set(url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAAICAQAAACxSAwfAAAAUUlEQVR4AWP4TxREZkYxpKHAKKzKEhOZvyG4zN8SE7Eq+6+wYCHbTwiT7eeChf8VsFsKVQhTxIDDbVCFfF8ginApgyp82wRShEcZVJIVzoJDAGqrgIJGRl20AAAAAElFTkSuQmCC) 1x, url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACcAAAAQCAQAAAA/1a6rAAAAQUlEQVR4Xu3MsQnAMBAEMI1+myf9gw0+3ASCenmu+mQn2yGn3S4Mp906DEW3CEPfzTD03QxD380w3OmIUHe9v+u9QwAt93yns5cAAAAASUVORK5CYII=) 2x), linear-gradient(rgb(57, 57, 57), rgb(57, 57, 57) 38%, #2f2f2f);
+	background-color: #404040;
+	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAAICAQAAACxSAwfAAAAUUlEQVR4AWP4TxREZkYxpKHAKKzKEhOZvyG4zN8SE7Eq+6+wYCHbTwiT7eeChf8VsFsKVQhTxIDDbVCFfF8ginApgyp82wRShEcZVJIVzoJDAGqrgIJGRl20AAAAAElFTkSuQmCC);
+	background-repeat: no-repeat;
+	background-position: right center; 
 	color: #e1e1e1;
 	border-color: #5d5d5d;
-	
 }
+	.dark select:hover {
+		background-color: #555555;
+	}
 	.dark :enabled:hover:-webkit-any(select)  {
 		color: #e1e1e1;
 		box-shadow: none;
-		background-image: -webkit-image-set(url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAAICAQAAACxSAwfAAAAUUlEQVR4AWP4TxREZkYxpKHAKKzKEhOZvyG4zN8SE7Eq+6+wYCHbTwiT7eeChf8VsFsKVQhTxIDDbVCFfF8ginApgyp82wRShEcZVJIVzoJDAGqrgIJGRl20AAAAAElFTkSuQmCC) 1x, url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACcAAAAQCAQAAAA/1a6rAAAAQUlEQVR4Xu3MsQnAMBAEMI1+myf9gw0+3ASCenmu+mQn2yGn3S4Mp906DEW3CEPfzTD03QxD380w3OmIUHe9v+u9QwAt93yns5cAAAAASUVORK5CYII=) 2x), linear-gradient(rgb(57, 57, 57), rgb(57, 57, 57) 38%, rgb(81, 81, 81));
+		background: #555555;    /* not background-color! */
+	}
+	.dark :enabled:focus:-webkit-any(select)  {
+		border-color: #5d5d5d;
 	}
 
 .dark optgroup {
@@ -160,12 +175,12 @@ input[type=range] {
 
 /* buttons */
 
-.dark .btn {
+body.dark .btn {
 	background-color: #454545;
 	border: 1px solid #585858;
 	color: #d7d7d7;
 }
-	.dark .btn:hover {
+	body.dark .btn:hover {
 		color: #333333;
 		background-color: rgba(96, 147, 157, 0.4);
 		border-color: rgba(129, 200, 214, 0.4);
@@ -182,6 +197,11 @@ input[type=range] {
 	.dark .btn:hover .text   {
 		color: #e5e5e5;
 	}
+.dark .btn[disabled]:hover {
+	color: inherit;
+	background-color: inherit;
+	border-color: inherit;
+}
 
 .dark .btn.remove   {
 	background-color: transparent;
@@ -205,18 +225,23 @@ input[type=range] {
 	background-color: #5dbacd66;
 	border-color: #cdeef494;
 }
-.dark .dialog-fetch .btn.fetch:hover  {
+
+.dark #repo_link_external {
+	border-left: 1px solid #777;
+}
+
+.dark .dialog-repo-fetch .btn.fetch:hover  {
 	background-color: #5dbacd66;
 	border-color: #cdeef494;
 }
-.dark .dialog-fetch .btn.getAll:hover  {
+.dark .dialog-repo-fetch .btn.getAll:hover  {
 	background-color: rgba(77, 114, 77, .5);
 }
 
 .dark .project-item-preview button.add:hover {
 	
 }
-.dark .project-item-preview button.replace:hover {
+.dark .project-item-preview button.replace-local:hover {
 	background: rgba(210, 88, 53, .5);
 }
 .dark .project-item-preview button.compare:hover {
@@ -254,6 +279,9 @@ input[type=range] {
 		/*background: #edcece;*/
 		border: 1px solid #f56868;
 	}
+	.dark .contextItem.new, .dark .linkItem.new    {
+		background: #617c848f;
+	}
 .dark .projectItem:hover > .toggle .icon {
     opacity: 0.4;
 }
@@ -262,6 +290,9 @@ input[type=range] {
 .dark .projectItem input[type="text"]:hover    {
 	background-color: #2f2f2f;
 	border-color: #6f6f6f;
+}
+.dark .projectItem input[name="project[name]"]    {
+	text-shadow: 3px 2px 1px #333;
 }
 
 .dark .contextItem, .dark .linkItem    {
@@ -312,21 +343,23 @@ input[type=range] {
 
 /* status & notifications */
 
-.dark .status   {
+.dark .message   {
 	color: rgba(34, 34, 34, 0.61);
 	background-color: rgb(192, 192, 192);
 }
 
 
-.dark .status.info, .dark .status.info        {background: rgb(140, 218, 233);} 
-.dark .status.success, .dark .status.success  {background: rgb(156, 233, 144);} 
-.dark .status.warn, .dark .status.warn        {background: rgb(233, 232, 160);} 
-.dark .status.error, .dark .status.error      {background: rgb(233, 151, 127);} 
-
+/* misc text labels use */
 .dark  .level-info       { color: rgb(140, 218, 233);}
 .dark  .level-success    { color: rgb(156, 233, 144);}
 .dark  .level-warn       { color: rgb(233, 232, 160);}
 .dark  .level-error      { color: rgb(233, 151, 127);}
+
+/* general operation status */
+.dark .status.level-info       { background: rgb(140, 218, 233); color: rgb(14, 90, 106);}
+.dark .status.level-success    { background: rgb(156, 233, 144); color: rgb(13, 76, 1);}
+.dark .status.level-warn       { background: rgb(233, 232, 160); color: rgb(97, 97, 5);}
+.dark .status.level-error      { background: rgb(233, 151, 127); color: rgb(87, 22, 5);}
 
 
 /* flash whole document, like on save */
@@ -369,7 +402,12 @@ input[type=range] {
 	color: #fff;
     text-shadow: 2px 1px 3px #111;
 }
-
+.dark .dialog-body p {
+	color: #c4c4c4;
+}
+.dark .dialog-body a {
+	color: #50be2c;
+}
 
 
 /* dialog: fetch from repo */
@@ -402,19 +440,19 @@ input[type=range] {
 		
 /* dialog: compare */
 		
-.dark .dialog.dialog-compare .dialog-inner  {
+.dark .dialog .dialog-inner  {
     background: #514f4f;
 }
 
-.dark .dialog.dialog-compare .compare-diff    {
+.dark .dialog .compare-diff    {
     background: #5c5c5c;
 }
 
-.dark .dialog.dialog-compare .compare-diff .inserted   {
+.dark .dialog .compare-diff .inserted   {
     color: #0b140c;
     background: #4bc163;
 }
-.dark .dialog.dialog-compare .compare-diff .deleted   {
+.dark .dialog .compare-diff .deleted   {
     color: #2f1414;
     background: #d78383;
 }
@@ -465,4 +503,14 @@ input[type=range] {
 .dark .jump-toolbar > div:hover {
 	background-color: rgba(96, 147, 157, 0.4);
 	border-color: rgba(129, 200, 214, 0.4);
+}
+
+.dark .help-tour  {
+	border: 1px dotted #7e5c33;
+	background-color: #423d37;
+}
+
+.dark .btn.transparent    {
+	border-color: transparent;
+	background-color: transparent;
 }

@@ -21,8 +21,11 @@ h2  {
 }
 h3  {
 	margin: 1em 0 .7em;
-	font-size: 1.25em;
+	font-size: 1.35em;
 	font-weight: 501;
+	line-height: 1.5em;
+	font-style: italic;
+	text-shadow: 2px 1px 1px #d8d8d8;
 }
 h4  {
 	margin: 10px 0;
@@ -37,9 +40,11 @@ a.external::before {
 	content: "\2197\0020";
 	white-space: nowrap;
 }
-
+.small  {   font-size: 0.6em; font-weight: normal;   }
 .to-left    {   float: left;    }
 .to-right   {   float: right;   }
+
+.hide   {   display: none !important; }
 
 .clear  {
 	clear: both;
@@ -51,8 +56,8 @@ a.external::before {
 	width: 50%;
 }
 .settings-block  {
-	margin: 0 auto 15px;
-	padding-bottom: 15px;
+	margin: 0 auto 40px;
+	padding-bottom: 20px;
 	border-bottom: 1px solid lightgray;
 }
 .heading    {
@@ -71,6 +76,7 @@ a.external::before {
 .heading h1 {
 	margin-top: 0px;
     margin-bottom: 0.5em;
+	text-shadow: 2px 1px 1px #d6d6d6;
 }
 .heading h2 {
 	font-size: 1.3em;
@@ -90,6 +96,14 @@ a.external::before {
 	right: 0;   bottom: 5px;
     font-size: 95%;
     opacity: 0.5;
+}
+.heading .brand   {
+	display: inline-block;
+    position: absolute;
+	right: 69px;   bottom: 5px;
+    font-size: 95%;
+    opacity: 0.3;
+	font-style: italic;
 }
 
 #top-shadow {
@@ -186,8 +200,9 @@ input[type="radio"]    {
 input[type="text"]    {
 	width: 260px;
 	min-height: 2em;
+	padding: 1px 7px;
 	transition: background-color 0.3s;
-	font-size: 1.2em;
+	font-size: 1.3em;
 	border-color: #ddd;
 }
 input[type="text"].required:placeholder-shown {
@@ -210,9 +225,18 @@ input[type="color"] {
 	margin-left: 8px;
 	cursor: pointer;
 }
+select{
+	transition: color .3s, border-color .3s, background-color .3s;
+	outline: none;
+}
+	:enabled:focus:-webkit-any(select)  {
+		border-color: rgba(0, 0, 0, 0.25);
+	}
 input.color-text    {
-	width: 64px;
-	margin-left: 8px;
+    width: 82px;
+    margin-left: 6px;
+    font-size: 1.2em;
+    text-transform: uppercase;
 }
 input[type=range]   {
 	margin: 0;
@@ -308,7 +332,7 @@ label.color {
 	margin-left: 20px;
 	vertical-align: top;
 }
-label.hide  {
+label.hideItem  {
 	position: absolute;
 	padding: 3px 0 0 0 !important;
 	top: 15px;
@@ -365,9 +389,10 @@ button  {
 	cursor: pointer;
 	/*border: none !important;*/
 }
-.btn {
+
+body .btn {     /* define as child of body, to allow override default color while keeping default :hover */
 	display: inline-block;
-	margin-bottom: 0;
+	margin: 0 16px;
 	font-weight: normal;
 	text-align: center;
 	vertical-align: top;
@@ -375,7 +400,7 @@ button  {
 	background-color: #dedede;
 	border: 1px solid #c4c4c4;
 	white-space: nowrap;
-	padding: 8px 16px;
+	padding: 7px 16px;
 	line-height: 0.9;
 	border-radius: 6px;
 	user-select: none;
@@ -384,47 +409,76 @@ button  {
 	min-height: 28px;
 	transition: background-color .15s, border-color .15s;
 }
-	.btn:hover {
+	body .btn:hover {
 		color: #333333;
 		/*background-color: #c4c4c4;*/
 		background-color: rgba(140, 218, 233, 0.4);
 		border-color: #a6a6a6;
 	}
 	.btn .icon  {
-		width: 16px;    height: 16px;
+		width: 20px;    height: 20px;
 		display: inline-block;
 		background: transparent no-repeat 0 0;
 	}
 	.btn .text {
 		display: inline-block;
-		line-height: 1.35em;
+		line-height: 1.60em;
 		vertical-align: top;
 	}
-
-button.remove .icon  {  background-image: url(/Icons/Options/Delete.svg);   }
-button.add .icon  {     background-image: url(/Icons/Options/Add.svg);  }
-button.save .icon  {    background-image: url(/Icons/Options/Save.svg);  }
-button.import .icon  {  background-image: url(/Icons/Options/Import.svg);  }
-button.export .icon  {  background-image: url(/Icons/Options/Export.svg);  }
-button.repodialog .icon{background-image: url(/Icons/Options/Repository.svg);  }
-button.fetch .icon  {   background-image: url(/Icons/Options/Refresh.svg);  }
-button.getAll .icon  {  background-image: url(/Icons/Options/GetWholePack.svg);  }
-button.compare .icon  { background-image: url(/Icons/Options/Compare.svg);  }
-button.replace .icon  { background-image: url(/Icons/Options/Replace.svg);  }
-button.clipboard .icon{ background-image: url(/Icons/Options/Clipboard.svg);  }
-button.opentab .icon {  background-image: url(/Icons/Options/TabOpen.svg); }
-
-#favicon-preview {
-    top: 4px;
-    position: relative;
-    cursor: zoom-in;
+	.btn .icon + .text  {
+		margin-left: 10px;
+	}
+.btn[disabled]  {
+	opacity: 0.5;
+	cursor: not-allowed;
 }
+.btn[disabled]:hover {
+	color: inherit;
+	background-color: inherit;
+	border-color: inherit;
+}
+
+button.add .icon  {     background-image: url(/Icons/Options/Add.svg);  }
+button.compare .icon  { background-image: url(/Icons/Options/Compare.svg);  }
+button.connect .icon  { background-image: url(/Icons/Options/Refresh.svg);  }
+button.check .icon   {  background-image: url(/Icons/Options/Check.svg); }
+button.clipboard .icon{ background-image: url(/Icons/Options/Clipboard.svg);  }
+button.close .icon    { background-image: url(/Icons/Options/Close.svg);  } /* todo: rebuild modal close button */
+button.decline .icon  { background-image: url(/Icons/Options/Close.svg);  }
+button.download .icon { background-image: url(/Icons/Options/Download.svg);  }
+button.exchange .icon { background-image: url(/Icons/Options/Exchange.svg);  }
+button.export .icon  {  background-image: url(/Icons/Options/Export.svg);  }
+button.fetch .icon  {   background-image: url(/Icons/Options/Fetch.svg);  }
+button.getAll .icon  {  background-image: url(/Icons/Options/GetWholePack.svg);  }
+button.help .icon    {  background-image: url(/Icons/Options/Help.svg); }
+button.import .icon  {  background-image: url(/Icons/Options/Import.svg);  }
+button.merge .icon  {  background-image: url(/Icons/Options/Merge.svg);  }
+button.opentab .icon {  background-image: url(/Icons/Options/TabOpen.svg); }
+button.push .icon    {  background-image: url(/Icons/Options/Push.svg); }
+button.remove .icon  {  background-image: url(/Icons/Options/Delete.svg);   }
+button.replace-local .icon  { background-image: url(/Icons/Options/ReplaceLocal.svg);  }
+button.replace-localtest1 .icon  { background-image: url(/Icons/Options/ReplaceLocal1.svg);  }
+button.replace-localtest2 .icon  { background-image: url(/Icons/Options/ReplaceLocal2.svg);  }
+button.replace-remote .icon { background-image: url(/Icons/Options/ReplaceRemote.svg);  }
+button.repository .icon{background-image: url(/Icons/Options/Repository.svg);  }
+button.save .icon  {    background-image: url(/Icons/Options/Save.svg);  }
+
+
+label.primary .btn:first-child  {   margin-left: 0; }
+label.primary .btn:last-child  {    margin-right: 0; }
 
 button.env_contextAddDefaultSet {
 	display: none;
 }
 .between-buttons    {
-	padding: 0 8px;
+    padding: 6px 8px;
+    display: inline-block;
+}
+
+#favicon-preview {
+    top: 4px;
+    position: relative;
+    cursor: zoom-in;
 }
 
 /* "Use max-height in the transition and not height. And set a value on max-height to something bigger than your box will ever get." */
@@ -457,12 +511,13 @@ button.env_contextAddDefaultSet {
 	border: 1px solid transparent;
 	background: #ddd;
 	border-radius: 3px;
-	padding: 10px;
+	padding: 10px 10px 22px;
 	margin-bottom: 10px;
 	transition: opacity 0.4s, box-shadow 0.3s, margin 0.3s, border 0.2s;
 }
 .projectItem.collapse    {
 	background: #eee;
+	padding: 10px;
 }
 .projectItem:not(.collapse) {
 	margin-top: 20px;
@@ -491,6 +546,9 @@ button.env_contextAddDefaultSet {
 		/*background: #edcece;*/
 		border: 1px solid #f56868;
 	}
+	.contextItem.new, .linkItem.new    {
+		background: #d8f0f7;
+	}
 .projectItem.filtered-out   {
 	display: none;
 }
@@ -504,11 +562,9 @@ button.env_contextAddDefaultSet {
 .projectItem > label  {
 	display: block;
 }
-.projectItem .btn   {
-	/*background-color: #efefef;*/
-}
-.projectItem .btn:hover   {
-	background-color: rgba(140, 218, 233, 0.4);
+.projectItem h3 {
+	font-style: italic;
+	opacity: 0.7;
 }
 .contextItem, .linkItem    {
 	position: relative;
@@ -528,6 +584,9 @@ button.env_contextAddDefaultSet {
 .contextItem > *,
 .linkItem > *    {
 	vertical-align: middle;
+}
+.contextItem:last-child, .linkItem:last-child   {
+	margin-bottom: 25px;
 }
 ._template  {
 	display: none;
@@ -592,11 +651,18 @@ button.env_contextAddDefaultSet {
 	background-color: #fff;
 	border-color: #bfbfbf;
 }
+.projectItem input[name="project[name]"]    {
+	font-size: 1.5em;
+    text-shadow: 2px 1px 1px #d6d6d6;
+}
 
 .projectItem .btn    {
 	background-color: transparent;
+	/*background-color: #efefef;*/
 }
-
+.projectItem .btn:hover   {
+	background-color: rgba(140, 218, 233, 0.4);
+}
 .projectItem .btn.remove   {
 	position: absolute;
 	top: 10px;  right: 10px;
@@ -616,7 +682,7 @@ button.env_contextAddDefaultSet {
 
 .projects-filter    {
 	position: relative;
-	float: left;
+	/*float: left;*/
 }
 .projects-filter input {
 	width: 300px;
@@ -636,6 +702,8 @@ button.env_contextAddDefaultSet {
 	min-height: 22px;
 	min-width: 22px;
 	display: none;
+	font-size: 1.5em;
+    box-shadow: none;
 }
 .input-reset:hover    {
 	font-weight: bold;
@@ -647,6 +715,7 @@ button.env_contextAddDefaultSet {
 
 .projects-list-control  {
 	margin-left: 40px;
+	margin-right: 40px;
 }
 .projects-list-control a {
 	text-decoration: none;
@@ -679,11 +748,13 @@ button.env_contextAddDefaultSet {
 
 label.primary   {
 	display: block;
-	padding-left: 20px;
+	padding: 10px 15px 10px 20px;
+	margin-right: 10px;
 	font-size: 110%;
 	font-weight: 500;
-	margin-bottom: 20px;
-	transition: background-color .2s;
+	margin-bottom: 14px;
+	transition: background-color .5s;
+	border-radius: 12px;
 }
 	label.primary:hover {
 		background: #f1f1f1;
@@ -696,44 +767,49 @@ label.primary span  {
 	font-weight: revert;
 }
 
-.status {
-    position: absolute;
+
+/* status & notifications */
+
+.message {
+	background: rgb(192, 192, 192);
 	color: rgba(34, 34, 34, 0.61);
-	display: none;
 	vertical-align: middle;
 	padding: 16px;
 	font-size: 110%;
-    left: 430px;
-	top: 10px;
-	background: rgb(192, 192, 192);
 	opacity: 0.95;
-	z-index: 5;
 }
-.status-import, .status-permissions, .status-set-permission  {
-	position: relative;
-	left: auto;
-	top: auto;
-	margin: 10px 0;
+.status {
+    margin: 10px 0;
+	display: none;
+}
+.status-floating {
+    /*position: absolute;*/
+    position: fixed;
+	display: none;
+    /*left: 430px;*/
+    left: 40%;
+	top: 10px;
+	z-index: 31;    /* more than modal */
 }
 .show   {
 	display: inline-block;
 }
-.settings-block.__importexport {
-	position: relative; /* to show import notifications there */
-}
+	/* to show import notifications there  TODO: CHECK */
+	/*.settings-block.__importexport {
+		position: relative; 
+	}*/
 
-
-/* status & notifications */
-
-.status.info, .status.info        {background: rgb(140, 218, 233);} 
-.status.success, .status.success  {background: rgb(156, 233, 144);} 
-.status.warn, .status.warn        {background: rgb(233, 232, 160);} 
-.status.error, .status.error      {background: rgb(233, 151, 127);} 
-
+/* misc text labels use */
 .level-info       { color: rgb(140, 218, 233);}
 .level-success    { color: rgb(156, 233, 144);}
 .level-warn       { color: rgb(233, 232, 160);}
 .level-error      { color: rgb(233, 151, 127);}
+
+/* general operation status */
+.status.level-info       { background: rgb(140, 218, 233); color: rgb(14, 90, 106);}
+.status.level-success    { background: rgb(156, 233, 144); color: rgb(13, 76, 1);}
+.status.level-warn       { background: rgb(233, 232, 160); color: rgb(97, 97, 5);}
+.status.level-error      { background: rgb(233, 151, 127); color: rgb(87, 22, 5);}
 
 .dialog-overlay {
 	position: fixed;
@@ -777,10 +853,19 @@ label.primary span  {
 	box-shadow: 10px 10px 20px -3px #666;
 	max-height: 80vh;
 	overflow-y: auto;
+	border-radius: 8px;
+	transition: top .3s;
+	top: 0;
 }
-.dialog.text-left .dialog-body    {
-	text-align: left;
-}
+	.dialog-loading .dialog-inner   {
+		top: 20px;
+	}
+	.dialog.text-left .dialog-body    {
+		text-align: left;
+	}
+	.dialog.text-left .dialog-head    {
+		text-align: center;
+	}
 .dialog-close  {
 	position: absolute;
 	top: 4px;
@@ -811,6 +896,10 @@ label.primary span  {
 }
 .dialog-body p {
 	font-size: 1.25em;
+	color: #2d2d2d;
+}
+.dialog-body a {
+	color: #50be2c;
 }
 
 
@@ -894,11 +983,14 @@ label.primary span  {
 }
 .ajaxloader {
     position: relative;
-    display: inline-block;
+    display: none;
     overflow: hidden;
     white-space: nowrap;
     vertical-align: -22%;
 }
+	.ajax-loading .ajaxloader   {
+		display: inline-block;
+	}
 
 .ajaxloader-spin .ajaxloader-markup {
     -webkit-animation: ajaxloader-spin 2s infinite linear;
@@ -944,30 +1036,46 @@ label.primary span  {
     }
 }
 
+/* ajax loader in small items - actions, not loaders */
+p.ajax-loading, div.ajax-loading  {   position: relative; }
+p.ajax-loading > *, div.ajax-loading > *  { opacity: 0.5; }
+p.ajax-loading .ajaxloader, div.ajax-loading .ajaxloader  {
+	opacity: 1;
+	position: absolute;
+	left: 0;
+	top: calc(50% - 16px);
+}
+
 /* repo fetch projects */
 .btn.repodialog:hover {
 	background: rgb(140, 218, 233);
 }
 
-input#repo_url  {
-	width: 50%; 
+input#env_repo_url  {
+	width: 72%; 
 }
-input#repo_key  {
-	width: 15%; 
+input#env_repo_key  {
+	width: 22%; 
 }
-.dialog.dialog-fetch   {
+#repo_link_external {
+	margin-left: 16px;
+	border-left: 1px solid #333;
+	padding-left: 16px;
+}
+
+.dialog.dialog-repo-fetch   {
 	text-align: left;
 }
-.dialog-fetch .fetch-controls   {
+.dialog-repo-fetch .fetch-controls   {
 	margin: 20px 0;
 }
-.dialog-fetch .btn.fetch:hover  {
+.dialog-repo-fetch .btn.fetch:hover  {
 	background: rgb(140, 218, 233);
 }
-.dialog-fetch .btn.getAll:hover  {
+.dialog-repo-fetch .btn.getAll:hover  {
 	background: rgb(156, 233, 144);
 }
-.dialog-fetch .fetch-inner  {
+.dialog-repo-fetch .fetch-inner  {
 	position: relative;
 }
 
@@ -1082,12 +1190,12 @@ input#repo_key  {
 }
 
 
-.project-item-preview button.replace,
+.project-item-preview button.replace-local,
 .project-item-preview button.compare,
 .project-item-preview.local-exists button.get    {
 	display: none;
 }
-.project-item-preview.local-exists button.replace,
+.project-item-preview.local-exists button.replace-local,
 .project-item-preview.local-exists button.compare    {
 	display: inline-block;
 }
@@ -1095,37 +1203,39 @@ input#repo_key  {
 .project-item-preview button.add:hover {
 	background: rgb(156, 233, 144);
 }
-.project-item-preview button.replace:hover {
+.project-item-preview button.replace-local:hover {
 	background: rgb(233, 151, 127);
 }
 .project-item-preview button.compare:hover {
 	background: rgb(140, 218, 233);
 }
 
-.dialog.dialog-compare .dialog-inner  {
+.dialog.dialog-compare .dialog-inner,
+.dialog.dialog-conflict .dialog-inner  {
     margin: 7% auto;
     background: #ddd;
     width: 75%;
 	text-align: left;
 }
 
-.dialog.dialog-compare .compare-diff    {
+.dialog .compare-diff    {
     font-family: Courier New, monospace;
     white-space: pre;
     background: #eee;
     padding: 6px;
     margin: 0 10px;
 }
-.dialog.dialog-compare .dialog-body    {
+.dialog.dialog-compare .diff-container,
+.dialog.dialog-conflict .diff-container    {
 	max-height: 65vh;
 	overflow-y: scroll;
 }
-.dialog.dialog-compare .compare-diff .inserted   {
+.dialog .compare-diff .inserted   {
 	color: #2ca545;
 	background: #c5f8b8;
 }
 
-.dialog.dialog-compare .compare-diff .deleted   {
+.dialog .compare-diff .deleted   {
 	color: #a52c2c;
 	background: #f8b8b8;
 }
@@ -1221,6 +1331,42 @@ h3.url_value:active {
 	margin: 18px 0 5px;
 }
 
+
+/* project list repo functionality */
+body.repo_auth__write .btn.push  {
+	display: inline-block !important;
+}
+
+
+/* help */
+.help-tour  {
+	border: 1px dotted #ffce93;
+	background-color: #fbefe0;
+}
+	.help-tour.col-6  {
+		margin: -21px;  /* compensate border */
+	    padding: 20px;
+	    width: calc(50% + 42px);
+	}
+	.help-tour .tour-mark    {
+		position: relative;
+	}
+		.tour-point { display: none;} 
+		.help-tour .tour-mark .tour-point    {
+			display: block;
+			position: absolute;
+		    color: #58b563;
+	        bottom: -60px; right: -80px;
+		    transform: rotate(220deg);
+		    font-size: 60px;
+			opacity: 0.5;
+			animation: pointerpoint 1.3s 0.5s infinite;
+		}
+		@keyframes pointerpoint {
+			from {bottom: -60px; right: -80px;}
+			to {bottom: -45px;  right: -40px;}
+		}
+
 .debug-mode-restricted  {
 	display: none;
 }
@@ -1228,9 +1374,13 @@ h3.url_value:active {
 	display: initial;
 }
 
-.btn.noborder,
+/*.btn.noborder,
 .projectItem .btn.noborder   {
 	border-color: transparent;
+}*/
+.btn.transparent    {
+	border-color: transparent;
+	background-color: transparent;
 }
 
 body.loading {

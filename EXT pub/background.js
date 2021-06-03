@@ -288,7 +288,7 @@ chrome.runtime.onInstalled.addListener(function() {
         var version = chrome.runtime.getManifest().version;
 
         if ( typeof options.internal_installVersion === 'undefined' || options.internal_installVersion === '' || options.internal_installVersion.split( '.' )[0] !== version.split( '.' )[0] ) {
-            chrome.tabs.create({ url: "https://wolo.pl/chrome/#whats-new" });
+            chrome.tabs.create({ url: "https://wolo.pl/handyswitcher/#whats-new" });
             chrome.storage.sync.set({ internal_installVersion: version });
         }
     });

@@ -79,6 +79,9 @@ const ExtOptions = {
             'env_projects_autosorting' :        $( '#env_projects_autosorting' ).is( ':checked' ),
             'ext_debug' :                       $( '#ext_debug' ).is( ':checked' ),
             'ext_dark_mode':					$( '#ext_dark_mode' ).is( ':checked' ),
+            'env_repo' :                        $( '#env_repo' ).is( ':checked' ),
+            'env_repo_url' :                    $( '#env_repo_url' ).val(),
+            'env_repo_key' :                    $( '#env_repo_key' ).val(),
             'internal_permissions_acknowledged': true,
         };
 
@@ -180,8 +183,9 @@ const ExtOptions = {
             'env_favicon_composite' :           'source-over',
             'ext_debug' :                       false,
             'ext_dark_mode' :                   darkModeSystemDetected, 
-            'repo_url' :                        '',
-            'repo_key' :                        '',
+            'env_repo' :                        false,
+            'env_repo_url' :                    '',
+            'env_repo_key' :                    '',
             // after updating to the version where the per-host permissions are introduced, it requires going once to the options and call Save
             // - to trigger permission request for each of hosts found in user's projects. this keeps the state it's already done or not needed. state is used to display a notification about that.
             'internal_permissions_acknowledged' : false,
@@ -217,6 +221,9 @@ const ExtOptions = {
             $( '#env_projects_autosorting' ).attr( 'checked',       options.env_projects_autosorting );
             $( '#ext_debug' ).attr( 'checked',                      options.ext_debug );
             $( '#ext_dark_mode' ).attr( 'checked',                  options.ext_dark_mode );
+            $( '#env_repo' ).attr( 'checked',                       options.env_repo );
+            $( '#env_repo_url' ).val(                               options.env_repo_url ).trigger('change');
+            $( '#env_repo_key' ).val(                               options.env_repo_key );
 
             ExtOptions.DEV = options.ext_debug;
             ExtOptions.options = options;
@@ -591,7 +598,7 @@ const ExtOptions = {
             });
         });
 
-        project.find( '> .hide input' ).on( 'change', function() {
+        project.find( '> .hideItem input' ).on( 'change', function() {
             project.toggleClass( 'hidden' );
         });
 
@@ -622,10 +629,12 @@ const ExtOptions = {
      * Add env context block
      * @param project element
      * @param contextItem object with data
+     * @param append automatically append to its parent. allows to only create item & return to insert manually
      */
-    insertContextItem : function(project, contextItem)   {
-        const context = $( '.contextItem._template' ).clone().removeClass( '_template' )
-            .appendTo( project.find( '.contexts-container' ) );
+    insertContextItem : function(project, contextItem, append = true)   {
+        const context = $( '.contextItem._template' ).clone().removeClass( '_template' );
+        if (append)
+            context.appendTo( project.find( '.contexts-container' ) );
         
         // default color when adding new empty context and not specify
         if ( !contextItem.color )   {
@@ -649,7 +658,7 @@ const ExtOptions = {
             });
         });
 
-        context.find( '> .hide input' ).on( 'change', function() {
+        context.find( '> .hideItem input' ).on( 'change', function() {
             context.toggleClass( 'hidden' );
         });
 
@@ -705,7 +714,7 @@ const ExtOptions = {
                 ExtOptions.deleteLinkItem( link, project );
             });
         });
-        link.find( '> .hide input' ).on( 'change', function() {
+        link.find( '> .hideItem input' ).on( 'change', function() {
             link.toggleClass( 'hidden' );
         });
         
@@ -844,9 +853,14 @@ const ExtOptions = {
     readProjectData : function(project)   {
         var projectItem = {};
         projectItem['name'] = project.find( "[name='project[name]']" ).val();
-        projectItem['hidden'] = project.find( "[name='project[hidden]']" ).is( ':checked' );
+
+        projectItem['uuid'] = project.attr( "id" ).toString().replace(/^project_+/g, '')
+            || makeRandomUuid(6);
+
         projectItem['contexts'] = [];
         projectItem['links'] = [];
+        projectItem['hidden'] = project.find( "[name='project[hidden]']" ).is( ':checked' );
+        projectItem['tstamp'] = project.data('tstamp') ?? 0;
 
         project.find( '.contexts-container .contextItem' ).each( function() {
             var context = $(this);
@@ -869,11 +883,6 @@ const ExtOptions = {
             projectItem['links'].push( linkItem );
         });
 
-        var uuid = project.attr( "id" ).toString().replace(/^project_+/g, '');
-        if (!uuid)
-            uuid = makeRandomUuid(6);
-
-        projectItem.uuid = uuid;
         return projectItem;
     },
 
@@ -905,8 +914,8 @@ const ExtOptions = {
 
             ExtOptions.insertProjectItem( projectItem, markAsNew ? 'new' : '' );
 
-            if ( ExtOptions.DEV )
-                console.log(projectItem);
+            //if ( ExtOptions.DEV )
+                //console.log(projectItem);
         });
 
 
@@ -1559,13 +1568,13 @@ const ExtOptions = {
      * @param time integer - displaying time of the message
      */
     displayMessage : function(msg, errorLevel, target, time)   {
-        if ( typeof time !== 'number' )   time = 2000;
+        if ( typeof time !== 'number' )   time = 4000;
         if ( typeof target !== 'string' )  target = '.status-notice';
         if ( typeof errorLevel !== 'string' )  errorLevel = 'info';
 
         var status = $( target );
-        status.removeClass( 'info success warn error' );
-        status.addClass( errorLevel );
+        status.removeClass( 'level-info level-success level-warn level-error' );
+        status.addClass( 'level-'+errorLevel );
         status.html( msg );
         status.addClass( 'show' );
         if (time >= 0)
@@ -1607,89 +1616,7 @@ const ExtOptions = {
         return dialog;
     },
     
-    /**
-     * Dialog about fetching projects from repo
-     * @param title string
-     * @param message string
-     */
-    repoDialog : function(title, message)   {
-        
-        // help info displayed if no repo url set
-        let info_repo_default = '';
 
-        if ( !ExtOptions.options.repo_url ) {
-            info_repo_default = '<p><a id="repo_test" href="#">Test how it works using example dummy repo</a><br>' +
-                'You may easily host your own project repo, <a class="external" href="https://chrome.wolo.pl/projectrepo/" target="_blank">see details how</a>.</p>';
-        }
-
-        let content = $( '<div class="repo-config">' +
-                '<label>Repo url:</label> <input type="text" id="repo_url"> <label>Key:</label> <input type="text" id="repo_key">' +
-                '<button class="btn save" id="repo_config_save"><span class="icon"></span> <span class="text">Save</span></button>' +
-                '<div class="notice"></div>' +
-            '</div>' +
-            '<div class="fetch-inner">' +
-                info_repo_default +
-                '<div class="fetch-controls">' +
-                    '<input type="text" id="repo_fetch_filter" placeholder="Filter by name"> <button class="btn fetch" id="repo_fetch" disabled><span class="icon"></span> <span class="text">Fetch available items list</span></button>' +
-                '</div>' +
-                '<div class="fetched-projects ajax-target"></div>' +
-            '</div>'
-        );
-
-
-        ExtOptions.openDialog(title, content, 'dialog-fetch', function(caller)    {
- 
-            // set variables from storage, control fetch button de/activation
-            $('#repo_url')
-                .on('change paste keyup', function(){
-                    if ($(this).val()) {
-                        $('#repo_fetch').attr('disabled', false);
-                    }
-                    else    {
-                        $('#repo_fetch').attr('disabled', true);
-                    }
-                })
-                .val( ExtOptions.options.repo_url )
-                .trigger('change');
-            $('#repo_key').val( ExtOptions.options.repo_key );
-            
-            // bind save repo settings button
-            content.find('#repo_config_save').on('click', function() {
-                chrome.storage.sync.set({
-                    'repo_url' :   $( '#repo_url' ).val(),
-                    'repo_key' :   $( '#repo_key' ).val(),
-                }, function() {
-                    if (chrome.runtime.lastError)   {
-                        ExtOptions.displayMessage( 'Options save problem -  ' + chrome.runtime.lastError.message, 'level-error', '.dialog-fetch .repo-config .notice', 100000 );
-                    }
-                    else    {
-                        ExtOptions.displayMessage( 'Saved', 'level-info', '.dialog-fetch .repo-config .notice', 2000 );
-                        // have to be set in case of reopen modal to show up-to-date state
-                        ExtOptions.options.repo_url = $( '#repo_url' ).val();
-                        ExtOptions.options.repo_key = $( '#repo_key' ).val();
-                    }
-                });
-            });
-
-            // bind fetch button
-            content.find('#repo_fetch').on('click', function() {
-                RepoHelper.fetchProjects(caller);
-            });
-            
-            // on enter key pressed in filter input
-            content.find('#repo_fetch_filter').focus().on( 'keypress', function(e) {
-                if ( e.which === 13 )       RepoHelper.fetchProjects(caller);
-            })
-    
-            // bind additional test link
-            content.find('#repo_test').on('click', function() {
-                $('#repo_url')
-                    .val('https://chrome.wolo.pl/repoexample/')
-                    .trigger('change');
-                return false;
-            });
-        });
-    },
 
     /**
      * Open simple modal dialog
@@ -1704,14 +1631,17 @@ const ExtOptions = {
 
         if ( $( 'body > .dialog' ).length === 0 )
             var dialog_overlay = $( '<div class="dialog-overlay">' );
-        var dialog = $( '<div class="dialog '+ classname +'">' );
-        $( 'body' ).append( dialog_overlay ).append( dialog );
-        
-        $( '<div class="dialog-inner">' )
-            .append( $( '<h2 class="dialog-head">' ).html( title ) )
-            .append( $( '<span class="dialog-close" title="Close">' ).html( 'X' ).on('click', function(){ ExtOptions.closeDialog( dialog ); }) )
-            .append( $( '<div class="dialog-body">' ).html( content ) )
-            .appendTo( dialog );
+        let dialog = $( '<div class="dialog  '+ classname +'  dialog-loading">' )
+            .css('display', 'none')
+            .append(
+                $( '<div class="dialog-inner">' )
+                    .append( $( '<h2 class="dialog-head">' ).html( title ) )
+                    .append( $( '<span class="dialog-close" title="Close">' ).html( 'X' ).on('click', function(){ ExtOptions.closeDialog( dialog ); }) )
+                    .append( $( '<div class="dialog-body">' ).html( content ) )
+        );
+        $( 'body' ).append( dialog_overlay, dialog );
+        // must unhide right before removing load class to make transition work. create as hidden
+        dialog.show().removeClass('dialog-loading');
 
         if (callback instanceof Function) {
             callback( dialog );
@@ -1737,6 +1667,7 @@ const ExtOptions = {
      * @param element object
      */
     ajaxAddLoaderImage : function(element)    {
+        if ( !element.find('.ajaxloader').length )
         element.append(
             $('<span class="ajaxloader ajaxloader-size-default ajaxloader-state-default ajaxloader-spin"><span class="ajaxloader-markup"><img src="Images/ajax-loader.svg">')
         );
@@ -1747,7 +1678,7 @@ const ExtOptions = {
      */
     initVisualDetails : function()    {
         // set extension version number
-        $('.ext-version').html( 'v ' + chrome.runtime.getManifest().version );
+        $('.ext-version').html( /*'v ' +*/ chrome.runtime.getManifest().version );
     },
 
     /**
@@ -1918,6 +1849,8 @@ const ExtOptions = {
                     if ($(this).data('hasChanged')) {
                         ExtOptions.optionsSave( e );
                         $(this).data('hasChanged', false);
+                        // refocus - because it now blurs input, if blurred by clicking on another input
+                        //$(e).focus();
                     }
                 }, 150);
             })
@@ -1987,7 +1920,8 @@ const ExtOptions = {
         }
         else    {
             chrome.storage.sync.remove( key, function() {
-                ExtOptions.displayMessage( 'Removed key ' + key, 'level-info', '#flush-storage-feedback', 10000 );
+                ExtOptions.displayMessage( 'Removed key <b>' + key+'</b>', 
+                    'info', '.status-flush-storage-key', 30000 );
             });
         }
     },
@@ -2070,7 +2004,7 @@ const ExtOptions = {
 
         // set state of fake checkbox
         let syncState_setFake = function( input, niceCheck )  {
-            if ( input.is(':checked') )    niceCheck.addClass('checked');
+            if ( input.is(':checked') )     niceCheck.addClass('checked');
             else                            niceCheck.removeClass('checked');
         };
 
@@ -2180,9 +2114,7 @@ $( 'button.env_projectAdd' ).click( function () {
     newProject.removeClass( 'collapse' );
     newProject.find( '[name="project[name]"]' ).focus();
 });
-$( 'button.env_projectRepo' ).click( function () {
-    ExtOptions.repoDialog('Get projects from repository');
-});
+
 $( 'button#env_import' ).on( 'mousedown', function () {
     ExtOptions.importProjectsFromTextarea( {} )
 });
@@ -2231,6 +2163,11 @@ $( '#projects-collapse-all' ).click( function (e) {
 $( '#projects-expand-all' ).click( function (e) {
     ExtOptions.expandAllProjects();
     e.preventDefault();
+});
+
+$( '.projects-container ' ).on('click', '.projectItem .env_projectPush', function (e) {
+    let project = $(this).closest('.projectItem');
+    RepoHelper.ajaxRequest_pushProject( project, false, $(this) );
 });
 
 
@@ -2300,6 +2237,39 @@ $( 'button#projects_filter_reset' ).click( function() {
     $( '.projects-container .projectItem' ).removeClass( 'filtered-out' );
     $( '.projects-filter' ).removeClass('active');
     $( '.projects-filter input' ).val('');
+});
+
+// control fetch button de/activation
+let controlButtons_env_repo = function (){
+    if ( $('#env_repo_url').val() ) {
+        $('#env_repo_fetch').attr('disabled', false);
+        $('#env_repo_handshake').attr('disabled', false);
+        $('#repo_link_external').removeClass('hide').attr('href', $('#env_repo_url').val());
+    }
+    else    {
+        $('#env_repo_fetch').attr('disabled', true);
+        $('#env_repo_handshake').attr('disabled', true);
+        $('#repo_link_external').addClass('hide').attr('href', '');
+    }
+};
+controlButtons_env_repo();
+$('#env_repo_url')
+    .on('change paste keyup', function(){
+        controlButtons_env_repo()
+    })
+    .trigger('change');
+
+// bind the repo fetch button
+$( '#env_repo_fetch' ).click( function () {
+    RepoHelper.repoFetchDialog();
+});
+// bind the handshake repo button
+$('#env_repo_handshake').on('click', function() {
+    RepoHelper.ajaxRequest_handshake($(this));
+});
+// bind the repo help button
+$('#env_repo_help').on('click', function() {
+    RepoHelper.repoHelpDialog($(this));
 });
 
 

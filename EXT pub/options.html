@@ -10,17 +10,18 @@
 </head>
 
 <body class="loading">
+<span class="message status status-floating status-notice"></span>
 <div class="main">
     <div class="settings-block __saveblock heading">
         <header>
             <h1>Handy Switcher BE/FE/Env</h1>
             <h2>Magic server teleporter for TYPO3 & other webprojects</h2>
             <span class="ext-version"></span>
+            <span class="brand" title="Binary Owl sees you. Binary Owl Forever!">wolo.pl '.' studio</span>
             <a href="https://wolo.pl/handyswitcher/" target="_blank" class="link-block"></a>
         </header>
 
         <button class="btn save"><span class="icon"></span> <span class="text">Save</span></button>
-        <span class="status status-notice"></span>
         <div id="top-shadow"></div>
     </div>
 
@@ -33,6 +34,8 @@
             <div class="col-6">
 
                 <h3>to Frontend:</h3>
+                
+                <br>
                 <label class="primary check">
                     <input type="checkbox" id="switch_fe_openSelectedPageUid">
                     <span>Open current pagetree selected page uid <br>
@@ -43,6 +46,8 @@
             <div class="col-6">
 
                 <h3>to Backend:</h3>
+                
+                <br>
                 <label class="primary check">
                     <input type="checkbox" id="switch_be_useBaseHref">
                     <span>Try to use &lt;base href&gt; <abbr title="IMPORTANT!
@@ -50,7 +55,7 @@ Base tag MUST be there, if you run Typo3 in subdirectory, instead of subdomain. 
 so BE switching using toolbar icon won't work in such projects and there's no other way to workaround that.
 (we need to know the exact webroot url to make that work, otherwise it just opens [domain]/typo3/)
 The BEST SOLUTION for that problem (and highly probable many others) is to just AVOID RUNNING TYPO3 IN SUBDIR when possible, if you care of your nerves.">to recognize backend url [ i ]</abbr> <br>
-                        <i>(disabled = use current domain, same as when base tag not found)</i></span>
+                        <i>(disabled = use current domain, same as when base tag <br>not found)</i></span>
                 </label>
 
             </div>
@@ -67,6 +72,8 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
 
                 <h3>Context switch / server teleport:</h3>
 
+
+                <br>
                 <label class="primary check">
                     <input type="checkbox" id="env_enable">
                     <span>Use this whole Contexts / Environments functionality <br>
@@ -78,6 +85,8 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
 
                 <h3>Menu:</h3>
 
+
+                <br>
                 <label class="primary check">
                     <input type="checkbox" id="env_menu_show_allprojects">
                     <span>Show <abbr title="There will always be a submenu with all Projects and their Contexts">All projects</abbr> submenu (icon / action menu only)</span>
@@ -85,7 +94,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
 
                 <label class="primary text short">
                     <span>Custom <abbr title="If value starts with / it will be treated as path segment and glued to base url/domain.
-Otherwise will open like full url.">path / url</abbr> 1:</span>
+                            Otherwise will open like full url.">path / url</abbr> 1:</span>
                     <input type="text" id="env_menu_short_custom1">
                     <i><abbr title="Use pipe to set custom label">(default: /typo3/install.php | Install Tool)</abbr></i>
                 </label>
@@ -104,11 +113,13 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
 
                 <h3>Badge:</h3>
 
+
+                <br>
                 <label class="primary check">
                     <input type="checkbox" id="env_badge">
                     <span>Display badge on page to identify current context</span>
                 </label>
-                
+
                 <div class="section-foldable" data-visibility-trigger="#env_badge">
 
                     <label class="primary check">
@@ -140,10 +151,12 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
 
                 <h3>Favicon overlay:</h3>
 
+
+                <br>
                 <label class="primary check">
                     <input type="checkbox" id="env_favicon">
                     <span>Show color overlay on favicon<br>
-                        <i>(this is a test feature, it seems to not show always when it should)</i></span>
+                        <i>(this is a test feature, it seems to not show always<br> when it should)</i></span>
                 </label>
 
                 <div class="section-foldable" data-visibility-trigger="#env_favicon">
@@ -207,70 +220,135 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
 
         <h2>Projects</h2>
         
-        <br>
-        <button class="btn add env_projectAdd"><span class="icon"></span> <span class="text">Add new empty Project</span></button>
-    <span class="debug-mode-restricted">
-        <span class="between-buttons">or</span>
-        <button class="btn repodialog env_projectRepo"><span class="icon"></span> <span class="text">Get from <abbr title="It's a good idea to host your own repo to share projects with your team/company. It's a 15-minut-work, so don't forget to check details.">Project Repository</abbr></span></button>
-        <p class="level-info">You've found hidden test feature! The repository functionality is not yet finished / tested well enough (works in basics though, so you can give it a try)</p>
-    </span>
+        <div class="row">
+            <div class="col-6 settings-block-section __projects-local">
 
-        <span class="status status-permissions"></span>
-        <br><br>
+                <h3>Local storage:</h3>
 
-        <div class="projects-filter">
-            <input id="projects_filter" placeholder="Filter - search by name / url">
-            <button class="input-reset" id="projects_filter_reset" title="Reset">x</button>
-               
+                
+                <br>
+                <label class="primary check">
+                    <input type="checkbox" id="env_projects_autosorting" class="no-autosave">
+                    <span><abbr title="Autosave on click is DISABLED for this option (in general to avoid mistake click which could ruin one's custom order)">
+                        Auto sort</abbr> Project items alphabetically (disables drag&drop<br> <abbr title="but it keeps working for Contexts and Links.">for Project items</abbr> - applies after page reload)<br>
+                    <i>(disabled = sort manually yourself, new items adds on bottom)</i></span>
+                </label>
+                <br>
+
+                <span class="message status status-permissions"></span>
+            </div>
+
+
+            <div class="col-6 settings-block-section __projects-remote">
+              <span class="debug-mode-restricted">
+
+                <h3>REMOTE REPOSITORY:</h3>
+
+                
+                <br>
+                <label class="primary check">
+                    <input type="checkbox" id="env_repo"><span>Project repo<br>
+                        <i>(Test feature)</i></span>
+                </label>
+
+
+                <div class="section-foldable" data-visibility-trigger="#env_repo">
+
+                    <label class="primary">
+                        <p class="level-info">You've found a hidden test feature! The repository functionality is not yet finished / tested well enough (works in basics though, so you can give it a try)</p>
+                    </label>
+
+                    <p class="row config-repo">
+                        <input type="text" id="env_repo_url" placeholder="URL of your repository">
+                        <span class="between-buttons" title="Optional key for authorisation/permissions, depending on repo configuration">Key:</span>
+                        <input type="password" id="env_repo_key">
+                    </p>
+
+                    <p class="repo-status">Access level: <span id="repo_auth_level" class="level-info">(unknown yet)</span> <a id="repo_link_external" href="#" class="hide external" title="Open in new tab" target="_blank">Open url</a></p>
+                    <br>
+
+                    
+                    <p>
+                        <button class="btn  connect" id="env_repo_handshake"><span class="icon"></span> <span class="text">Handshake repo</span></button>
+                        <i>Test connection and <abbr title="This will set repo gui controls according to permissions level (like: show push buttons, if access = WRITE)">access</abbr></i>
+                    </p>
+
+                    <p>
+                        <button class="btn  repository" id="env_repo_fetch"><span class="icon"></span> <span class="text">Fetch
+                            <abbr title="It's a good idea to host your own repo to share projects with your team/company. It's a 15-minut-work, so don't forget to check details.">Projects list</abbr></span>
+                        </button>
+                        <!--<button class="btn  repository  tour-mark" id="env_repo_fetch"><span class="icon"></span> <span class="text">Fetch Projects list</span>
+                            <span class="tour-point">➨</span></button>-->
+                        <i>Check repo for available projects to import</i>
+                    </p>
+
+                    <p>
+                        <button class="btn  help transparent" id="env_repo_help" title="Info / Help"><span class="icon"></span><!-- <span class="text">Info / Help</span>--></button>
+                    </p>
+                    <br>
+                </div>
+
+              </span>
+            </div>
         </div>
-        <span class="projects-list-control">
-            <a href="#" id="projects-expand-all">Expand all</a>
-            <a href="#" id="projects-collapse-all">Collapse all</a>
-        </span>
+
+
+        <br>
+        <br>
+        <div class="projects-list-toolbar">
+            
+            <label class="primary">
+                
+                <button class="btn add env_projectAdd"><span class="icon"></span> <span class="text">Add new empty Project</span></button>
+        
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                
+                <span class="projects-filter">
+                <input id="projects_filter" type="text" placeholder="Filter / search">
+                <button class="input-reset" id="projects_filter_reset" title="Reset">x</button>
+                </span>
+                
+                
+                <span class="projects-list-control">
+                    <a href="#" id="projects-expand-all">Expand all</a>
+                    <a href="#" id="projects-collapse-all">Collapse all</a>
+                </span>
+
+            </label>
+
+
+        </div>
         <br class="clear">
         <br>
 
         <div class="projects-container"></div>
 
-        <br>
-        <label class="primary check">
-            <input type="checkbox" id="env_projects_autosorting" class="no-autosave">
-            <span><abbr title="Autosave on click is DISABLED for this option (in general to avoid mistake click which could ruin one's custom order)">
-                Auto sort</abbr> Project items alphabetically (disables drag&drop <abbr title="but it keeps working for Contexts and Links.">for Project items</abbr> - applies after page reload)<br>
-            <i>(disabled = sort manually yourself, new items adds on bottom)</i></span>
-        </label>
     </div>
 
 
-    <br>
 
     <div id="settings_block_importexport" class="settings-block __importexport">
 
         <h2>Import / export projects</h2>
-        <h3>Backup or share with your team</h3>
+        <h4>Backup or share with your team</h4>
         
-        <span class="status status-import"></span>
+        <span class="message status status-import"></span>
 
+        <br>
         <div class="row">
             <div class="col-6">
 
-                <h4>Import: paste JSON into textbox and press Import OR upload file</h4>
-
-                <div class="textarea-holder">
-                    <textarea placeholder="paste json" id="env_importexport-data" cols="70" rows="5"></textarea>
-                    <div class="textarea-cover"></div>
-                </div>
-
-                <br>
-                <br>
-                <button id="env_import" class="btn import"><span class="icon"></span> <span class="text">Import from textbox</span></button>
-
-                <br>
-                <br>
-                <p class="file">Import from file: <input type="file" id="env_import_file"></p>
-                <br>
+                <h3>Import:<br> <i>paste JSON into textbox and press Import OR upload file</i></h3>
 
 
+                <br>
+                <label class="primary">
+                    <button id="env_import" class="btn import"><span class="icon"></span> <span class="text">Import from textbox</span></button>
+                </label>
+                
+                
+                
+                <br>
                 <label class="primary check">
                     <input type="checkbox" id="env_import_overwrite" class="no-autosave">
                     <span>Overwrite all projects (!)<br>
@@ -282,9 +360,51 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
                         <i>(review the imported projects before saving.<br>
                             disabled / default = autosave right after import)</i></span>
                 </label>
+            
+                
+            </div>
+            <div class="col-6">
 
-                <label class="primary select">External import / migration - interpret import data as projects from <abbr title="Treat imported data structure as exported from selected extension (json or base64 json). [ Can't see on the list that one Chrome ext you need to import from? Let me know on project's GitHub ]">other Chrome extension</abbr>: &nbsp;
-                    <br>
+
+                <h3>Export: <br><i>copy JSON from textbox OR download</i></h3>
+
+                <br>
+                <label class="primary">
+                    <button id="env_export_download" class="btn export"><span class="icon"></span> <span class="text">Export - download</span></button>
+                    <br><br>
+                    <i>It's good to Save before exporting, to make sure json data has been updated</i>
+                </label>
+                
+            </div>
+        </div>
+
+
+
+        <div class="row">
+            <div class="col-6">
+            
+                <br>
+
+                <div class="textarea-holder">
+                    <textarea placeholder="paste json" id="env_importexport-data" cols="70" rows="5"></textarea>
+                    <div class="textarea-cover"></div>
+                </div>
+
+                <br>
+                <label class="primary">
+                    <p class="file">Import from file: <input type="file" id="env_import_file"></p>
+                </label>
+                <br>
+
+            </div>
+            <div class="col-6">
+                
+                <h3>Other data / extension migration:</h3>
+
+                <label class="primary select">
+                    <p>Interpret import data structure as projects from <abbr title="Treat imported data structure as exported from selected extension (json or base64 json). 
+                        [ Can't see on the list that one Chrome ext you need to import from? Let me know on project's GitHub ]">this Chrome extension</abbr>: &nbsp;<p>
+
                     <br>
                     <select id="env_import_extension" class="no-autosave">
                         <option value=""></option>
@@ -294,15 +414,7 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
                         <option value="environment_switcher2">Environment switcher (other) [base64]</option>
                     </select>
                 </label>
-
-            </div>
-            <div class="col-6">
-
-                <h4>Export: copy JSON from textbox OR download</h4>
-
-                <button id="env_export_download" class="btn export"><span class="icon"></span> <span class="text">Export - download</span></button>
-
-                <p><i>It's good to always Save before exporting, to make sure json data has updated</i></p>
+                
             </div>
         </div>
 
@@ -313,6 +425,7 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
 
         <h2>Misc / advanced</h2>
 
+        <br>
         <label class="primary check">
             <input type="checkbox" id="ext_dark_mode" class="no-flash">
             <span>Dark mode<br>
@@ -326,7 +439,7 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
         </label>
         
         <div class="section-foldable" data-visibility-trigger="#ext_debug">
-            <div id="flush-storage-feedback"></div>
+            <span class="message status status-flush-storage-key"></span>
             <label class="primary text">
                 <span>Flush storage key (USE WITH CARE):</span>
                 <input type="text" id="flush-storage-key" class="no-autosave">
@@ -341,10 +454,10 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
     <div class="settings-block __permissions">
 
         <h2>Permissions</h2>
+        <br>
         <h3>Modify</h3>
 
-        <span class="status status-set-permission">PERMS</span>
-        <div id="permission-set-feedback"></div>
+        <span class="message status status-set-permission"></span>
         <label class="primary text">
             <span>Host - origin:</span>
             <input type="text" id="origin" class="no-autosave">
@@ -390,7 +503,7 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
 
         <div class="contexts">
 
-            <h4>Environments / contexts</h4>
+            <h3>Environments / contexts:</h3>
 
             <div class="contexts-container"></div>
 
@@ -401,18 +514,19 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
 
         <div class="links">
 
-            <h4>External links</h4>
+            <h3>External links:</h3>
 
             <div class="links-container"></div>
 
-            <button class="btn export env_projectExport to-right"><span class="icon"></span> <span class="text">Download <abbr title="Export json with only this one project">Project config</abbr></span></button>
+            <button class="btn download env_projectExport to-right"><span class="icon"></span> <span class="text">DOWNLOAD <abbr title="Export json with only this one project">Project config</abbr></span></button> 
+            <button class="btn push env_projectPush to-right hide"><span class="icon"></span> <span class="text">PUSH <abbr title="Send the project to Repository (add or update)">to Repo</abbr></span></button> 
             <button class="btn add env_linkAdd"><span class="icon"></span> <span class="text">Add Link</span></button>
         </div>
 
         <div class="toggle project"><span class="icon"></span></div>
 
-        <label class="check hide" title="Visibility"><input type="checkbox" name="project[hidden]" class="inverse"> </label>
-        <button class="btn noborder remove env_projectRemove" title="Remove"><span class="icon"></span></button>
+        <label class="check hideItem" title="Visibility"><input type="checkbox" name="project[hidden]" class="inverse"> </label>
+        <button class="btn transparent remove env_projectRemove" title="Remove"><span class="icon"></span></button>
     </div>
     
     
@@ -420,7 +534,7 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
         <label><input type="text" name="context[name]" placeholder="Name" class="required"></label>
         <label><input type="text" name="context[url]" placeholder="Url" class="url required"></label>
         
-        <button class="btn noborder opentab" title="Open in new tab"><span class="icon"></span></button>
+        <button class="btn transparent opentab" title="Open in new tab"><span class="icon"></span></button>
                             
         <label class="color">Color:
             <input type="color" class="color-picker">
@@ -435,18 +549,48 @@ Otherwise will open like full url.">path / url</abbr> 1:</span>
     
         <div class="toggle context"><span class="icon"></span></div>-->
     
-        <label class="check hide" title="Visibility"><input type="checkbox" name="context[hidden]" class="inverse"> </label>
-        <button class="btn noborder remove env_contextRemove" title="Remove"><span class="icon"></span></button>
+        <label class="check hideItem" title="Visibility"><input type="checkbox" name="context[hidden]" class="inverse"> </label>
+        <button class="btn transparent remove env_contextRemove" title="Remove"><span class="icon"></span></button>
     </div>
 
     <div class="item linkItem _template">
         <label><input type="text" name="link[name]" placeholder="Name" class="required"></label>
         <label><input type="text" name="link[url]" placeholder="Url" class="url required"></label>
 
-        <button class="btn noborder opentab" title="Open in new tab"><span class="icon"></span></button>
+        <button class="btn transparent opentab" title="Open in new tab"><span class="icon"></span></button>
 
-        <label class="check hide" title="Visibility"><input type="checkbox" name="link[hidden]" class="inverse"> </label>
-        <button class="btn noborder remove env_linkRemove" title="Remove"><span class="icon"></span></button>
+        <label class="check hideItem" title="Visibility"><input type="checkbox" name="link[hidden]" class="inverse"> </label>
+        <button class="btn transparent remove env_linkRemove" title="Remove"><span class="icon"></span></button>
+    </div>
+    
+    
+            
+    <div class="button-preview hide">
+        <p>Buttons preview:</p>
+        <button class="btn  save"><span class="icon"></span> <span class="text">Save</span></button>
+        <button class="btn  transparent remove"><span class="icon"></span></button>
+        <button class="btn  transparent opentab" title="Open in new tab"><span class="icon"></span></button>
+        <button class="btn  clipboard"><span class="icon"></span></button>
+        <button class="btn  add"><span class="icon"></span> <span class="text">Add</span></button>
+        <button class="btn  import"><span class="icon"></span> <span class="text">Import</span></button>
+        <button class="btn  export"><span class="icon"></span> <span class="text">Export</span></button>
+        <br><br>
+        <button class="btn  repository"><span class="icon"></span> <span class="text">Fetch</span></button>
+        <button class="btn  fetch"><span class="icon"></span> <span class="text">Fetch</span></button>
+        <button class="btn  getAll"><span class="icon"></span> <span class="text">Import all</span></button>
+        <button class="btn  compare"><span class="icon"></span> <span class="text">Compare</span></button>
+        <button class="btn  replace-local"><span class="icon"></span> <span class="text">Replace mine</span></button>
+        <button class="btn  replace-localtest1"><span class="icon"></span> <span class="text">Replace mine</span></button>
+        <button class="btn  replace-localtest2"><span class="icon"></span> <span class="text">Replace mine</span></button>
+        <button class="btn  replace-remote"><span class="icon"></span> <span class="text">Replace theirs</span></button>
+        <button class="btn  add replace"><span class="icon"></span> <span class="text">Replace /add</span></button>
+        <br><br>
+        <button class="btn  exchange"><span class="icon"></span> <span class="text">Sync</span></button>
+        <button class="btn  help"><span class="icon"></span> <span class="text">Info</span></button>
+        <button class="btn  confirm-warn"> <span class="text">Confirm!</span></button>
+        <button class="btn  decline"><span class="text">No</span></button>
+        <button class="btn  check"><span class="icon"></span> <span class="text">BBB</span></button>
+        <br><br>
     </div>
 </div>
 

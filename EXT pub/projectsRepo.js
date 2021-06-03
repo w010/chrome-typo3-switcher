@@ -12,40 +12,364 @@
 
 
 
+const minRepoVersionRequest = '0.2.0';    // repo performs auto-check and sends info about incomatibility or deprecation
 
 
 let RepoHelper = {
 
     DEV : true,
     options : {},
+    
+    // store last auth level to control gui (don't rely on that, it's not a security control)
+    authLevel : '',
 
     
-    fetchProjects : function(caller)  {
+    
+    
+    /**
+     * Dialog about fetching projects from repo
+     * @param title string
+     * @param message string
+     */
+    repoFetchDialog : function(title, message)   {
+
+        let content = 
+            $( '<div class="repo-config">' +
+                '<div class="notice"></div>' +  // only color notice, no status box here
+            '</div>' +
+            '<div class="fetch-inner">' +
+                '<p>Request Repository for a list of projects available to import:</p>' +
+                '<div class="fetch-controls">' +
+                '<label class="primary">' +
+                    '<input type="text" id="repo_fetch_filter" placeholder="Filter by name"> <button class="btn fetch" id="repo_fetch"><span class="icon"></span> <span class="text">Fetch projects list</span></button>' +
+                '</label>' +
+                '<div class="message status"></div>' +
+                '<div class="fetched-projects ajax-target"></div>' +
+            '</div>'
+        );
+
+        let dialogTitle = 'Repository: check out projects';
+
+        ExtOptions.openDialog(dialogTitle, content, 'dialog-repo-fetch  text-left', function(caller)    {
+
+            // bind fetch button
+            content.find('#repo_fetch').on('click', function() {
+                RepoHelper.ajaxRequest_fetchProjects( $(this) );
+            });
+
+            // on enter key pressed in filter input
+            content.find('#repo_fetch_filter').focus().on( 'keypress', function(e) {
+                if ( e.which === 13 )       RepoHelper.ajaxRequest_fetchProjects(caller);
+            })
+        });
+    },
+    
+    
+    /**
+     * Help modal about repo
+     * @param title string
+     * @param message string
+     */
+    repoHelpDialog : function(title, message)   {
+
+        let content = 
+            $('<div class="help-inner">' +
+                '<h3>What\'s that and what for?</h3>' +
+                '<p>Remote Repository can keep Projects to help keep them up to date, exchange setups with your team, sync your browsers (Chrome - Firefox), or just backup. ' +
+                    'It comes especially helpful, when you work with dozens of projects, multiple stages and a number of teammates. But you can take advantages of this feature also when working alone.</p>' +
+                '<br>' +
+
+                '<h3>Quick test how that works:</h3>' +
+                '<p>Make a try using this <a id="repo_example" href="#">Example Demo Repo</a>. Click Fetch and see what it does.<br>' +
+                '<i>[In the Demo repository projects are not stored on server, but push dialog is there to test]</i></p>' +
+                '<br>' +
+                
+                '<h3>Host own Repo:</h3>' +
+                '<p>There are two roads to go:</p>' +
+                '<p>1. Use featured Projects Repository micro app, it\'s a 5 minute job, unpack, set keys, add optional htpassword. Optionally add some projects. ' +
+                    '<a class="external" href="https://wolo.pl/handyswitcher/projectrepo/" target="_blank">See details</a>.</p>' +
+                '<p>or 2. Go pro and ie. write a TYPO3 extension for that. I didn\'t do this yet, but it\'s somewhere on a todo-list.</p>' +
+            '</div>'
+        );
+
+        let dialogTitle = 'Project Repository - Info / Help';
+        
+        let dialog = ExtOptions.openDialog(dialogTitle, content, 'dialog-repo-help  text-left', function(caller)    {
+        
+            // bind test link
+            content.find('#repo_example').on('click', function() {
+                $('#env_repo_url')
+                    .val('https://wolo.pl/handyswitcher/repoexample/');
+                $('#env_repo_key')
+                    .val('fakeWriteKeyForDemo');
+                ExtOptions.optionsSave();
+
+                ExtOptions.closeDialog( dialog );
+                $('.__projects-remote').addClass('help-tour');
+                $('.help-tour').click(function(){
+                    $(this).removeClass('help-tour');
+                });
+                $('#env_repo_fetch')
+                    .addClass('tour-mark')
+                    .append('<span class="tour-point">&#10152;</span>');
+                return false;
+            });
+        });
+        
+    },
+
+    
+    /**
+     * Dialog about resolving Project conflict on push/pull
+     * @param title string
+     * @param message string
+     * @param projectItem_mine
+     * @param projectItem_their
+     */
+    conflictDialog : function(title, message, projectItem_mine, projectItem_their)   {
+
+        let content = 
+            $( '<div class="conflict-resolve">' +
+                '<button class="btn merge" id="conflict_localmerge_mine"><span class="icon"></span> <span class="text"><abbr title="Pull the remote one, merge them together and edit locally to push later">Manual merge</abbr> (MINE priority)</span></button>' +
+                '<button class="btn merge" id="conflict_localmerge_their"><span class="icon"></span> <span class="text"><abbr title="Pull the remote one, merge them together and edit locally to push later">Manual merge</abbr> (THEIR priority)</span></button>' +
+                '<button class="btn confirm-warn replace-remote" id="conflict_push_force"><span class="icon"></span> <span class="text"><abbr title="Overwrite copy on Repo">OVERWRITE</abbr> (push FORCE)</span></button>' +
+                
+                '<div class="notice"></div>' +
+            '</div>' +
+            '<div class="conflict-inner">' +
+                '<div class="diff-container"></div>' +
+            '</div>'
+        );
+
+
+        let mergeDialog = ExtOptions.openDialog(title, content, 'dialog-conflict', function(caller)    {
+            
+            let contentDiff = RepoHelper.renderDiff(projectItem_mine, projectItem_their)
+            content.find('.diff-container').html(contentDiff);
+            let project_mine = $( '#project_'+projectItem_mine.uuid );
+
+            let mineContextNames = [];
+            project_mine.find( '.contextItem [name="context[name]"]' ).each(function(){
+                mineContextNames.push( $(this).val() );
+            });
+            
+            let mineLinkNames = [];
+            project_mine.find( '.linkItem [name="link[name]"]' ).each(function(){
+                mineLinkNames.push( $(this).val() );
+            });
+
+
+            // bind buttons
+
+            // merge - MINE
+            content.find('#conflict_localmerge_mine').on('click', function() {
+                // keep name, iterate incoming contexts - if name not found in local, add item
+
+                // insert context, if not found existing
+                $.each(projectItem_their.contexts, function( i, context ) {
+// todo: indexOf may match too early! doesn't compare full strings, only first match
+// check this, maybe works ok
+                    if( mineContextNames.indexOf( context.name ) < 0 ) {
+                        // insert and mark new items
+                        ExtOptions.insertContextItem( project_mine, context )
+                            .addClass('new');
+                    }
+                });
+
+                // + links
+                $.each(projectItem_their.links, function( i, link ) {
+                    if( mineLinkNames.indexOf( link.name ) < 0 ) {
+                        ExtOptions.insertLinkItem( project_mine, link )
+                            .addClass('new');
+                    }
+                });
+                
+                // close modal  // and go to the project
+                ExtOptions.closeDialog( mergeDialog );
+                project_mine.find('.toggle.project').trigger('click');
+                $('html,body').animate({scrollTop: project_mine.offset().top - 100}, 300);
+            });
+
+
+
+            // merge - THEIR
+            content.find('#conflict_localmerge_their').on('click', function() {
+                
+                // close modal  // and go to the project - first
+                ExtOptions.closeDialog( mergeDialog );
+                project_mine.find('.toggle.project').trigger('click');
+                $('html,body').animate({scrollTop: project_mine.offset().top - 100}, 300);
+                
+                // replace name, ignore hide val, add contexts, replace current if exist
+                project_mine.find('[name="project[name]"]').val( projectItem_their.name );
+
+                // contexts
+                $.each(projectItem_their.contexts, function( i, context ) {
+                    let existingItemIndex = $.inArray( context.name, mineContextNames )
+              
+                    if( existingItemIndex > -1 ) {
+                        // if such exists, replace with incoming
+                        let itemIndexCorrected = existingItemIndex + 1;
+                        let contextToReplace = project_mine.find('.contextItem:nth-child('+itemIndexCorrected+')');
+                        let contextOverride = ExtOptions.insertContextItem( project_mine, context, false )
+                            .addClass('new');
+                        contextToReplace.replaceWith( contextOverride );
+                    }
+                    else    {
+                        // insert on end
+                        ExtOptions.insertContextItem( project_mine, context, true )
+                            .addClass('new');
+                    }
+                });
+
+                // and links
+                $.each(projectItem_their.links, function( i, link ) {
+                    let existingItemIndex = $.inArray( link.name, mineLinkNames )
+
+                    if( existingItemIndex > -1 ) {
+                        let itemIndexCorrected = existingItemIndex + 1;
+             
+                        let linkToReplace = project_mine.find('.linkItem:nth-child('+itemIndexCorrected+')');
+                        let linkOverride = ExtOptions.insertLinkItem( project_mine, link, false )
+                            .addClass('new');
+                        linkToReplace.replaceWith( linkOverride );
+                    }
+                    else    {
+                        ExtOptions.insertLinkItem( project_mine, link, true )
+                            .addClass('new');
+                    }
+                });
+
+                ExtOptions.initCheckboxes();
+            });
+
+
+            
+            content.find('#conflict_push_force').on('click', function() {
+                RepoHelper.ajaxRequest_pushProject( $('#project_'+projectItem_mine.uuid), 1, $(this) );
+            });
+        });
+    },
+    
+
+    /**
+     * Common ajax request header
+     */
+    getAjaxRequestHeaders : function () {
+        return {
+            'XCore-Request-Type': 'Ajax',   // one sure way to detect xhr call is to just pass that info by yourself
+            'Switcher-Repo-Key': ExtOptions.options.env_repo_key ?? $('#env_repo_key').val(),
+            'Switcher-Repo-Version-Request': minRepoVersionRequest,
+        }
+    },
+
+
+    /**
+     * Try to connect, update auth level if succeeded
+     */
+    ajaxRequest_handshake : function (caller)  {
+        
+        // reset auth state
+        RepoHelper.updateAuthLevelState(' ');
+
+        // start animation
+        caller.closest('p').addClass('ajax-loading');
+        ExtOptions.ajaxAddLoaderImage( caller.closest('p') );
+
+        let url = ExtOptions.options.repo_url ?? $('#env_repo_url').val();
+        if (!url)   {
+            ExtOptions.displayMessage( 'No repo url specified!', 'error');
+            return;
+        }
+
+        $.ajax({
+            url: url,
+            data: {
+                action: 'handshake',
+            },
+            dataType: 'json',
+            headers: RepoHelper.getAjaxRequestHeaders(),
+        })
+            .done(function(data) {
+                if (data.success === true)  {
+                }
+                else    {
+                    // default feedback to unsuccessful call
+                    ExtOptions.displayMessage('Success = false, error: ' + data.error, 'error' );
+                }
+                if (typeof (data.last_message) === 'object') {
+                    // replaced here if message object came
+                    ExtOptions.displayMessage( data.last_message[0], data.last_message[1] );
+                }
+                // set access level always
+                RepoHelper.updateAuthLevelState( data.access_level );
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                let message = errorThrown + ', status: ' + jqXHR.status;
+                ExtOptions.displayMessage( 'Ajax repo call failed: ' + message, 'error' );
+            })
+            .always(function() {
+                // stop animation
+                caller.closest('p').removeClass('ajax-loading');
+            });
+    },
+
+
+    /**
+     * Request projects list from repo, possibly filtered
+     * @param caller
+     */
+    ajaxRequest_fetchProjects : function(caller)  {
+        
+        let url = ExtOptions.options.repo_url ?? $('#env_repo_url').val();
+        if (!url)   {
+            ExtOptions.displayMessage( 'No repo url specified!', 'error');
+            return;
+        }
 
         // prepare placeholder for ajax data
-        caller.find('.ajax-target').empty();
-        caller.find('.ajax-target').addClass('ajax-loading');
-        ExtOptions.ajaxAddLoaderImage( caller.find('.ajax-target') );
+        let ajaxTarget = caller.closest('.fetch-controls').find('.ajax-target');
 
+        ajaxTarget.empty();
+        // inserting loader into target doesn't make sense, since it's empty and height 0
+        //caller.find('.ajax-target').addClass('ajax-loading');
+        //ExtOptions.ajaxAddLoaderImage( caller.find('.ajax-target') );
+        caller.closest('div').addClass('ajax-loading');
+        ExtOptions.ajaxAddLoaderImage( caller.closest('div') );
+        
         // call for ajax data
         // https://forum.jquery.com/topic/ajax-get-prompting-for-credentials
         $.ajax({
-            url: $('#repo_url').val(),
+            url: url,
             data: {
-                key: $('#repo_key').val(),
+                //key: $('#repo_key').val(),    // send key in header
                 action: 'fetch',
                 filter: $('#repo_fetch_filter').val(),
             },
             dataType: 'json',
+            headers: RepoHelper.getAjaxRequestHeaders(),
         })
             .done(function(data) {
-                caller.find('.ajax-target').html(
+                // reset message box - todo later: make this better, clear notice automatically
+                $( '.dialog-repo-fetch .fetch-inner .status' ).html('').removeClass('show');
+                
+                // update auth state from response
+                RepoHelper.updateAuthLevelState( data.access_level );
+
+                // fill results
+                ajaxTarget.html(
                     '<p>Found items: <b>'+ data.result.length +'</b></p>' +
-                    '<button class="btn getAll"><span class="icon"></span> <span class="text">Import all <abbr title="Only imports new, doesn\'t update these uuids which are found to already exist in config">missing</abbr></span></button>'
+                    ( data.result.length ?
+// todo: make this confirmable
+                        '<button class="btn getAll"><span class="icon"></span> <span class="text">Import all <abbr title="Only imports new, doesn\'t update these uuids which are found to already exist in config">missing</abbr></span></button>' : '' )
                 );
 
-                $('.dialog-fetch button.getAll').on('click', function(){
-                    let importableItems = caller.find('.ajax-target button.get');
+                if ( typeof (data.last_message) === "object") {
+                    ExtOptions.displayMessage( data.last_message[0], data.last_message[1], '.dialog-repo-fetch .fetch-inner .status', 99999 );
+                }
+
+                $('.dialog-repo-fetch button.getAll').on('click', function(){
+                    let importableItems = ajaxTarget.find('button.get');
                     let importableItemsCount = importableItems.length;
                     // trigger all clean-importable items
                     importableItems.trigger('click');
@@ -66,13 +390,147 @@ let RepoHelper = {
             })
             .fail(function(jqXHR, textStatus, errorThrown) {
                 let message = errorThrown + ', status: ' + jqXHR.status;
-                caller.find('.ajax-target').html('<p class="level-error">Ajax repo call failed: ' + message + '</p>');
+                ExtOptions.displayMessage( 'Ajax repo call failed: ' + message, 'error', '.dialog-repo-fetch .fetch-inner .status', 99999 );
             })
             .always(function() {
-                caller.find('.ajax-target').removeClass('ajax-loading');
+                caller.closest('div').removeClass('ajax-loading');
+            });
+    },
+
+    
+    /**
+     * @param project Dom element (not array!)
+     * @param force bool overwrite without confirming (second step push)
+     * @param caller dom element that triggers the action
+     * Post project to repository
+     */
+    ajaxRequest_pushProject : function (project, force, caller)  {
+
+        caller.closest('div').addClass('ajax-loading');
+        ExtOptions.ajaxAddLoaderImage( caller.closest('div') );
+
+        let url = ExtOptions.options.repo_url ?? $('#env_repo_url').val();
+        if (!url)   {
+            ExtOptions.displayMessage( 'No repo url specified!', 'error');
+            return;
+        }
+        force = force || 0;
+        
+        
+        // 1st STEP:
+        // post project
+        
+        // let projectData = JSON.stringify( ExtOptions.readProjectData( project ), null, 4 ) + "\n";
+        let projectItem = ExtOptions.readProjectData( project );
+        // let projectData = JSON.stringify( projectItem );
+        // todo later: finally it should exchange objects/arrays through ajax, so leave json and let the model do its job to build properly
+
+
+
+        $.ajax({
+            url: url,
+            method: 'POST',
+            data: {
+                action: 'push',
+                force: force,
+                projectData: projectItem,
+            },
+            dataType: 'json',
+            headers: RepoHelper.getAjaxRequestHeaders(),
+        })
+            .done(function(data) {
+                // reset message box - todo later: make this better, clear notice automatically
+                $( '.dialog-repo-fetch .fetch-inner .status' ).html('').removeClass('show');
+
+                // update auth state from response
+                RepoHelper.updateAuthLevelState( data.access_level );
+
+
+                // 2nd STEP:
+                // auth=write, no conflicts, project stored = success. close dialog, mark Project on list?
+
+                if (data.success === true)  {
+                    ExtOptions.displayMessage('Successfully pushed Project to the Repository.', 'success');
+                }
+                else    {
+
+                    // 3rd STEP:
+                    // conflict situation: if uuid exists (or name found / matches / similar?) return status 'conflict'
+                    // display dialog with diff / overwrite / merge
+
+                    switch (data.code) {
+                        case 'EXCEPTION_DATA_ERROR':
+                            // ExtOptions.displayMessage('Cannot push: ' + data.code, 'warn');
+                            break;
+
+                        case 'CONFLICT_UUID':
+                            // such uuid already exist on repo
+                        case 'CONFLICT_NAME':
+                            // similar name found in other project(s). maybe it's someones clone.
+
+                            // display dialog: diff + merge (pull to local and push later) + confirm overwrite (force push) //with selected from the two or pull & replace local
+                            RepoHelper.conflictDialog('Projects conflicted - resolve', '', projectItem, data.result.project_conflicted ?? []);
+                            break;
+                        default:
+                            // ExtOptions.displayMessage('Cannot push: ' + data.code, 'error');
+                    }
+                }
+                if (typeof (data.last_message) === 'object') {
+                    ExtOptions.displayMessage( data.last_message[0], data.last_message[1] );
+                }
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                let message = errorThrown + ', status: ' + jqXHR.status;
+                ExtOptions.displayMessage( 'Ajax repo call failed: ' + message, 'error');
+            })
+            .always(function() {
+                caller.closest('div').removeClass('ajax-loading');
             });
     },
     
+    
+
+
+    /**
+     * It's good to refresh auth state at every ajax call, to keep the options/repo GUI in sync with current (recent) access level
+     * @param level string
+     */
+    updateAuthLevelState : function(level)  {
+        RepoHelper.authLevel = level || 'unauthorized';
+        let $repo_auth_level = $('#repo_auth_level');
+        $repo_auth_level.html( RepoHelper.authLevel );
+        
+        // control gui visibility and functionality
+        let $body = $('body');
+        $body
+            .removeClass('repo_auth__write repo_auth__read repo_auth__admin repo_auth__unknown');
+        
+        switch ( RepoHelper.authLevel ) {
+            case 'READ':
+                $body
+                    .addClass('repo_auth__read');
+                $repo_auth_level
+                    .removeClass().addClass('level-info');
+                break;
+            case 'WRITE':
+                $body
+                    .addClass('repo_auth__write');
+                $repo_auth_level
+                    .removeClass().addClass('level-success');
+                break;
+            case 'ADMIN':
+                $body
+                    .addClass('repo_auth__write repo_auth__admin');
+                $repo_auth_level
+                    .removeClass().addClass('level-success');
+                break;
+            default:
+                /*$body
+                    .addClass('repo_auth__unknown');*/
+                $repo_auth_level
+                    .removeClass().addClass('level-error');
+        }
+    },
     
     /**
      * Insert project preview item block
@@ -85,7 +543,7 @@ let RepoHelper = {
                 '<div class="links"><p>Links:</p></div>' +
                 '<div class="buttons">' +
                     '<button class="btn compare"><span class="icon"></span> <span class="text">Compare</span></button>' +
-                    '<button class="btn add replace"><span class="icon"></span> <span class="text">Replace existing</span></button>' +
+                    '<button class="btn confirm-warn replace-local"><span class="icon"></span> <span class="text">Replace existing</span></button>' +
                     '<button class="btn add get"><span class="icon"></span> <span class="text">Import project</span></button>' +
                 '</button>' +
             '</div>' );
@@ -154,7 +612,7 @@ let RepoHelper = {
 
 
         // bind button replace existing
-        projectPreview.find( 'button.replace' ).click( function() {
+        projectPreview.find( 'button.replace-local' ).click( function() {
 			ExtOptions.confirmDialog( 'Replace existing project with this one', 'Are you sure?', function() {
                 // replace whole element where it is, to keep sorting
                 // temporary change the id, because new one will conflict with the same. then insert new, then move it to replace the old one
@@ -183,7 +641,7 @@ let RepoHelper = {
         return projectPreview;
     },
     
-    
+
     animateAddProject : function (project)  {
         // due to problems with clipping positioned element inside box with overflow-y scroll (hides also x but it shouldn't)
         // make the animation workaround
@@ -214,35 +672,16 @@ let RepoHelper = {
                 }
             });
     },
-    
-    
+
+
+    /**
+     * So called "overdialog" - is not actual first level dialog, rather a mini-dialog above the right one
+     * @param projectPreviewItem
+     */
     displayComparison : function(projectPreviewItem) {
 
         let projectExistingItem = ExtOptions.readProjectData( $('#project_'+projectPreviewItem.uuid) );
-        
-        let content = $( '<div class="row">' +
-                '<div class="col-6 compare-mine"><h1>Mine (existing)</h1></div>' +
-                '<div class="col-6 compare-theirs"><h1>Theirs (fetched)</h1></div>' +
-            '</div>' );
-
-        
-        delete projectExistingItem.hidden;  // don't compare that - unset for comparing
-        delete projectPreviewItem.hidden;
-
-        let projectPreviewItem_string = JSON.stringify(projectPreviewItem, null, 4);
-        let projectExistingItem_string = JSON.stringify(projectExistingItem, null, 4);
-
-      
-        content.find( '.compare-mine' ).append('<div class="compare-diff">' +
-                projectPreviewItem_string.diff( projectExistingItem_string ) +
-            '</div>'
-        );
-        
-        content.find( '.compare-theirs' ).append('<div class="compare-diff">' +
-                projectExistingItem_string.diff( projectPreviewItem_string ) +
-            '</div>'
-        );
-
+        let content = RepoHelper.renderDiff(projectExistingItem, projectPreviewItem);
 
         // display as another container above modal (don't create new modal, it replaces current and we need it)
         let overdialog = $( '<div class="dialog dialog-independent dialog-compare">' );
@@ -253,19 +692,64 @@ let RepoHelper = {
             .append( $( '<span class="dialog-close" title="Close">' ).html( 'X' ).on('click', function(){
                 $( 'body > .dialog-compare' ).remove();
                 // restore fetch modal dim
-                $('.dialog-fetch').css('opacity', '');
+                $('.dialog-repo-fetch').css('opacity', '');
             }) )
             .append( $( '<div class="dialog-body">' ).html( content ) )
             .appendTo( overdialog );
 
 
         // dim the fetch dialog under
-        $('.dialog-fetch').css('opacity', '0.5');
+        $('.dialog-repo-fetch').css('opacity', '0.5');
 
         // good idea is to disable here esc-key event - because pressing it when being in
         // comparison dialog closes all modals and you loose your fetch/search etc. better just do nothing, or try that: 
         // using this to keep modal to esc-close allows temporary disabling this handler
-        ExtOptions.dialogToCloseOnGlobalEvents = $;
+        ExtOptions.dialogToCloseOnGlobalEvents = overdialog;
+    },
+
+
+    /**
+     * Prepare nice view of two json configs diffed
+     * @param project_left
+     * @param project_right
+     * @return {*|jQuery|HTMLElement}
+     */
+    renderDiff : function(project_left, project_right) {
+
+        let left_modTime = new Date(project_left.tstamp * 1000);
+        let right_modTime = new Date(project_right.tstamp * 1000);
+        let left_modTime_nice = project_left.tstamp ? left_modTime.toDateString() + ' ' + left_modTime.toUTCString() + ( project_left.tstamp > project_right.tstamp ? ' ( NEWER )' : '' ) : '';
+        let right_modTime_nice = project_right.tstamp ? right_modTime.toDateString() + ' ' + right_modTime.toUTCString() + ( project_right.tstamp > project_left.tstamp ? ' ( NEWER )' : '' ) : '';
+
+        let content = $( '<div class="row">' +
+                '<div class="col-6 compare-mine"><h1>Mine (existing) <br><i class="small">modify time: '+ left_modTime_nice +'</i> </h1></div>' +
+                '<div class="col-6 compare-theirs"><h1>Their (remote) <br><i class="small">modify time: '+ right_modTime_nice +'</i> </h1></div>' +
+            '</div>' );
+
+        delete project_right.hidden;  // don't compare that - unset for comparison
+        delete project_left.hidden;
+
+        let project_left_string = JSON.stringify(project_left, null, 4);
+        let project_right_string = JSON.stringify(project_right, null, 4);
+
+
+        content.find( '.compare-mine' ).append('<div class="compare-diff">' +
+                project_right_string.diff( project_left_string ) +
+            '</div>'
+        );
+
+        content.find( '.compare-theirs' ).append('<div class="compare-diff">' +
+                project_left_string.diff( project_right_string ) +
+            '</div>'
+        );
+        
+        return content;
+    },
+    
+    
+    versionToInt : function( string )   {
+        let parts = string.split('.');
+        return parseInt( parts[0].padStart(3, '') + parts[1].padStart(3, '') + parts[2].padStart(3, '') );
     },
 };
 
