@@ -10,125 +10,241 @@
  * Context menu script - switching projects between its environments
  * Icon submenu, page submenu, info badges
  *
- * (Note, that "contextMenus" for chrome means "right click on context", where "context" means where it's clicked.
- * - And for us the "context" (or environment) means the server, where the project runs.
+ * (Note, that 'contextMenus' for chrome means 'right click on context', where 'context' means where it's clicked.
+ * - And for us the 'context' (or environment) means the server, where the project runs.
  * It's important in this file, where the context menu are set up. Please remember this and don't mix them!)
  */
 
 // console.log('environment.js loaded');
 
 
+            // to za bardzo nie dziala
+            // https://stackoverflow.com/questions/50844405/how-do-i-use-promises-in-a-chrome-extension
+            /*function toPromise(api) {
+              return (...args) => {
+                return new Promise((resolve) => {
+                  api(...args, resolve);
+                });
+              };
+            }*/
+            /*toPromise(chrome.tabs.query)({active: true, currentWindow: true}).then(function(t){
+                console.log(t);
+            });*/
+    
+    
+        /*  z tego cos sklepalem
+        
+        async function promiseQuery(options){
+          return new Promise(function(resolve,reject){
+            chrome.tabs.query(options, resolve);
+          });
+        }
+        
+        function getTabID() {
+            return new Promise((resolve, reject) => {
+                try {
+                    chrome.tabs.query({
+                        active: true,
+                    }, function (tabs) {
+                        resolve(tabs[0].id);
+                    })
+                } catch (e) {
+                    reject(e);
+                }
+            })
+        }
+        
+        //function where you need it
+        async function something() {
+            let responseTabID = await getTabID();
+            console.log(responseTabID);
+        }
+        
+        something();
+        */
 
 
-var Env = {
 
-    DEV: false,
+let Env = {
 
-    options: null,
-    projectsAll: null,
+    // level of log details etc.
+    DEV: 2,
+    // see more info in critical situations 
+    DEBUG: 1,
+
+    options: [],
+    projectsAll: [],
 
     /**
-     * lock avoids paralell setup when multiple events triggers
+     * @var Array<Object> Store once generated info for each tab id
      */
-    lock: false,
+    tabs_setup: [],
 
+    /**
+     * @var Array<Arrays> Store build log for each tab id to output whole at once when finished operation
+     */
+    tabs_log: [],
+
+
+    /**
+     * Read config + preprocess projects array
+     * @return {Promise<unknown>}
+     */
+    promiseConfig: function() {
+        return new Promise((resolve, reject) => {
+            try {
+                chrome.storage.sync.get( null, function(options) {
+                    
+                    // exit now, if whole env functionality is disabled
+                    if ( options?.env_enable !== true )
+                    {
+                        reject('EXIT: ------ \'Switcher: ENV functionality disabled\' ------');
+                    }
+
+                    resolve( options );
+                })
+            } catch (e) {
+                reject(e);
+            }
+        })
+    },
+    
+    /**
+     * Setup
+     */
+    setupOptions: function(options)   {
+
+        Env.options = options;
+        Env.DEV = options.ext_debug;
+        let projects = [];
+
+        // recent raw js method to foreach
+        Object.entries(options).forEach(function([key, value])    {
+            if (key.match(/^project_/g)) {
+                // if, for some reason, project doesn't have a uuid, take it from key (probably uuid is not needed here, but keep the code in sync with Options) 
+                if (typeof options[key].uuid === 'undefined')
+                    options[key].uuid = key.replace(/^project_+/g, '');
+                projects.push(options[key]);
+            }
+        });
+        // put them in right order
+        projects.sort(function(a, b){
+            if (a.sorting > b.sorting)  return 1;
+            if (a.sorting < b.sorting)  return -1;
+            return 0;
+        });
+
+        Env.projectsAll = projects;
+    },
 
     /**
      * find current url in projects options. if found - set new menu and badge. otherwise exit
      */
-    initProject : function()   {
+    bindProjectDetection: function()   {
         
-        let console_setupProjectVisualDivider = function()   {
+        let console_setupStartDivider = (triggerEventInfo) => {
             console.info('');
-            console.info('=============  RUN ENVIRONMENT SETUP  =============');
+            console.info('=============  ENVIRONMENT SETUP  '+ triggerEventInfo +'  =============');
         }
+            /*  do the whole job on these specified events hit, to reinit the menu etc. every time in current window a tab
+                is switched / page is loaded in current tab / - basically when current window's content / viewport / url changes
+                we rebuild the menu and replace the action icon indicator   */
+            /*  try these
+                chrome.tabs.onHighlightChanged.addListener( function (highlightInfo) {
+                [works bad]
+                this one: chrome.tabs.onSelectionChanged.addListener( function (tabId, selectInfo) can't be used here, it have to run on tab focus */
 
-        // do the whole job on these specified events hit, to reinit the menu etc. every time in current window a tab
-        // is switched / page is loaded in current tab / - basically when current window's content / viewport / url changes
-        // we rebuild the menu and replace the action icon indicator
 
-        // on switch tab
+        // on SWITCH TAB
         chrome.tabs.onHighlighted.addListener( function (highlightInfo) {
 
-            // try these
-            // chrome.tabs.onHighlightChanged.addListener( function (highlightInfo) {
-            // [works bad]
-            // this one: chrome.tabs.onSelectionChanged.addListener( function (tabId, selectInfo) can't be used here, it have to run on tab focus
-
-            console_setupProjectVisualDivider();
-            console.log(': EVENT: tabs.highlightInfo');
+            console_setupStartDivider(' --  event: TAB SWITCHED  --  [tabs.highlightInfo]');
+            let tabId = highlightInfo?.tabIds[0] ?? 0;
             
-            // we can't use this here - a) we don't get it from this event, b) we have to run it 
-            // if ( !highlightInfo.url )  { ...
-
-            
-            if ( Env.lock )   {
-                console.log( ': LOCKED! operation in progress. exit' );
-                return;
+            if (!tabId) {
+                return console.log('- ERROR - no tabId from onHighlighted... highlightInfo. ');
+            }
+            if ( Env.tabs_setup[tabId]?.lock )   {
+                return console.log( '== : LOCKED - operation in progress. - EXIT.' );
             }
             
-            // should be right here! on begin of the event hit
-            console.log( '[LOCK]' );
-            Env.lock = true;
+            // START SETUP
+
+            // reset previous data stored for this tab
+            Env.tabs_setup[tabId] = {};
+            Env.tabs_log[tabId] = [];
+
+            // set lock
+            Env.logGroup( '== SETUP TAB id = '+tabId, true, tabId );
+            Env.log( '[LOCK]', tabId, 0, 0 );
+            Env.tabs_setup[tabId].lock = true;
+
+// TODO: CAN WE REUSE THIS PART?
+
+            Env.promiseTabsGet(tabId)
+                .then( async (tab) => {
+                    Env.log('* Got Tab object - START ->>>', tabId, 0, 1 );
+                    Env.log('- TAB object', tabId, Env.LEVEL_debug, 2, tab );
+
+                    // ! in that bug situation it doesn't fail, it just returns undefined in success-way!
+                    if (typeof tab === 'undefined') {
+                        Env.log( ' ! ** TAB OBJECT DOESN\'T EXIST. IT SHOULD NOT HAPPEN. INVESTIGATE THE SITUATION !', tabId, 3 );
+                        Env.log( ' - tabId: ' + tabId + ' highlightInfo', tabId, 2, 1, highlightInfo );
+                        Env.log( ' - output from .runtime.lastError: ' + chrome.runtime.lastError.message, tabId, 2, 0 )
+                        Env.log( ' : EXIT / No tab object for some reason', tabId, 1 );
+                        Env.helper_finishProjectSetup(tabId, true);
+                        return;
+                    }
+
+                                // on system and other pages which are not simply http website, end execution
+                                // update: this idea failed, but after recent tests I think it's unnecessary, works well 
+                                /*if ( !tab.url.toString().startsWith('http') )   {
+                                    console.log( ': - applies only to http/s schema urls.' );
+                                    console.groupCollapsed('Cleanup / reset');
+                                    Env.lock = true;
+                                    console.info('-- ICON: deactivate');
+                                    Env.setActionIcon( '', tabId );
+                                    console.log('-- MENU: clean.');
+                                    chrome.contextMenus.removeAll( function () {
+                                        console.log('-- MENU: rebuild with universal items.');
+                                        // setup menu with universal items
+                                        Env.setupContextMenu( [], -1, [], tabId, 'onHighlighted' );
+                                        console.log( ': EXIT' );
+                                    });
+                                    return;
+                                }*/
 
 
-            let tabId = (typeof highlightInfo.tabIds !== 'undefined') ? highlightInfo.tabIds[0] : 0;
-
-            chrome.tabs.get( tabId, function(tab){
-
-                if (typeof tab === 'undefined') {
-                    console.log( ': ** TAB OBJECT DOESN\'T EXIST. IT SHOULD NOT HAPPEN. INVESTIGATE THE SITUATION. Params from callback:' );
-                    console.log( 'tabId: ' + tabId + ' highlightInfo', highlightInfo );
-                    console.log( ': EXIT / No tab object for some reason' );
-                }
-
-                // on system and other pages which are not simply http website, end execution
-                // update: this idea failed, but after recent tests I think it's unnecessary, works well 
-                /*if ( !tab.url.toString().startsWith('http') )   {
-                    console.log( ': - applies only to http/s schema urls.' );
-
-                    console.groupCollapsed('Cleanup / reset');
-                    Env.lock = true;
-
-                    console.info('-- ICON: deactivate');
-                    Env.setActionIcon( '', tabId );
-
-                    console.log('-- MENU: clean.');
-                    chrome.contextMenus.removeAll( function () {
-                        console.log('-- MENU: rebuild with universal items.');
-                        // setup menu with universal items
-                        Env.setupContextMenu( [], -1, [], 'onHighlighted' );
-                        console.log( ': EXIT' );
-                    });
-                    return;
-                }*/
-
-
-                // check if completed and if not - delay execution (don't loop checking this, better try to load it anyway after a while.
-                // this way it should fix missing favicon/badge problem, but doesn't make you wait every time until all assets finishes loading
-                // until the badge finally displays.) todo: observe the new behaviour, revert in case of problems
-                if ( tab.status === 'loading' )   {
-                    console.log( ': PAGE IS STILL LOADING - delay project init' );
-                    setTimeout(function(){
-                        Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onHighlighted' );
-                    }, 500);
-                }
-                else    {
-                    Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onHighlighted' );
-                }
-            });
+                    // check if completed and if not - delay execution (don't loop checking this, better try to load it anyway after a while.
+                    // this way it should fix missing favicon/badge problem, but doesn't make you wait every time until all assets finishes loading
+                    // until the badge finally displays.) todo: observe the new behaviour, revert in case of problems
+                    if ( tab?.status === 'loading' )   {
+                        Env.log( ': PAGE IS STILL LOADING - delay project init', tabId, 2, 1 );
+                        setTimeout(function(){
+                            Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onHighlighted', tabId );
+                        }, 500);
+                    }
+                    else    {
+                        Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onHighlighted', tabId );
+                    }
+                })
+                .catch( (e) => console.log(e) );
         });
 
 
-        // on switch window
+
+
+        // on SWITCH WINDOW
+
         // (focus window with some tab open doesn't hit any event on this tab, so we need this also) 
         chrome.windows.onFocusChanged.addListener( function (windowId) {
-            console_setupProjectVisualDivider();
-            console.log(': EVENT: windows.onFocusChanged');
+console.log('  # # # # # # #    FOCUS CHANGED - DO WE NEED TO USE THIS LISTENER? ');
+return;
+            console_setupStartDivider(' --  event: WINDOW SWITCHED  --  [windows.onFocusChanged]');
 
-            if ( Env.lock )   {
-                console.log( ': LOCKED! operation in progress. exit' );
-                return;
+            // todo: how to get tabId in here...?  
+            if ( Env.tabs_setup[tabId]?.lock )   {
+                return console.log( '== : LOCKED - operation in progress. - EXIT.' );
             }
             
             // should be right here! on begin of the event hit
@@ -139,11 +255,11 @@ var Env = {
         });
 
 
-        // on load page
+        // on LOAD PAGE
         chrome.tabs.onUpdated.addListener( function (tabId, changeInfo) {
-            console_setupProjectVisualDivider();
-            console.log(': EVENT: tabs.onUpdated');
-            
+return;            
+            console_setupStartDivider(' --  event: PAGE LOAD  --  [tabs.onUpdated]');
+// todo: this callback is (or can be) probably identical with the one from switch tab - unify!            
             // this filter doesn't work well, it ignores clicks on previously loaded tabs and doesn't reset setup
             /*console.log('changeInfo', changeInfo);
             if ( !changeInfo.status )   {
@@ -152,38 +268,152 @@ var Env = {
             }*/
             
             
-            if ( Env.lock )   {
-                console.log( ': LOCKED! operation in progress. exit' );
-                return;
+        // let tabId = highlightInfo?.tabIds[0] ?? 0;
+ 
+            if (!tabId) {
+                return console.log('- ERROR - no tabId from onHighlighted... highlightInfo. ');
             }
-            
-            // should be right here! on begin of the event hit
-            console.log( '[LOCK]' );
-            Env.lock = true;
+            if ( Env.tabs_setup[tabId]?.lock )   {
+                return console.log( '== : LOCKED - operation in progress. - EXIT.' );
+            }
 
+            // START SETUP
 
-            chrome.tabs.get( tabId, function(tab) {
-                if ( typeof tab === 'undefined' ) {
-                    console.log( ': ** TAB OBJECT DOESN\'T EXIST. IT SHOULD NOT HAPPEN. INVESTIGATE THE SITUATION. Params from callback:' );
-                    console.log( 'changeInfo', changeInfo );
-                    Env.lock = false;
-                    console.log( ': EXIT / No tab object for some reason [LOCK RELEASED]' );
-                    return;
-                }
+            // reset previous data stored for this tab
+            Env.tabs_setup[tabId] = {};
+            Env.tabs_log[tabId] = [];
 
-                if ( tab.status === 'loading' )   {
-                    console.log( ': PAGE IS STILL LOADING - delay project init' );
-                    setTimeout(function(){
-                        Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onUpdated' );
-                    }, 500 );
-                }
-                else    {
-                    Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onUpdated', tabId );
-                }
-            });
+            // set lock
+            Env.logGroup( '== SETUP TAB id = '+tabId, true, tabId );
+            Env.log( '[LOCK]', tabId, 0, 0 );
+            Env.tabs_setup[tabId].lock = true;
+
+// TODO: CAN WE REUSE THIS PART?
+
+            Env.promiseTabsGet(tabId)
+                .then( async (tab) => {
+                    Env.log('= TAB '+tabId+' - START ->>>', tabId, 0, 2 );
+                    Env.log('TAB object', tabId, Env.LEVEL_debug, 1, tab );
+
+                    // ! in that bug situation it doesn't fail, it just returns undefined in success-way!
+                    if (typeof tab === 'undefined') {
+                        Env.log( ' ! ** TAB OBJECT DOESN\'T EXIST. IT SHOULD NOT HAPPEN. INVESTIGATE THE SITUATION !', tabId, 3 );
+                            // AA:
+                        // console.log( 'changeInfo', changeInfo );
+                            // BB:
+                        // Env.log( ' - tabId: ' + tabId + ' highlightInfo', tabId, 2, 1, highlightInfo );
+                        // Env.log( ' - output from .runtime.lastError: ', tabId, 2, 0, chrome.runtime.lastError )
+                        Env.log( ' - output from .runtime.lastError: ' + chrome.runtime.lastError.message, tabId, 2, 0 )
+                        Env.log( ' : EXIT / No tab object for some reason', tabId, 1 );
+                        Env.helper_finishProjectSetup(tabId, true);
+                        return;
+                    }
+
+                    // check if completed and if not - delay execution (don't loop checking this, better try to load it anyway after a while.
+                    // this way it should fix missing favicon/badge problem, but doesn't make you wait every time until all assets finishes loading
+                    // until the badge finally displays.) todo: observe the new behaviour, revert in case of problems
+                    if ( tab?.status === 'loading' )   {
+                        Env.log( ': PAGE IS STILL LOADING - delay project init', tabId, 2, 1 );
+                        setTimeout(function(){
+                            Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onHighlighted', tabId );
+                        }, 500);
+                    }
+                    else    {
+                        Env.findAndApplyProjectConfigForCurrentTabUrl( Env.options, Env.projectsAll, 'onHighlighted', tabId );
+                    }
+                })
+                .catch( (e) => console.log(e) );
         });
     },
 
+    
+    /**
+     * Get tab by id
+     * @return {Promise<unknown>}
+     */
+    promiseTabsGet: function(tabId ) {
+        return new Promise((resolve, reject) => {
+            try {
+                // workaround for chrome 91 bug with error 'Tabs cannot be edited right now (user may be dragging a tab).'
+                const loop = function () {
+                
+                    chrome.tabs.get( tabId, function(tab) {
+                        if (chrome.runtime.lastError)   {
+                            Env.log(chrome.runtime.lastError.message, tabId, 2, 1)
+                        }
+
+                        if (tab)    {
+                            resolve( tab );
+                        }
+                        else    {
+                            setTimeout(() => {
+                                // false value doesn't resolve, when passed, in that case 'then' is called
+                                Promise.resolve( tab )
+                                    .then( loop )
+                                    .catch( reject );
+                            }, 200);
+                        }
+                    });
+                }
+                loop();
+
+            } catch (e) {
+                reject(e);
+            }
+
+
+            // normally this should work:
+            /*try {
+                chrome.tabs.get( tabId, async function(tab) {
+                    resolve( tab );
+                });
+            } catch (e) {
+                reject(e);
+            }*/
+        })
+    },
+
+    /**
+     * Get tabs
+     * @return {Promise<unknown>}
+     */
+    promiseTabsQuery: function(query ) {
+        return new Promise((resolve, reject) => {
+            try {
+                // workaround for chrome 91 bug with error 'Tabs cannot be edited right now (user may be dragging a tab).'
+                const loop = function () {
+
+                    chrome.tabs.query( query, async function(tabs) {
+                        
+                        if (tabs)    {
+                            resolve( tabs );
+                        }
+                        else    {
+                            setTimeout(() => {
+                                Promise.resolve( tabs )
+                                    .then( loop )
+                                    .catch( reject );
+                            }, 200);
+                        }
+                    });
+                }
+                loop();
+
+            } catch (e) {
+                reject(e);
+            }
+
+
+            // normally this should work:
+            /*try {
+                chrome.tabs.query( query, async function(tab) {
+                    resolve( tab );
+                });
+            } catch (e) {
+                reject(e);
+            }*/
+        })
+    },
 
     /**
      * looks for current tab url in projects config. if found, rebuilds action menu, badge and other env settings
@@ -192,144 +422,153 @@ var Env = {
      * @param _debugEventTriggered
      * @param tabId
      */
-    findAndApplyProjectConfigForCurrentTabUrl : function(options, projectsAll, _debugEventTriggered, tabId) {
-        
-        if ( typeof options.env_enable === 'undefined'  ||  options.env_enable === false )  {
-            return;
-        }
+    findAndApplyProjectConfigForCurrentTabUrl: function(options, projectsAll, _debugEventTriggered, tabId) {
 
-        var loadFavicon = _debugEventTriggered === 'onUpdated';
-        var loadBadge = _debugEventTriggered === 'onUpdated';
+        let loadFavicon = _debugEventTriggered === 'onUpdated';
+        let loadBadge = _debugEventTriggered === 'onUpdated';
 
 
-        console.groupCollapsed('Start - handle active tab');
-        console.info('- PROJECT CONTEXT SETUP begin - find project for current url & rebuild menu');
+        Env.logGroup( '=== Match url, cleanup & preparations', true, tabId );
+        Env.log('- PROJECT CONTEXT SETUP begin - find project for current url & rebuild menu', tabId, 1, 2 );
 
         // clear current options
-        console.log('-- MENU: clean');
-        chrome.contextMenus.removeAll( function () {
+        Env.log('-- MENU: flush', tabId, 0, 2 );
+        chrome.contextMenus.removeAll( () => {
 
             // deactivate icon
-            console.info('-- ICON: deactivate');
+            Env.log( '-- ICON: deactivate', tabId, 1, 2 );
             Env.setActionIcon( '', tabId );
 
-            // project and link not needed for now, disable to not hit storage write quota
-            // chrome.storage.sync.set({'_currentProject': {}});
-            // chrome.storage.sync.set({'_currentContext': {}});
-            // chrome.storage.sync.set({'_currentLink': {}});
 
             // gets current tab with details (tab from events only returns id)
-            chrome.tabs.query({active: true, lastFocusedWindow: true}, function (tabs) {
-                let tab = tabs[0];
-                if (typeof tab === 'undefined') {
-                    console.groupEnd();
-                    console.log('Can\'t read tab (system?) - exit [ LOCK RELEASE ]');
-                    Env.lock = false;
-                    return;
-                }
-                
-                if ( !tab.url.toString().startsWith('http') )   {
-                    loadFavicon = false;
-                    loadBadge = false;
-                }
+            Env.promiseTabsQuery({active: true, lastFocusedWindow: true})
+                .then( async (tabs) => {
 
-                var isProjectFound = false;
+                    let tab = tabs[0] ?? null;
+                    if ( !tab ) {
+                        Env.log( ' ! ** TAB OBJECT DOESN\'T EXIST. IT SHOULD NOT HAPPEN. INVESTIGATE THE SITUATION !', tabId, 3 );
+                        Env.log( ' - tabId: ' + tabId + '', tabId, 2, 1 );
+                        Env.log( ' - output from .runtime.lastError: ', tabId, 2, 0, chrome.runtime.lastError?.message )
+                        Env.log( ' : EXIT / No tab object for some reason', tabId, 1 );
+                        // console.log(' - Can\'t read tab (system?) - EXIT');
+                        Env.helper_finishProjectSetup(tabId, true);
+                        // close group again, because here we're on second level nest
+                        console.groupEnd();
+                        console.log(' - Can\'t read tab (system?) - EXIT');
+                        return;
+                    }
 
+                    if ( !tab.url.toString().startsWith('http') )   {
+                        loadFavicon = false;
+                        loadBadge = false;
+                    }
 
-
-                // setup new ones, if url found in config
-                if ( typeof projectsAll !== 'undefined' ) {
-                    for ( var p = 0;  p < projectsAll.length;  p++ ) {
-
-                        var project = projectsAll[p];
-
-                        if ( project.hidden || !project.name )
-                            continue;
+                    let isProjectFound = false;
 
 
-                        if ( typeof project.contexts !== 'undefined' ) {
-                            for ( var c = 0;  c < project.contexts.length;  c++ ) {
 
-                                var context = project.contexts[c];
+                    // setup new ones, if url found in config
+                    if ( typeof projectsAll !== 'undefined' ) {
+                        for ( let p = 0;  p < projectsAll.length;  p++ ) {
 
-                                if ( context.hidden )
-                                    continue;
+                            let project = projectsAll[p];
 
-                                // compare ignoring schema (& trailing slash in configured url)
-                                if ( context.url  &&  tab.url.replace( /^https?:\/\//, '//')
-                                        .match( context.url.replace( /^https?:\/\//, '//').replace( /\/$/, '') ) ) {
-
-                                    isProjectFound = true;
-
-                                    console.groupEnd();
-                                    console.info('* FOUND project: ', project.name, ', context: ', context.name);
-                                    console.groupCollapsed( 'Setup active project' );
+                            if ( project.hidden || !project.name )
+                                continue;
 
 
-                                    console.info('-- ICON: activate');
-                                    Env.setActionIcon( 'active', tabId );
+                            if ( typeof project.contexts !== 'undefined' ) {
+                                for ( let c = 0;  c < project.contexts.length;  c++ ) {
 
-                                    // don't check this option - show menu always anyway. no reason to disable it and show only badge.
-                                    // also it's problematic due to locks - menu and badge are starting the same time. probably must be done using call chain)
-                                    //if ( options.env_switching !== false )  {
-                                    Env.setupContextMenu( context, p, project, _debugEventTriggered );
+                                    let context = project.contexts[c];
 
-                                    if ( options.env_badge !== false  &&  loadBadge )  {
-                                        console.info('-- BADGE: inject ');
-                                        Env.setupBadge( context, project, tab, _debugEventTriggered );
+                                    if ( context.hidden )
+                                        continue;
+
+                                    // compare ignoring schema (& trailing slash in configured url)
+                                    if ( context.url  &&  tab.url.replace( /^https?:\/\//, '//')
+                                            .match( context.url.replace( /^https?:\/\//, '//').replace( /\/$/, '') ) ) {
+
+                                        isProjectFound = true;
+                                        
+                                        // close group, then open next on the same level
+                                        Env.logGroup(null, false, tabId);
+                                        Env.log('* MATCHED URL   ** **   FOUND PROJECT!' /*+ project.name +'  -  context: '+ context.name*/, tabId, 1, 0, {project: project.name, context: context.name});
+                                        Env.logGroup( '=== Setup tab for active project', true, tabId );
+
+
+                                        Env.log('-- ICON: activate', tabId, 1, 2 );
+                                        Env.setActionIcon( 'active', tabId );
+
+                                        // don't check this option - show menu always anyway. no reason to disable it and show only badge.
+                                        // also it's problematic due to locks - menu and badge are starting the same time. probably must be done using call chain)
+                                        //if ( options.env_switching !== false )  {
+                                        Env.setupContextMenu( context, p, project, tabId, _debugEventTriggered );
+
+                                        if ( options.env_badge  &&  loadBadge )  {
+                                            Env.log('-- BADGE: inject ', tabId, 1, 2);
+                                            Env.setupBadge( context, project, tab, _debugEventTriggered );
+                                        }
+
+                                        if ( options.env_favicon  &&  loadFavicon )    {
+                                            Env.setupFavicon( context, project, tab, _debugEventTriggered );
+                                        }
+
+                                        // stop searching projects, without releasing the lock (release in setup callback)
+                                        //Env.helper_finishProjectSetup(tabId);
+                                        return;
                                     }
-
-                                    // todo: make sure, if options can be read simply or with typeof to not cause errors after update ext and no such option saved yet
-                                    if ( ( typeof options.env_favicon === 'undefined'  ||  options.env_favicon === true )  &&  loadFavicon )    {
-                                        Env.setupFavicon( context, project, tab, _debugEventTriggered );
-                                    }
-
-                                    // stop searching projects, without releasing the lock (release in setup callback)
-                                    return;
                                 }
                             }
-                        }
 
-                        if ( typeof project.links !== 'undefined' ) {
-                            for ( var l = 0;  l < project.links.length;  l++ ) {
+                            if ( typeof project.links !== 'undefined' ) {
+                                for ( let l = 0;  l < project.links.length;  l++ ) {
 
-                                var link = project.links[l];
+                                    let link = project.links[l];
 
-                                if ( link.hidden )
-                                    continue;
+                                    if ( link.hidden )
+                                        continue;
 
-                                if ( link.url  &&  tab.url.match( link.url ) ) {
+                                    if ( link.url  &&  tab.url.match( link.url ) ) {
 
-                                    isProjectFound = true;
+                                        isProjectFound = true;
 
-                                    console.info('--- FOUND project: ', project.name, ', link: ', link.name);
+                                        // close group, then open next on the same level
+                                        Env.logGroup(null, false, tabId);
+                                        Env.log('* MATCHED URL   ** **   FOUND PROJECT!' /*+ project.name +'  -  context: '+ context.name*/, tabId, 1, 0, {project: project.name, link: link.name});
+                                        Env.logGroup( '=== Setup tab for active project', true, tabId );
 
 
-                                    console.info('-- ICON: activate');
-                                    Env.setActionIcon( 'active', tabId );
+                                        Env.log('-- ICON: activate', tabId, 1, 2 );
+                                        Env.setActionIcon( 'active', tabId );
 
-                                    Env.setupContextMenu( link, p, project, _debugEventTriggered );
+                                        Env.setupContextMenu( link, p, project, tabId, _debugEventTriggered );
 
-                                    if ( options.env_badge !== false )  {
-                                        link.color = '#cccccc';
-                                        Env.setupBadge( link, project, tab, _debugEventTriggered );
+                                        if ( options.env_badge  &&  loadBadge )  {
+                                            link.color = '#cccccc';
+                                            Env.log('-- BADGE: inject ', tabId, 1, 2);
+                                            Env.setupBadge( link, project, tab, _debugEventTriggered );
+                                        }
+                                        
+                                        // no favicon overlay on Links
+
+                                        // stop searching projects, without releasing the lock (release in setup callback)
+                                        //Env.helper_finishProjectSetup(tabId);
+                                        return;
                                     }
-
-                                    // stop searching projects, without releasing the lock (release in setup callback)
-                                    return;
                                 }
                             }
                         }
                     }
-                }
 
-                // if project not found, build standard menu
-                console.groupEnd();
-                console.info('- project NOT FOUND.');
-                console.groupCollapsed( 'Setup only non-project stuff' );
+                    Env.logGroup(null, false, tabId);
+                    Env.log('- project NOT FOUND.', tabId);
+                    Env.logGroup( '=== Setup tab', true, tabId );
+                    Env.log( '-- MENU: standard menu items, All Projects, custom links, if enabled', tabId );
 
-                console.info( '-- MENU: standard menu items, All Projects, custom links, if enabled' );
-                Env.setupContextMenu( [], '', [], _debugEventTriggered );
+                    // if project not found, build standard menu
+                    Env.setupContextMenu( [], '', [], tabId, _debugEventTriggered );
+                    // check if not better close group before menu build, it may take time and mix console logs
             });
         });
     },
@@ -340,24 +579,25 @@ var Env = {
      * @param activeContext
      * @param p - project's array index
      * @param project
+     * @param tabId
      * @param _debugEventTriggered
      */
-    setupContextMenu : function(activeContext, p, project, _debugEventTriggered) {
+    setupContextMenu: function(activeContext, p, project, tabId, _debugEventTriggered) {
 
-        console.log('-- MENU: rebuild');
+        Env.log('-- MENU: rebuild', tabId, 0, 1);
         
-        // clear current options again / to be sure it's empty before adding anything
-        
-        console.log('--- menu clean');
-        chrome.contextMenus.removeAll( function () {
+                    // clear current options again / to be sure it's empty before adding anything
+                    // Env.log('--- menu clean', tabId, 1, 2);
+                    //chrome.contextMenus.removeAll( function () {
 
-            var contextMenuItems = [];
-            var mark = '';
-            var options = Env.options;
-
+            let menuItems = [];
+            let mark = '';
+            let options = Env.options;
 
 
-            // New permissions info
+
+            // New permissions info     // todo: delete in a few minor version
+
             //   When the ext was just updated to a version with the new host-permissions, it won't work until the permissions are granted.
             //   We need to inform the user about that situation and let him go to the options and save them to trigger permission check.
             //
@@ -373,7 +613,7 @@ var Env = {
                     &&  ! options.internal_permissions_acknowledged )  {
 
 
-                let tempMenuContexts = [ "page", "frame", "selection", "link", "editable", "image", "video", "audio", "page_action", "browser_action" ];
+                let tempMenuContexts = [ 'page', 'frame', 'selection', 'link', 'editable', 'image', 'video', 'audio', 'page_action', 'browser_action' ];
                 chrome.contextMenus.create({
                     title :     '!!!  IMPORTANT  !!!  Your attention needed - open Options / SEE DETAILS ->',
                     contexts :  tempMenuContexts,
@@ -394,24 +634,24 @@ var Env = {
             // -- ENVIRONMENTS (CONTEXTS)
             if ( typeof project.contexts !== 'undefined' ) {
 
-                var c = 0;
+                let c = 0;
 
                 for ( c;  c < project.contexts.length;  c++ ) {
 
-                    var context = project.contexts[c];
+                    let context = project.contexts[c];
 
                     if ( context.hidden || !context.url || !context.name )
                         continue;
 
-                    mark = activeContext.name === context.name && activeContext.url === context.url ? '-> ' : '     ';
+                    mark = activeContext.name === context.name  &&  activeContext.url === context.url ? '-> ' : '     ';
 
-                    contextMenuItems.push({
+                    menuItems.push({
                         title : mark + context.name,
                         id :    'project-' + p + '-env-' + c,
                         parentId :  'parent_contexts',
                         showForMenuType :   'actionMenuOnly'
                     });
-                    contextMenuItems.push({
+                    menuItems.push({
                         title : mark + context.name,
                         id :    'project-' + p + '-env-' + c,
                         showForMenuType :   'rightClickOnly'
@@ -426,7 +666,7 @@ var Env = {
                     // add top level submenu always (for action icon, not for page right click menu)
                     chrome.contextMenus.create({
                         title :     project.name + ': contexts',
-                        contexts :  [ "browser_action" ],
+                        contexts :  [ 'browser_action' ],
                         id :        'ICON-parent_contexts'
                     });
                 }
@@ -436,12 +676,12 @@ var Env = {
             // -- LINKS
             if ( typeof project.links !== 'undefined' ) {
 
-                var separatorAdded = false;
-                var l = 0;
+                let separatorAdded = false;
+                let l = 0;
 
                 for ( l;  l < project.links.length;  l++ ) {
 
-                    var link = project.links[l];
+                    let link = project.links[l];
 
                     if ( link.hidden || !link.url || !link.name)
                         continue;
@@ -450,7 +690,7 @@ var Env = {
 
                     // add separator on first (not hidden) item
                     if ( !separatorAdded ) {
-                        contextMenuItems.push({
+                        menuItems.push({
                             // for action icon where we use submenus, we set parentId
                             // in that case this separator is not used.
                             // it's only for page context menu, where we don't use additional submenus
@@ -462,13 +702,13 @@ var Env = {
                         separatorAdded = true;
                     }
 
-                    contextMenuItems.push({
+                    menuItems.push({
                         title : mark + link.name,
                         id :    'project-' + p + '-link-' + l,
                         parentId :  'parent_links',
                         showForMenuType :   'actionMenuOnly'
                     });
-                    contextMenuItems.push({
+                    menuItems.push({
                         title : mark + link.name,
                         id :    'project-' + p + '-link-' + l,
                         showForMenuType :   'rightClickOnly'
@@ -476,17 +716,17 @@ var Env = {
                 }
 
                 // if any not hidden links
-                if (l > 0) {
+                if ( l > 0 ) {
                     chrome.contextMenus.create({
                         title :     project.name + ': links',
-                        contexts :  [ "browser_action" ],
+                        contexts :  [ 'browser_action' ],
                         id :        'ICON-parent_links'
                     });
                 }
             }
 
 
-            contextMenuItems.push({
+            menuItems.push({
                 title :             '_separator-shortcustom',
                 id :                'separator_shortcustom',
                 type :              'separator',
@@ -495,31 +735,33 @@ var Env = {
 
 
             // -- Custom shortcut 1
-            if ( typeof options.env_menu_short_custom1 !== 'undefined'  &&  options.env_menu_short_custom1 !== '' ) {
-                let linkParts_short1 = options.env_menu_short_custom1.split(" | ");
+            if ( options.env_menu_short_custom1  &&  options.env_menu_short_custom1 !== '' ) {
+                let linkParts_short1 = options.env_menu_short_custom1.split(' | ');
 
-                contextMenuItems.push({
-                    title : typeof linkParts_short1[1] !== 'undefined' ? linkParts_short1[1] : linkParts_short1[0],
+                menuItems.push({
+                    title : linkParts_short1[1] ?? linkParts_short1[0],
                     id :    'project-' + p + '-shortcustom-1'
                 });
             }
 
 
             // -- Custom shortcut 2
-            if ( typeof options.env_menu_short_custom2 !== 'undefined'  &&  options.env_menu_short_custom2 !== '' ) {
-                let linkParts_short2 = options.env_menu_short_custom2.split(" | ");
+            if ( options.env_menu_short_custom2  &&  options.env_menu_short_custom2 !== '' ) {
+                let linkParts_short2 = options.env_menu_short_custom2.split(' | ');
 
-                contextMenuItems.push({
-                    title : typeof linkParts_short2[1] !== 'undefined' ? linkParts_short2[1] : linkParts_short2[0],
+                menuItems.push({
+                    title : linkParts_short2[1] ?? linkParts_short2[0],
                     id :    'project-' + p + '-shortcustom-2'
                 });
             }
 
 
             // -- ALL PROJECTS
-            if ( typeof options.env_menu_show_allprojects !== 'undefined'  &&  options.env_menu_show_allprojects === true ) {
+            if ( options.env_menu_show_allprojects ) {
+                
+                let separatorAdded = false;
 
-                contextMenuItems.push({
+                menuItems.push({
                     title :             'All projects',
                     id :                'allprojects',
                     //showForMenuType :   'actionMenuOnly'
@@ -527,22 +769,22 @@ var Env = {
 
                 // iterate all projects and links
                 if ( typeof Env.projectsAll !== 'undefined' ) {
-                    for ( var _p = 0;  _p < Env.projectsAll.length;  _p++ ) {
-                        var _project = Env.projectsAll[_p];
+                    for ( let _p = 0;  _p < Env.projectsAll.length;  _p++ ) {
+                        let _project = Env.projectsAll[_p];
                         if ( _project.hidden || !_project.name )
                             continue;
-                        contextMenuItems.push({
+                        menuItems.push({
                             title :             _project.name,
                             id :                'allprojects_project-' + _p,
                             parentId :          'allprojects',
                         });
                         if ( typeof _project.contexts !== 'undefined' ) {
-                            for ( var _c = 0;  _c < _project.contexts.length;  _c++ ) {
-                                var _context = _project.contexts[_c];
+                            for ( let _c = 0;  _c < _project.contexts.length;  _c++ ) {
+                                let _context = _project.contexts[_c];
                                 if ( _context.hidden || !_context.url || !_context.name )
                                     continue;
-                            
-                                contextMenuItems.push({
+
+                                menuItems.push({
                                     title :             _context.name,
                                     id :                'allprojects_project-' + _p + '-env-' + _c,
                                     parentId :          'allprojects_project-' + _p,
@@ -552,28 +794,26 @@ var Env = {
 
                         if ( typeof _project.links !== 'undefined' ) {
                             separatorAdded = false;
-                            for ( var _l = 0;  _l < _project.links.length;  _l++ ) {
-                                var _link = _project.links[_l];
+                            for ( let _l = 0;  _l < _project.links.length;  _l++ ) {
+                                let _link = _project.links[_l];
                                 if ( _link.hidden || !_link.url || !_link.name )
                                     continue;
                                 
                                 // add separator on first (not hidden) item
                                 if ( !separatorAdded ) {
-                                    contextMenuItems.push({
+                                    menuItems.push({
                                         title :             '_separator-links',
                                         id :                'allprojects_project-' + _p + '-separator-links',
                                         parentId :          'allprojects_project-' + _p,
                                         type :              'separator',
-                                        //showForMenuType :   'actionMenuOnly'
                                     });
                                     separatorAdded = true;
                                 }
 
-                                contextMenuItems.push({
+                                menuItems.push({
                                     title :             _link.name,
                                     id :                'allprojects_project-' + _p + '-link-' + _l,
                                     parentId :          'allprojects_project-' + _p,
-                                    //showForMenuType :   'actionMenuOnly'
                                 });
                             }
                         }
@@ -583,7 +823,7 @@ var Env = {
             }
 
             
-            contextMenuItems.push({
+            menuItems.push({
                 title :             '_separator-tools',
                 id :                'separator_tools',
                 type :              'separator',
@@ -592,26 +832,26 @@ var Env = {
 
 
             // additional tools submenu
-            contextMenuItems.push({
+            menuItems.push({
                 title :             'Tools',
                 id :                'tools',
                 showForMenuType:    'actionMenuOnly',
             });
 
-            contextMenuItems.push({
+            menuItems.push({
                 title :             'Add/Edit current URI',
                 id :                'tool--add_edit',
                 parentId :          'tools',
                 showForMenuType:    'actionMenuOnly',
             });
             
-            contextMenuItems.push({
+            menuItems.push({
                 title :             'Add/Edit current URI',
                 id :                'tool--add_edit',
                 showForMenuType:    'rightClickOnly',
             });
 
-            contextMenuItems.push({
+            menuItems.push({
                 title :             'Options',
                 id :                'tool--options',
                 showForMenuType:    'rightClickOnly',
@@ -619,7 +859,7 @@ var Env = {
             
             // assume it's firefox - add Options to icon menu - it's not there by default like in chrome
             if ( typeof browser !== 'undefined' ) {
-                contextMenuItems.push({
+                menuItems.push({
                     title :     'Options',
                     id :        'tool--options',
                     parentId :    'tools',
@@ -631,56 +871,61 @@ var Env = {
             // when item array ready,
             // BUILD THE MENU
 
-            console.log('--- ITEMS: ');
-            console.dir(contextMenuItems);
+            if ( Env.DEBUG )    {
+                // console.log('--- ITEMS: ');
+                // console.dir(menuItems);
+            }
+                
+            Env.log('--- MENU ITEMS: ', tabId, 1, 1, menuItems);
 
             let menuCallback;
 
             // set up context menu
-            for ( var i = 0;  i < contextMenuItems.length;  i++ ) {
+            for ( let i = 0;  i < menuItems.length;  i++ ) {
 
-                
+
                 // on last item
-                if ( i+1 === contextMenuItems.length ) {
+                if ( i+1 === menuItems.length ) {
+
                     menuCallback = function () {
-                        if (chrome.runtime.lastError) {
-                            console.warn('Error: Probably duplicated url for various projects. Project: ' + project.name + ', from event: ' + _debugEventTriggered);
-                            console.error(chrome.runtime.lastError.message);
-                        }
-    
-                        console.info('--- CONTEXT MENU: SUCCESS');
-    
-                        // release the lock
-                        Env.lock = false;
-                        console.groupEnd();
-                        console.info('* DONE - tab handle end - EXIT [LOCK RELEASE]');
+                            if ( chrome.runtime.lastError ) {
+                                Env.log('Warn: Probably duplicated url for various projects. Project: ' + project.name + ', from event: ' + _debugEventTriggered, tabId, 2, 0 );
+                                Env.log(chrome.runtime.lastError.message, tabId, 3, 0);
+                            }
+
+                            Env.log('--- MENU: Successfully built', tabId, 1, 2);
+
+                            // LOCK RELEASE, end group, end top group, output collected log
+                            Env.logGroup(null, false, tabId);
+                            Env.helper_finishProjectSetup(tabId, true);
+                            console.log( '== * DONE - tab handle end - EXIT [LOCK RELEASE]', tabId );
                     };
                 }
                 else    {
                     menuCallback = function () {
-                        if ( chrome.runtime.lastError ) {
-                            console.warn('Error: Probably duplicated url for various projects. Project: ' + project.name + ', from event: ' + _debugEventTriggered);
-                            console.error(chrome.runtime.lastError.message);
-                        }
+                            if ( chrome.runtime.lastError ) {
+                                Env.log('Warn: Probably duplicated url for various projects. Project: ' + project.name + ', from event: ' + _debugEventTriggered, tabId, 2, 0 );
+                                Env.log(chrome.runtime.lastError.message, tabId, 3, 0);
+                            }
                     };
                 }
 
 
 
                 // ACTION ICON MENU
-                if ( typeof contextMenuItems[i].showForMenuType === 'undefined'
+                if ( typeof menuItems[i].showForMenuType === 'undefined'
                     // don't show items dedicated only to right-click menu (like separators, when no submenus used there)
-                    ||  ( typeof contextMenuItems[i].showForMenuType !== 'undefined'  &&  contextMenuItems[i].showForMenuType !== 'rightClickOnly' ) )  {
+                    ||  ( typeof menuItems[i].showForMenuType !== 'undefined'  &&  menuItems[i].showForMenuType !== 'rightClickOnly' ) )  {
 
                     chrome.contextMenus.create({
-                            title :     contextMenuItems[i].title,
-                            contexts :  [ "browser_action" ],
-                            id :        'ICON-'+contextMenuItems[i].id,
-                            type :      typeof contextMenuItems[i].type !== 'undefined'  &&  contextMenuItems[i].type === 'separator'
+                            title :     menuItems[i].title,
+                            contexts :  [ 'browser_action' ],
+                            id :        'ICON-'+menuItems[i].id,
+                            type :      menuItems[i]?.type === 'separator'
                                 ? 'separator'
                                 : 'normal',
-                            parentId: typeof contextMenuItems[i].parentId !== 'undefined'
-                                ? 'ICON-'+contextMenuItems[i].parentId
+                            parentId:   menuItems[i]?.parentId
+                                ? 'ICON-'+menuItems[i].parentId
                                 : null
                         },
                         menuCallback
@@ -688,27 +933,26 @@ var Env = {
                 }
 
                 // PAGE RIGHT-CLICK MENU
-                if ( typeof contextMenuItems[i].showForMenuType === 'undefined'
+                if ( typeof menuItems[i].showForMenuType === 'undefined'
                     // don't show items dedicated only to action icon menu (like separators, when no submenus used there)
-                    ||  ( typeof contextMenuItems[i].showForMenuType !== 'undefined'  &&  contextMenuItems[i].showForMenuType !== 'actionMenuOnly' ) )  {
+                    ||  ( typeof menuItems[i].showForMenuType !== 'undefined'  &&  menuItems[i].showForMenuType !== 'actionMenuOnly' ) )  {
 
                     chrome.contextMenus.create({
-                            title :     contextMenuItems[i].title,
-                            contexts :  [ "page", "frame", "selection", "link", "editable", "image", "video", "audio", "page_action" ],
-                            id :        'RIGHT-'+contextMenuItems[i].id,
-                            type :      typeof contextMenuItems[i].type !== 'undefined'  &&  contextMenuItems[i].type === 'separator'
+                            title :     menuItems[i].title,
+                            contexts :  [ 'page', 'frame', 'selection', 'link', 'editable', 'image', 'video', 'audio', 'page_action' ],
+                            id :        'RIGHT-'+menuItems[i].id,
+                            type :      menuItems[i]?.type === 'separator'
                                 ? 'separator'
                                 : 'normal',
 
-                            parentId : typeof contextMenuItems[i].parentId !== 'undefined'
-                                ? 'RIGHT-'+contextMenuItems[i].parentId
+                            parentId :  menuItems[i]?.parentId
+                                ? 'RIGHT-'+menuItems[i].parentId
                                 : null
                         },
                         menuCallback
                     );
                 }
             }
-        });
     },
 
 
@@ -722,13 +966,11 @@ var Env = {
     setupBadge : function (context, project, tab, _debugEventTriggered) {
 
         if ( !tab.url.toString().startsWith('http') )   {
-            console.info('Env.setupBadge(): tab url is not http type (probably system page). Exit');
-            return;
+            return Env.log('Env.setupBadge(): tab url is not http type (probably system page). Exit', tab.id, 0, 2);
         }
 
         if ( !context.color )   {
-            console.warn('Env.setupBadge(): color not set. project / context: \n' + project.name + ' / ' + context.name);
-            return;
+            return Env.log('Env.setupBadge(): color not set. project / context: \n'+ project.name +' / '+context.name, tab.id, 2, 0);
         }
 
         chrome.tabs.executeScript( tab.id, {
@@ -748,7 +990,7 @@ var Env = {
 
             // on system pages you can't inject any scripts
             if ( chrome.runtime.lastError ) {
-                console.warn('Env.setupBadge(): Error executing code: \n' + chrome.runtime.lastError.message);
+                Env.log('Env.setupBadge(): Error executing code: \n' + chrome.runtime.lastError.message, tab.id, 2, 1);
             }
             else {
                 chrome.tabs.executeScript( tab.id, {
@@ -756,10 +998,9 @@ var Env = {
                     file: 'setBadge.js'
 
                 }, function() {
-
                     // on system pages you can't inject any scripts
                     if ( chrome.runtime.lastError ) {
-                        console.warn('Error injecting badge script: \n' + chrome.runtime.lastError.message);
+                        Env.log('Error injecting badge script: \n' + chrome.runtime.lastError.message, tab.id, 1, 1);
                     }
                 });
             }
@@ -777,16 +1018,14 @@ var Env = {
     setupFavicon : function (context, project, tab, _debugEventTriggered) {
         
         if ( !tab.url.toString().startsWith('http') )   {
-            console.info('Env.setupFavicon(): tab url is not http type (probably system page). Exit');
-            return;
+            return Env.log('Env.setupFavicon(): tab url is not http type (probably system page). Exit', tab.id, 0, 2);
         }
 
         if ( !context.color )   {
-            console.warn('Env.setupFavicon(): color not set. project / context: \n' + project.name + ' / ' + context.name);
-            return;
+            return Env.log('Env.setupFavicon(): color not set. project / context: \n' + project.name + ' / ' + context.name, tab.id, 2, 0);
         }
 
-        chrome.tabs.executeScript( null, {
+        chrome.tabs.executeScript( tab.id, {
 
             code: 'var favicon_params = {' +
                     'DEV: '+Env.DEV+',' +
@@ -802,7 +1041,7 @@ var Env = {
 
             // on system pages you can't inject any scripts
             if ( chrome.runtime.lastError ) {
-                console.warn('Env.setupFavicon(): Error executing code: \n' + chrome.runtime.lastError.message);
+                Env.log('Env.setupFavicon(): Error executing code: \n' + chrome.runtime.lastError.message, tab.id, 2, 1);
             }
             else {
                 chrome.tabs.executeScript( null, {
@@ -813,7 +1052,7 @@ var Env = {
 
                     // on system pages you can't inject any scripts
                     if ( chrome.runtime.lastError ) {
-                        console.warn('Error injecting favicon script: \n' + chrome.runtime.lastError.message);
+                        Env.log('Error injecting favicon script: \n' + chrome.runtime.lastError.message, tab.id, 1, 1);
                     }
                 });
             }
@@ -856,6 +1095,7 @@ var Env = {
 
             console.info(':: OPEN TAB [ENV] & EXIT: ' + newTabUrl);
             console.groupEnd();
+            //Env.logGroup( null, false, tabId );
 
             // open new context in new tab
             // todo: option to choose whether to open context in new tab, or replace (maybe checkbox in menu?)
@@ -881,19 +1121,144 @@ var Env = {
         switch (type)   {
             case 'active':
                 chrome.browserAction.setIcon({
-                    path : "Icons/icon-48-act.png",
+                    path : 'Icons/icon-48-act.png',
                     tabId: tabId
                 });
                 break;
 
             default:
                 chrome.browserAction.setIcon({
-                    path : "Icons/icon-48.png",
+                    path : 'Icons/icon-48.png',
                     tabId: tabId
                 });
         }
-    }
+    },
 
+    LEVEL_debug: -1,
+    LEVEL_log: 0,
+    LEVEL_info: 1,
+    LEVEL_warn: 2,
+    LEVEL_error: 3,
+
+    /**
+     * Store log messages in collection, console.log if needed (in debug mode)
+     * @param msg string
+     * @param tabId int, Basically a key for grouping logs
+     * @param severityLevel int [-1-3], Default 0 (log)
+     * @param logDetailLevel int, Higher number allows not to see it, unless debugLevel >= logLevel. 0 [default] = show always [todo]
+     * @param variable <misc>, Variable to log
+     */
+    log: function (msg, tabId, severityLevel, logDetailLevel, variable)   {
+        logDetailLevel = logDetailLevel ?? 0;
+        severityLevel = severityLevel ?? 0;
+        let key = tabId ?? '_general_log';
+        // make sure array key exist
+        Env.tabs_log[key] = Env.tabs_log[key] ?? [];
+        // collect in array to output later
+        Env.tabs_log[key].push( Object.assign({
+                msg: msg,
+                severity: severityLevel,
+                logLevel: logDetailLevel,
+            }, ( variable ? {variable: variable} : {} ) ));
+        // output instantly?
+        if ( 0 && Env.DEBUG  &&  Env.DEV >= logDetailLevel )  {
+            switch (severityLevel)  {
+                //case -1: variable ? console.debug(msg, variable) : console.debug(msg, variable); break;
+                case 0: variable ? console.log(msg, variable) : console.log(msg); break;
+                case 1: variable ? console.info(msg, variable) : console.info(msg); break;
+                case 2: variable ? console.warn(msg, variable) : console.warn(msg); break;
+                case 3: variable ? console.error(msg, variable) : console.error(msg); break;
+            }
+            if ( severityLevel > 1 )    {
+                console.groupCollapsed(' (Trace)');
+                console.trace();
+                console.groupEnd();
+            }
+        }
+    },
+    
+    /**
+     * Add to collection group indicator, which will result in console group
+     * @param label string - if set, it will be group opening, otherwise - closing
+     * @param collapsed
+     * @param tabId int
+     */
+    logGroup: function (label, collapsed, tabId)   {
+        let key = tabId ?? '_general_log';
+        // make sure array key exist
+        Env.tabs_log[key] = Env.tabs_log[key] ?? [];
+        
+        // collect in array to output later
+        Env.tabs_log[key].push({
+                msg: label,
+                group: label ? 'open' : 'close',
+                collapsed: collapsed,
+        });
+        // output instantly?
+        if ( 0 && Env.DEBUG  &&  Env.DEV >= logDetailLevel )  {
+            if (label)  
+                if (collapsed)
+                    console.groupCollapsed(label ?? 'Group');
+                else
+                    console.group(label ?? 'Group');
+            else
+                console.groupEnd();
+        }
+    },
+
+    /**
+     * Output collected log items at once to console (to have them grouped)
+     */
+    printLogs: function (key)  {
+        //console.log(Env.tabs_log[key]); return;
+        // console.log ('--------------------');
+        Object.entries(Env.tabs_log[key] ?? []).forEach(function([i, row])    {
+            if ( (Env.DEV >= row.logLevel) || row?.group || Env.DEBUG ) {
+                if (row?.group)     {
+                    switch (row.group) {
+                        case 'open':
+                            if (row?.collapsed)
+                                console.groupCollapsed(row.msg);
+                            else
+                                console.group(row.msg);
+                            break;
+                        case 'close':
+                            console.groupEnd();
+                            break;
+                    }
+                    return;
+                }
+
+                switch (row.severity)  {
+                    case -1: console.log(row.msg, row.variable); break;
+                    case 0: row.variable ? console.log(row.msg, row.variable) : console.log(row.msg); break;
+                    case 1: row.variable ? console.info(row.msg, row.variable) : console.info(row.msg); break;
+                    case 2: row.variable ? console.warn(row.msg, row.variable) : console.warn(row.msg); break;
+                    case 3: row.variable ? console.error(row.msg, row.variable) : console.error(row.msg); break;
+                }
+            }
+        });
+        // remove 
+        Env.tabs_log[key] = [];
+        // console.log ('--------------------');
+    },
+
+    /**
+     * Usually finishes + closes console group, but can also take down the lock, finishing whole process
+     * @param tabId int
+     * @param unlock bool
+     */
+    helper_finishProjectSetup: function (tabId, unlock) {
+        if (unlock) {
+            if (typeof Env.tabs_setup[tabId] === 'undefined')
+                Env.tabs_setup[tabId] = {}; 
+            Env.tabs_setup[tabId].lock = false;
+            Env.log( '[UNLOCK]', tabId );
+        }
+        Env.logGroup( null, false, tabId );
+        Env.printLogs( tabId );
+        Env.printLogs( '_general_log' );    // print also this one, after group close
+    },
 };
 
 
@@ -903,41 +1268,33 @@ var Env = {
 /**
  * The whole magic
  */
+
+
+async function initTheMagic()
+{
+    await Env.promiseConfig()
+        .then( (options) => Env.setupOptions(options) )
+        .then( () => Env.bindProjectDetection() )
+        .catch( (e) => console.log(e) );
+
+    //throw 'some error';
+    // classic try..catch doesn't work for async!
+}
+initTheMagic()
+    .catch( (e) => console.log(e) );
+
+
+
+    
+
+
+
+
+// why this is here replayed, not where it binds all
+
+
 chrome.storage.sync.get( null, function(options) {
 
-        // exit now, if whole env functionality is disabled
-        if ( typeof options.env_enable === 'undefined'  ||  options.env_enable === false )
-            return;
-
-        Env.options = options;     // store to use in onclick
-        Env.DEV = options.ext_debug;
-        var projects = [];
-
-        // version 2 means projects stored in separated items, with index. version 3 is items with unique id
-        if (options.env_projects_storing_version === 3) {
-            // recent raw js method to foreach
-            Object.entries(options).forEach(function([key, value])    {
-                if (key.match(/^project_/g)) {
-                    // if, for some reason, project doesn't have a uuid, take it from key (probably uuid is not needed here, but keep the code in sync with Options) 
-                    if (typeof options[key].uuid === 'undefined')
-                        options[key].uuid = key.replace(/^project_+/g, '');
-                    projects.push(options[key]);
-                }
-            });
-            // put them in right order
-            projects.sort(function(a, b){
-                if (a.sorting > b.sorting)  return 1;
-                if (a.sorting < b.sorting)  return -1;
-                return 0;
-            });
-        }
-        // old for compatibility (version 1)
-        else    {
-            projects = options.env_projects;
-        }
-
-        Env.projectsAll = projects;
-        Env.initProject();
 
 
         /**
@@ -959,11 +1316,11 @@ chrome.storage.sync.get( null, function(options) {
              */
 
             // extract necessary info from button id
-            var idParts = info.menuItemId.split(/-/);
-            var itemType = idParts[1];
-            var itemIndex = idParts[2];
-            var itemSubType = idParts[3];
-            var itemSubIndex = idParts[4];
+            let idParts = info?.menuItemId?.split(/-/);
+            let itemType = idParts[1];
+            let itemIndex = idParts[2];
+            let itemSubType = idParts[3];
+            let itemSubIndex = idParts[4];
 
             console.group('open tab. menu position params:');
             console.log({clickSrc: idParts[0], itemIndex: itemIndex, itemType: itemType, itemSubType: itemSubType, itemSubIndex: itemSubIndex});
@@ -1025,7 +1382,7 @@ chrome.storage.sync.get( null, function(options) {
 
             // handle project-related items
 
-            var project = typeof Env.projectsAll[ itemIndex ] !== 'undefined' ? Env.projectsAll[ itemIndex ] : {};
+            let project = Env.projectsAll[ itemIndex ] ?? {};
             console.log(project);
             console.log(itemSubType);
 
@@ -1038,14 +1395,14 @@ chrome.storage.sync.get( null, function(options) {
             
             if ( itemType === 'allprojects_project' )  {
 
-                if (  itemSubType === 'env'  &&  typeof project.contexts[ itemSubIndex ]  !==  'undefined' )    {
+                if ( itemSubType === 'env'  &&  project.contexts[ itemSubIndex ] )    {
                     console.info(':: OPEN TAB [allprojects: '+project.name+', env: '+project.contexts[ itemSubIndex ].name+'] & EXIT: ' + project.contexts[ itemSubIndex ].url);
                     chrome.tabs.create({
                         'url' :     project.contexts[ itemSubIndex ].url,
                         'index' :   tab.index + 1
                     });
                 }
-                else if ( itemSubType === 'link'  &&  typeof project.links[ itemSubIndex ]  !==  'undefined' )    {
+                else if ( itemSubType === 'link'  &&  project.links[ itemSubIndex ] )    {
                     console.info(':: OPEN TAB [allprojects: '+project.name+', link: '+project.links[ itemSubIndex ].name +'] & EXIT: ' + project.links[ itemSubIndex ].url);
                     chrome.tabs.create({
                         'url' :     project.links[ itemSubIndex ].url,
@@ -1061,7 +1418,7 @@ chrome.storage.sync.get( null, function(options) {
 
             // menu position: LINK
 
-            if ( itemType === 'project'  &&  itemSubType === 'link'  &&  typeof project.links[ itemSubIndex ]  !==  'undefined' )  {
+            if ( itemType === 'project'  &&  itemSubType === 'link'  &&  project.links[ itemSubIndex ] )  {
                 //console.log(project.links[ itemIndex ]);
 
                 console.info(':: OPEN TAB [LINK] & EXIT: ' + project.links[ itemSubIndex ].url);
@@ -1085,13 +1442,13 @@ chrome.storage.sync.get( null, function(options) {
                 let tab = tabs[0];
                 //console.log(tab);
 
-                var activeContext = {};
+                let activeContext = {};
 
                 // look for current context (for base url replace)
                 if ( typeof project.contexts !== 'undefined' )    {
-                    for ( var c = 0;  c < project.contexts.length;  c++ ) {
+                    for ( let c = 0;  c < project.contexts.length;  c++ ) {
 
-                        var context = project.contexts[c];
+                        let context = project.contexts[c];
 
                         if ( context.url  &&  tab.url.match( context.url ) )  {
                             activeContext = context;
@@ -1103,12 +1460,12 @@ chrome.storage.sync.get( null, function(options) {
                 
 
                 if ( itemSubType === 'shortcustom'  &&  itemSubIndex === '1') {
-                    Switcher.openCustomShortcut( typeof activeContext.url !== 'undefined' ? activeContext.url : '', options.env_menu_short_custom1, '1' );
+                    Switcher.openCustomShortcut( activeContext.url ?? '', options.env_menu_short_custom1, '1' );
                     return;
                 }
 
                 if ( itemSubType === 'shortcustom'  &&  itemSubIndex === '2') {
-                    Switcher.openCustomShortcut( typeof activeContext.url !== 'undefined' ? activeContext.url : '', options.env_menu_short_custom2, '2' );
+                    Switcher.openCustomShortcut( activeContext.url ?? '', options.env_menu_short_custom2, '2' );
                     return;
                 }
                 
