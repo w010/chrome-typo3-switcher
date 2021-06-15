@@ -13,28 +13,28 @@
  * If base tag is not found in frontend, it builds backend url from current domain.
  */
 
-//console.log('background.js loaded');
 
 
 
 
 
-var Switcher = {
+let Switcher = {
 
-    DEV : true,
-    options : {},
+    DEV: false,
+    DEBUG: 0,
+    options: {},
 
-    _currentTab : null,
-    _url : null,
+    _currentTab: null,
+    _url: null,
 
 
 
-    main : function(options)  {
+    main: function(options)  {
 
-        this.options = options;
-        this.DEV = options.ext_debug;
+        Switcher.options = options;
+        Switcher.DEV = options.ext_debug;
 
-        var isInBackend = Switcher._url.match( /\/typo3\// );
+        let isInBackend = Switcher._url.match( /\/typo3\// );
 
 
         // IS IN BACKEND
@@ -48,7 +48,7 @@ var Switcher = {
 
                     file: 'backend_getData.js'
 
-                }, function () {
+                }, () => {
                     // on system pages you can't inject any scripts
                     if ( chrome.runtime.lastError ) {
                         console.warn('Error injecting script: \n' + chrome.runtime.lastError.message);
@@ -75,7 +75,7 @@ var Switcher = {
 
                     file: 'frontend_getData.js'
 
-                }, function () {
+                }, () => {
                     // on system pages you can't inject any scripts
                     if ( chrome.runtime.lastError ) {
                         console.warn('Error injecting script: \n' + chrome.runtime.lastError.message);
@@ -94,9 +94,9 @@ var Switcher = {
 
 
 
-    openFrontend : function(pageUid) {
+    openFrontend: function(pageUid) {
         // remove /typo3/ and everything after it in url. add page id, if received
-        var newTabUrl = Switcher._url.replace( /typo3\/.*/, '' )
+        let newTabUrl = Switcher._url.replace( /typo3\/.*/, '' )
             + ( pageUid > 0  ?  '?id=' + pageUid  :  '' );
 
         // note, that this logs only to the extension dev console, not to page devtools.
@@ -112,7 +112,7 @@ var Switcher = {
 
 
 
-    openBackend : function(siteUrl) {
+    openBackend: function(siteUrl) {
 
         // if base tag cannot be read / no url found, try only a domain
         if ( !siteUrl  &&  Switcher._currentTab  &&  Switcher._url ) {
@@ -121,7 +121,7 @@ var Switcher = {
             //baseHref = _currentTab.url.match(/^[\w-]+:\/*\[?([\w\.:-]+)\]?(?::\d+)?/)[0];
 
             // extract scheme + domain
-            var parts = Switcher._url.split( '/' );
+            let parts = Switcher._url.split( '/' );
             siteUrl = parts[0] + '//' + parts[2];
 
             /*console.log('url: ' + _url);
@@ -130,7 +130,7 @@ var Switcher = {
         }
 
         // strip trailing slash, if present
-        var newTabUrl = siteUrl.replace( /\/$/, '' )
+        let newTabUrl = siteUrl.replace( /\/$/, '' )
             + '/typo3/';
 
         console.info('newTabUrl: ' + newTabUrl);
@@ -139,7 +139,7 @@ var Switcher = {
         chrome.tabs.create({
             'url':      newTabUrl,
             'index':    Switcher._currentTab.index + 1
-        }, function(tab)    {
+        }, (tab) => {
             /*
             // WIP: pagetree preselect. todo: finish, check in conf if we use this feature
 
@@ -164,10 +164,10 @@ var Switcher = {
      * @param shortcutValueFull
      * @param customShortcutNumber
      */
-    openCustomShortcut : function( siteUrl, shortcutValueFull, customShortcutNumber ) {
+    openCustomShortcut: function( siteUrl, shortcutValueFull, customShortcutNumber ) {
         let shortcutValue = shortcutValueFull.split(" | ")[0];
 
-        chrome.tabs.query( {active: true, currentWindow: true}, function (tabs) {
+        chrome.tabs.query( {active: true, currentWindow: true}, (tabs) => {
             let _currentTab = tabs[0];
 
             let newTabUrl;
@@ -197,7 +197,7 @@ var Switcher = {
                 newTabUrl = shortcutValue;
             }
 
-            console.info('newTabUrl: ' + newTabUrl);
+            Env.consoleLogCustom('newTabUrl: ' + newTabUrl, Env.consoleColor.FgMagenta );
 
             chrome.tabs.create({
                 'url':      newTabUrl,
@@ -215,7 +215,7 @@ var Switcher = {
 
 // on icon click action inject the script to current page
 
-chrome.browserAction.onClicked.addListener(function (tab) {
+chrome.browserAction.onClicked.addListener((tab) => {
 
     // store current tab and its url for later
     Switcher._currentTab = tab;
@@ -224,16 +224,14 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 
     // get configuration and use defaults if not configured (if null as first param: get all)
     chrome.storage.sync.get({
-            switch_fe_openSelectedPageUid : true,
-            switch_be_useBaseHref : true,
-            ext_debug : false,
-
-            env_enable : false
-            //_currentProject : {},
-            //_currentContext : {}
+            switch_fe_openSelectedPageUid:  true,
+            switch_be_useBaseHref:          true,
+            ext_dev:                        false,
+            ext_debug:                      0,
+            env_enable:                     true,
         },
-        function(options) {
-            if ( options.ext_debug )
+        (options) => {
+            if ( options.ext_dev  &&  options.ext_debug > 0 )
                 console.log('action clicked - inject the script into document');
 
             Switcher.main( options );
@@ -245,12 +243,12 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 
 // when the injected script gets the content, it sends it using message request, so we get this message here
 
-chrome.runtime.onMessage.addListener(function(request, sender) {
+chrome.runtime.onMessage.addListener((request, sender) => {
 
 
     if ( request  &&  request.action === 'backend_getData' ) {
 
-        var selectedPageUid = request.data.selectedPageUid;
+        let selectedPageUid = request.data.selectedPageUid;
         console.info('pid: ' + selectedPageUid);
         Switcher.openFrontend( selectedPageUid );
     }
@@ -259,11 +257,10 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
 
     if (request  &&  request.action === 'frontend_getData') {
 
-        var baseUrl = request.data.baseUrl;
+        let baseUrl = request?.data?.baseUrl;
 
         console.info('baseHref: ' + baseUrl);
-        console.info('pid: ' + request.data.pageUid);
-        //console.log('tab object: ' + _currentTab);
+        console.info('pid: ' + request?.data?.pageUid);
 
 	    // prevent wrong url if someone sets base to other value than site's address
         if ( baseUrl === '/'  ||  baseUrl === 'auto' )	{
@@ -280,12 +277,12 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
 
 // on install or update open info / changelog page
 
-chrome.runtime.onInstalled.addListener(function() {
+chrome.runtime.onInstalled.addListener(() => {
 
     // store install version. if major (first) number has changed, open webpage with changelog.
-    chrome.storage.sync.get( 'internal_installVersion', function(options)  {
+    chrome.storage.sync.get( 'internal_installVersion', (options) => {
 
-        var version = chrome.runtime.getManifest().version;
+        let version = chrome.runtime.getManifest().version;
 
         if ( typeof options.internal_installVersion === 'undefined' || options.internal_installVersion === '' || options.internal_installVersion.split( '.' )[0] !== version.split( '.' )[0] ) {
             chrome.tabs.create({ url: "https://wolo.pl/handyswitcher/#whats-new" });

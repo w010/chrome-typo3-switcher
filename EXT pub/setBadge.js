@@ -1,98 +1,108 @@
 
 
-//if (badge_params  &&  badge_params.DEV)         console.log('TYPO3 Switcher: setBadge.js successfully injected');
+
+// we can't use this, because preview in options won't work - it needs to be inserted there in other way than on normal page
+//if (typeof Badge === 'undefined')  {
+
+    let Badge = {
+
+        DEV: false,
+        DEBUG: 0,
 
 
+        /**
+         * Insert badge into dom
+         * @param params object - configuration  
+         */
+        setBadge: function(params) {
+            //console.log('badge from event: ' + params._debugEventTriggered);
 
-var Badge = {
+            if ( typeof params === 'undefined' )  {
+                return console.warn('Handy Switcher: Badge insert - no params given - exiting');
+            }
 
-    DEV: false,
+            Badge.DEV = params.DEV ?? false;
+            Badge.DEBUG = params.DEBUG ?? 0;
 
+            // find and remove current badge, if exist. usually never fires, because setbadge runs only on page load (update) event. but may be needed for preview 
+            let currentBadge = document.getElementsByClassName( 'chrome-typo3switcher-badge' )[0];
 
-    setBadge : function( custom_params ) {
+            if ( currentBadge )   {
+                currentBadge.parentNode.removeChild(currentBadge);
+            }
 
-        // replace incoming parameters with custom set (used for options preview) - they don't pass global var badge_params
-        if ( typeof custom_params !== 'undefined' )  {
-            badge_params = custom_params;
-        }
-        
-        // if still no params available, exit
-        if ( typeof badge_params === 'undefined' )  {
-            console.log ('Env switcher: Badge: no params given - exiting');
-            return;
-        }
+            if ( Badge.DEV  &&  Badge.DEBUG > 0 ) {
+                console.groupCollapsed('Switcher: BADGE');
+                console.log('- from event: ' + params?._debugEventTriggered);
+                console.log('- params:', params);
+            }
 
-        this.DEV = (typeof badge_params.DEV === 'boolean') ? badge_params.DEV : false;
+            let scale = typeof params.scale === "number"  ?  params.scale  :  1;
+            let badgeContainer = document.createElement( 'div' );
 
-        //console.log('badge from event: ' + badge_params._debugEventTriggered);
+            badgeContainer.innerHTML = '<b>' + params.contextLabel + '</b>';
+            if ( typeof params.projectLabelDisplay === 'undefined'  ||  params.projectLabelDisplay === true )
+                badgeContainer.innerHTML = params.projectLabel + '<br>' + badgeContainer.innerHTML;
 
-        if ( document.getElementsByClassName( 'chrome-typo3switcher-badge' ).length > 0 )
-            return;
-
-        var params = badge_params;
-
-        if (Badge.DEV) {
-            console.groupCollapsed('BADGE');
-            console.log('- from event: ' + params._debugEventTriggered);
-            console.log('- params:');
-            console.log(params);
-        }
-
-        var scale = typeof params.scale === "number"  ?  params.scale  :  1;
-        var badgeContainer = document.createElement( 'div' );
-
-        badgeContainer.innerHTML = '<b>' + params.contextLabel + '</b>';
-        if ( typeof params.projectLabelDisplay === 'undefined'  ||  params.projectLabelDisplay === true )
-            badgeContainer.innerHTML = params.projectLabel + '<br>' + badgeContainer.innerHTML;
-
-        badgeContainer.classList.add( 'chrome-typo3switcher-badge' );
-        Badge.css( badgeContainer, {
-            position: 'fixed',
-            zIndex: '9999999',
-            padding: 5 * scale + 'px 0',
-            width: 200 + 'px',
-            overflow: 'hidden',
-            backgroundColor: params.contextColor,
-            textAlign: 'center',
-            fontFamily: 'Arial, Tahoma, Verdana',
-            color: '#000',
-            opacity: '.85',
-            cursor: 'normal',
-            pointerEvents: 'none',
-            fontSize: 12 * scale + 'px',
-            lineHeight: 1.2 + 'em'
-        });
-
-        if ( params.position === 'right' )    {
-            Badge.css(badgeContainer, {
-                top: '12px',
-                right: '-70px',
-                transform: 'rotate(45deg)'
+            badgeContainer.classList.add( 'chrome-typo3switcher-badge' );
+            Badge.css( badgeContainer, {
+                position: 'fixed',
+                zIndex: '9999999',
+                padding: 5 * scale + 'px 0',
+                width: 200 + 'px',
+                overflow: 'hidden',
+                backgroundColor: params.contextColor,
+                textAlign: 'center',
+                fontFamily: 'Arial, Tahoma, Verdana',
+                color: '#000',
+                opacity: '.85',
+                cursor: 'normal',
+                pointerEvents: 'none',
+                fontSize: 12 * scale + 'px',
+                lineHeight: 1.2 + 'em',
             });
-        }
-        else {
-            Badge.css(badgeContainer, {
-                top: '12px',
-                left: '-70px',
-                transform: 'rotate(-45deg)'
-            });
-        }
-        document.getElementsByTagName( 'body' )[0].appendChild( badgeContainer );
-        console.groupEnd();
-    },
+
+            if ( params.position === 'right' )    {
+                Badge.css(badgeContainer, {
+                    top: '12px',
+                    right: '-70px',
+                    transform: 'rotate(45deg)'
+                });
+            }
+            else {
+                Badge.css(badgeContainer, {
+                    top: '12px',
+                    left: '-70px',
+                    transform: 'rotate(-45deg)'
+                });
+            }
+            document.getElementsByTagName( 'body' )[0].appendChild( badgeContainer );
+
+            if ( Badge.DEV  &&  Badge.DEBUG > 2 ) {
+                console.log('* Handy Switcher: set BADGE / setBadge.js successfully inserted');
+            }
+            console.log('DONE!');
+            console.groupEnd();
+        },
 
 
-    css : function( el, style)    {
-        for (var prop in style) {
-            el.style[prop] = style[prop];
+        css: function( el, style)    {
+            for (let prop in style) {
+                el.style[prop] = style[prop];
+            }
         }
     }
-};
 
 
-if (Badge.DEV) {
-    console.log('* TYPO3 Switcher: set BADGE / setBadge.js successfully injected');
-}
 
-Badge.setBadge();
+
+    // Variable badge_params is defined in environment.js / background.js
+    // That definition is executed on tab, so is readable here in global scope
+
+    if ( typeof badge_params !== 'undefined' ) {
+        Badge.setBadge( badge_params );
+    }
+
+// }
+
 

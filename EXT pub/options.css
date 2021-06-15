@@ -493,6 +493,9 @@ button.env_contextAddDefaultSet {
 	overflow: auto;
 	max-height: 250em;
 }
+pre.section-foldable.expand   {
+	max-height: initial;
+}
 
 
 /* projects editor list */
@@ -1367,10 +1370,10 @@ body.repo_auth__write .btn.push  {
 			to {bottom: -45px;  right: -40px;}
 		}
 
-.debug-mode-restricted  {
+.dev-mode-restricted  {
 	display: none;
 }
-.debug-mode .debug-mode-restricted  {
+.dev-mode .dev-mode-restricted  {
 	display: initial;
 }
 

@@ -17,11 +17,12 @@ const minRepoVersionRequest = '0.2.0';    // repo performs auto-check and sends 
 
 let RepoHelper = {
 
-    DEV : true,
-    options : {},
+    DEV: true,
+    DEBUG: 0,
+    options: {},
     
     // store last auth level to control gui (don't rely on that, it's not a security control)
-    authLevel : '',
+    authLevel: '',
 
     
     
@@ -31,7 +32,7 @@ let RepoHelper = {
      * @param title string
      * @param message string
      */
-    repoFetchDialog : function(title, message)   {
+    repoFetchDialog: function(title, message)   {
 
         let content = 
             $( '<div class="repo-config">' +
@@ -70,7 +71,7 @@ let RepoHelper = {
      * @param title string
      * @param message string
      */
-    repoHelpDialog : function(title, message)   {
+    repoHelpDialog: function(title, message)   {
 
         let content = 
             $('<div class="help-inner">' +
@@ -126,7 +127,7 @@ let RepoHelper = {
      * @param projectItem_mine
      * @param projectItem_their
      */
-    conflictDialog : function(title, message, projectItem_mine, projectItem_their)   {
+    conflictDialog: function(title, message, projectItem_mine, projectItem_their)   {
 
         let content = 
             $( '<div class="conflict-resolve">' +
@@ -255,7 +256,7 @@ let RepoHelper = {
     /**
      * Common ajax request header
      */
-    getAjaxRequestHeaders : function () {
+    getAjaxRequestHeaders: function () {
         return {
             'XCore-Request-Type': 'Ajax',   // one sure way to detect xhr call is to just pass that info by yourself
             'Switcher-Repo-Key': ExtOptions.options.env_repo_key ?? $('#env_repo_key').val(),
@@ -267,7 +268,7 @@ let RepoHelper = {
     /**
      * Try to connect, update auth level if succeeded
      */
-    ajaxRequest_handshake : function (caller)  {
+    ajaxRequest_handshake: function (caller)  {
         
         // reset auth state
         RepoHelper.updateAuthLevelState(' ');
@@ -319,7 +320,7 @@ let RepoHelper = {
      * Request projects list from repo, possibly filtered
      * @param caller
      */
-    ajaxRequest_fetchProjects : function(caller)  {
+    ajaxRequest_fetchProjects: function(caller)  {
         
         let url = ExtOptions.options.repo_url ?? $('#env_repo_url').val();
         if (!url)   {
@@ -404,7 +405,7 @@ let RepoHelper = {
      * @param caller dom element that triggers the action
      * Post project to repository
      */
-    ajaxRequest_pushProject : function (project, force, caller)  {
+    ajaxRequest_pushProject: function (project, force, caller)  {
 
         caller.closest('div').addClass('ajax-loading');
         ExtOptions.ajaxAddLoaderImage( caller.closest('div') );
@@ -495,7 +496,7 @@ let RepoHelper = {
      * It's good to refresh auth state at every ajax call, to keep the options/repo GUI in sync with current (recent) access level
      * @param level string
      */
-    updateAuthLevelState : function(level)  {
+    updateAuthLevelState: function(level)  {
         RepoHelper.authLevel = level || 'unauthorized';
         let $repo_auth_level = $('#repo_auth_level');
         $repo_auth_level.html( RepoHelper.authLevel );
@@ -536,7 +537,7 @@ let RepoHelper = {
      * Insert project preview item block
      * @param projectItem object
      */
-    buildProjectPreviewItem : function(projectItem)   {
+    buildProjectPreviewItem: function(projectItem)   {
         let projectPreview = $( '<div class="project-item-preview project-uuid--'+ projectItem.uuid +'">' +
                 '<h3 class="name">'+ projectItem.name +'<span class="infoicon"></span></h3>' +
                 '<div class="contexts"><p>Contexts:</p></div>' +
@@ -642,7 +643,7 @@ let RepoHelper = {
     },
     
 
-    animateAddProject : function (project)  {
+    animateAddProject: function (project)  {
         // due to problems with clipping positioned element inside box with overflow-y scroll (hides also x but it shouldn't)
         // make the animation workaround
         // after positiong absolute it jumps to top of relative parent - to have it absolute but in the same place as before absolute 
@@ -678,7 +679,7 @@ let RepoHelper = {
      * So called "overdialog" - is not actual first level dialog, rather a mini-dialog above the right one
      * @param projectPreviewItem
      */
-    displayComparison : function(projectPreviewItem) {
+    displayComparison: function(projectPreviewItem) {
 
         let projectExistingItem = ExtOptions.readProjectData( $('#project_'+projectPreviewItem.uuid) );
         let content = RepoHelper.renderDiff(projectExistingItem, projectPreviewItem);
@@ -714,7 +715,7 @@ let RepoHelper = {
      * @param project_right
      * @return {*|jQuery|HTMLElement}
      */
-    renderDiff : function(project_left, project_right) {
+    renderDiff: function(project_left, project_right) {
 
         let left_modTime = new Date(project_left.tstamp * 1000);
         let right_modTime = new Date(project_right.tstamp * 1000);
@@ -747,7 +748,7 @@ let RepoHelper = {
     },
     
     
-    versionToInt : function( string )   {
+    versionToInt: function( string )   {
         let parts = string.split('.');
         return parseInt( parts[0].padStart(3, '') + parts[1].padStart(3, '') + parts[2].padStart(3, '') );
     },
@@ -760,7 +761,7 @@ let RepoHelper = {
  */
 
 Array.prototype.rotate = function (n) {
-    var len = this.length;
+    let len = this.length;
     return !(n % len) ? this
         : n > 0 ? this.map((e, i, a) => a[(i + n) % len])
             : this.map((e, i, a) => a[(len - (len - i - n) % len) % len]);
@@ -768,35 +769,35 @@ Array.prototype.rotate = function (n) {
 
 String.prototype.diff = function (s) {
 
-    var getBaseIndex = function (s, l) { // returns the index of first mismatching character
-            var i = 0;
-            while (s[i] === l[i] && i < s.length) ++i;
-            return i;
-        },
+    let getBaseIndex = function (s, l) { // returns the index of first mismatching character
+        let i = 0;
+        while (s[i] === l[i] && i < s.length) ++i;
+        return i;
+    },
 
-        findFirstChange = function (s, l) { // returns the first matching substring after base index
-            var fi = len,
-                substr = "",
-                match = false,
-                i = 0;
-            while (!match && i < s.length) {
-                s[i] !== l[i] ? ++i : match = !match;
-            }
-            match && (fi = i); // match starts from this index
-            while (match && i < s.length) {
-                s[i] === l[i] ? substr += s[i++] : match = !match;
-            }
-            return {
-                bix: bi,    // base index : index of first mismaching character
-                fis: fi,    // index of next re match in shorter string
-                fil: fi,    // index of next re match in longer string (will be adjusted later)
-                fss: substr // next matching substring after first mismatch
-            };
-        },
+    findFirstChange = function (s, l) { // returns the first matching substring after base index
+        let fi = len,
+            substr = "",
+            match = false,
+            i = 0;
+        while (!match && i < s.length) {
+            s[i] !== l[i] ? ++i : match = !match;
+        }
+        match && (fi = i); // match starts from this index
+        while (match && i < s.length) {
+            s[i] === l[i] ? substr += s[i++] : match = !match;
+        }
+        return {
+            bix: bi,    // base index : index of first mismaching character
+            fis: fi,    // index of next re match in shorter string
+            fil: fi,    // index of next re match in longer string (will be adjusted later)
+            fss: substr // next matching substring after first mismatch
+        };
+    },
 
-        isThisLonger = true; // true if the string designated by "this" is longer
-    // debugger;
-    bi = getBaseIndex(this, s),
+    isThisLonger = true; // true if the string designated by "this" is longer
+    let
+        bi = getBaseIndex(this, s),
         matchStr = s.slice(0, bi), // the matching portion at the beginning
         long = this.length >= s.length ? (isThisLonger = true, [...this].slice(bi)) // converted to array as the
             : (isThisLonger = false, [...s].slice(bi)),  // long string gets rotated 
@@ -809,7 +810,7 @@ String.prototype.diff = function (s) {
         nextS = "", // remaining part of new string to feed recursive call
         result = ""; // the glorious result
 
-    for (var rc = 0; rc < len; rc++) { // rc -> rotate count
+    for (let rc = 0; rc < len; rc++) { // rc -> rotate count
         cd = findFirstChange(short, long.rotate(rc)); // collect change indices
         cd.fil = rc < len - cd.fis ? cd.fil + rc : cd.fis + len - rc;   // adjusted for index of next re match in longer string
         substrings.push(cd);

@@ -240,7 +240,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
 
 
             <div class="col-6 settings-block-section __projects-remote">
-              <span class="debug-mode-restricted">
+              <span class="dev-mode-restricted">
 
                 <h3>REMOTE REPOSITORY:</h3>
 
@@ -421,32 +421,57 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
     </div>
 
 
-    <div class="settings-block __miscoptions">
+    <div id="settings_block_miscoptions" class="settings-block __miscoptions">
 
-        <h2>Misc / advanced</h2>
-
+        <h2>Misc</h2>
         <br>
-        <label class="primary check">
-            <input type="checkbox" id="ext_dark_mode" class="no-flash">
-            <span>Dark mode<br>
-                <i>(options panel)</i></span>
-        </label>
-
-        <label class="primary check">
-            <input type="checkbox" id="ext_debug" class="no-autosave">
-            <span>Debug info / dev mode<br>
-                <i>(show some console messages and vars values)</i></span>
-        </label>
         
-        <div class="section-foldable" data-visibility-trigger="#ext_debug">
-            <span class="message status status-flush-storage-key"></span>
-            <label class="primary text">
-                <span>Flush storage key (USE WITH CARE):</span>
-                <input type="text" id="flush-storage-key" class="no-autosave">
-                <button class="btn confirm-warn" id="flush-storage"><span class="text">Remove item!</span></button>
-                <br>
-                <i>(write _ALL! to wipe whole storage for this ext - in case of problems or to make a fresh start)</i>
-            </label>
+        <div class="row">
+            <div class="col-6">
+                <h3>Interface</h3>
+                
+                <label class="primary check">
+                    <input type="checkbox" id="ext_dark_mode" class="no-flash">
+                    <span>Dark<br>
+                        <i>(this screen <abbr title="Absolutely best function of Switcher, no doubts. Looks osome.">theme</abbr>)</i></span>
+                </label>
+            </div>
+
+
+            <div class="col-6">
+                <h3>Tech</h3>
+
+                <label class="primary check">
+                    <input type="checkbox" id="ext_dev"> <!--class="no-autosave">-->
+                    <span>DEV / Advanced mode<br>
+                        <i>(show some extra settings & log more debug)</i></span>
+                </label>
+
+
+                <div class="section-foldable" data-visibility-trigger="#ext_dev">
+                    
+                    <label class="primary select">
+                        <span>Debug log <abbr title="">level</abbr></span>
+                        <select id="ext_debug">
+                            <option value="0">[0] Most hidden</option>
+                            <option value="1">[1] Show essentials</option>
+                            <option value="2">[2] See more</option>
+                            <option value="3">[3] Debug flood!</option>
+                        </select>
+                        <span><i>(show more or less console diagnostic info)</i></span>
+                    </label>
+                    <br>
+
+                    <span class="message status status-flush-storage-key"></span>
+                    <label class="primary text">
+                        <span>Flush storage key (THINK TWICE):</span>
+                        <input type="text" id="flush-storage-key" class="no-autosave">
+                        <button class="btn confirm-warn" id="flush-storage"><span class="text">Remove item!</span></button>
+                        <br>
+                        <i>(write _ALL! to wipe whole storage for this ext - in case of problems or to make a fresh start)</i>
+                    </label>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -460,11 +485,20 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
         <span class="message status status-set-permission"></span>
         <label class="primary text">
             <span>Host - origin:</span>
-            <input type="text" id="origin" class="no-autosave">
+            <input type="text" id="origin" class="no-autosave" placeholder="* = all hosts">
             <button class="btn add" id="origin-grant"><span class="text">Grant</span></button>
             <button class="btn confirm-warn" id="origin-decline"><span class="text">Decline</span></button>
-            <br>
-            <i>(write _ALL! to decline all permitted origins - see list below. try * to grant all hosts and not ask anymore)</i>
+            <br><br>
+            <i>(write the keyword <b>_ALL!</b> - to decline all permitted origins, if are set individually, you may see a list below)</i><br>
+            <i>(write the <b>*</b> - to grant all hosts and not ask anymore - if you are aware, what that means)</i>
+            <br><br>
+            <i>(so what that means? - it allows Switcher to access any active tab you open. It uses that for two things:
+                1. to read domain from tab's URL / base href, search for it in YOUR configuration (which is kept in browser's Local Storage)
+                and mark tab if found,  2. to insert html Badge and new Favicon into that tab's current DOM.<br>
+                basically, that's the essentials of what this ext do - the whole idea, there's no other way to achieve something
+                similar. believe or not, it doesn't track what you browse and doesn't send anything anywhere, unless
+                you specifically use the push functionality to export your projects to your repo.<br>
+                if you're some kind of paranoic, just grant explicit permission for your work domains separately.)</i>
         </label>
 
 
@@ -479,13 +513,14 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
         <div class="section-foldable container-permitted-origins" data-visibility-trigger="#expand_origins">
         </div>
     </div>
-    
-    
+
+
     <div class="jump-toolbar">
         <span>Jump to:</span>
         <div id="jump-to-top">&Uparrow; Top</div>
         <div id="jump-to-projects">Projects</div>
         <div id="jump-to-importexport">Imp/Exp</div>
+        <div id="jump-to-misc">Misc</div>
     </div>
 
 

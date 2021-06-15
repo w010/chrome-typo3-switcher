@@ -17,19 +17,21 @@
 
 const ExtOptions = {
 
-    DEV : false,
-    options : {},
+    DEV: false,
+    DEBUG: 0,
+    options: {},
 
     /* stores which dialog is the "active" one, when more than one is open at once (submodals) - usually this handles
     which is the one to close on esc key hit */
-    dialogToCloseOnGlobalEvents : null,
+    dialogToCloseOnGlobalEvents: null,
     
     /**
      * Saves options to chrome.storage.sync.
      */
-    optionsSave : function( trigger ) {
-        let flashFeedback = true;
+    optionsSave: function( trigger ) {
 
+        let flashFeedback = true,
+            $autosorting = $( '#env_projects_autosorting' )
         if ( typeof trigger === 'object' )  {
             // trigger node may have some additional save config
             if ( $(trigger.target ).hasClass( 'no-flash' ) )    {
@@ -38,7 +40,7 @@ const ExtOptions = {
         }
 
         // sort projects - I think it's best to run sorting at this stage
-        if ( $( '#env_projects_autosorting' ).is( ':checked' ) ) {
+        if ( $autosorting.is( ':checked' ) ) {
             let sortedProjects = $( '.projects-container .projectItem' ).sort(function(a, b) {
                 return $(a).find( '[name="project[name]"]' ).val().toUpperCase().localeCompare( 
                     $(b).find( '[name="project[name]"]' ).val().toUpperCase() );
@@ -56,36 +58,40 @@ const ExtOptions = {
         ExtOptions.checkItems();
 
         let projects = ExtOptions.collectProjects();
-        ExtOptions.requestPermissions( projects );
-        
-        
+        // causes problems in firefox - restricts this only on explicit user action (what is a save-button click then...?)
+        /*if ( trigger.type === 'click' ) {
+            ExtOptions.requestPermissions( projects );
+        }*/
+
+
         let options = {
-            'switch_fe_openSelectedPageUid' :   $( '#switch_fe_openSelectedPageUid' ).is( ':checked' ),
-            'switch_be_useBaseHref' :           $( '#switch_be_useBaseHref' ).is( ':checked' ),
-            'env_enable' :                      $( '#env_enable' ).is( ':checked' ),
-            //'env_switching' :                   $( '#env_switching' ).is( ':checked' ),
-            'env_menu_show_allprojects' :       $( '#env_menu_show_allprojects' ).is( ':checked' ),
-            'env_menu_short_custom1' :          $( '#env_menu_short_custom1' ).val(),
-            'env_menu_short_custom2' :          $( '#env_menu_short_custom2' ).val(),
-            'env_badge' :                       $( '#env_badge' ).is( ':checked' ),
-            'env_badge_projectname' :           $( '#env_badge_projectname' ).is( ':checked' ),
-            'env_badge_position' :              $( '#env_badge_position_right' ).is( ':checked' )  ?  'right'  :  'left',
-            'env_badge_scale' :                 $( '#env_badge_scale' ).val(),
-            'env_favicon' :                     $( '#env_favicon' ).is( ':checked' ),
-            'env_favicon_alpha' :               $( '#env_favicon_alpha' ).val(),
-            'env_favicon_fill' :                $( '#env_favicon_fill' ).val(),
-            'env_favicon_position' :            $( '#env_favicon_position' ).val(),
-            'env_favicon_composite' :           $( '#env_favicon_composite' ).val(),
-            'env_projects_autosorting' :        $( '#env_projects_autosorting' ).is( ':checked' ),
-            'ext_debug' :                       $( '#ext_debug' ).is( ':checked' ),
+            'switch_fe_openSelectedPageUid':    $( '#switch_fe_openSelectedPageUid' ).is( ':checked' ),
+            'switch_be_useBaseHref':            $( '#switch_be_useBaseHref' ).is( ':checked' ),
+            'env_enable':                       $( '#env_enable' ).is( ':checked' ),
+            'env_menu_show_allprojects':        $( '#env_menu_show_allprojects' ).is( ':checked' ),
+            'env_menu_short_custom1':           $( '#env_menu_short_custom1' ).val(),
+            'env_menu_short_custom2':           $( '#env_menu_short_custom2' ).val(),
+            'env_badge':                        $( '#env_badge' ).is( ':checked' ),
+            'env_badge_projectname':            $( '#env_badge_projectname' ).is( ':checked' ),
+            'env_badge_position':               $( '#env_badge_position_right' ).is( ':checked' )  ?  'right'  :  'left',
+            'env_badge_scale':                  $( '#env_badge_scale' ).val(),
+            'env_favicon':                      $( '#env_favicon' ).is( ':checked' ),
+            'env_favicon_alpha':                $( '#env_favicon_alpha' ).val(),
+            'env_favicon_fill':                 $( '#env_favicon_fill' ).val(),
+            'env_favicon_position':             $( '#env_favicon_position' ).val(),
+            'env_favicon_composite':            $( '#env_favicon_composite' ).val(),
+            'env_projects_autosorting':         $autosorting.is( ':checked' ),
+            'ext_dev':                          $( '#ext_dev' ).is( ':checked' ),
+            'ext_debug':                        $( '#ext_debug' ).val(),
             'ext_dark_mode':					$( '#ext_dark_mode' ).is( ':checked' ),
-            'env_repo' :                        $( '#env_repo' ).is( ':checked' ),
-            'env_repo_url' :                    $( '#env_repo_url' ).val(),
-            'env_repo_key' :                    $( '#env_repo_key' ).val(),
+            'env_repo':                         $( '#env_repo' ).is( ':checked' ),
+            'env_repo_url':                     $( '#env_repo_url' ).val(),
+            'env_repo_key':                     $( '#env_repo_key' ).val(),
+            'env_projects_storing_version':     3,
             'internal_permissions_acknowledged': true,
         };
 
-    
+
         chrome.storage.sync.set( options, function() {
 
             // in case of problems show info and end operation
@@ -128,7 +134,7 @@ const ExtOptions = {
                             chrome.storage.sync.remove( 'env_projects' );
                             console.log( 'update: project storing method migrated to method version 3' )
                         }
-                        
+
 
                         chrome.storage.sync.set({
                             // store project storing method version
@@ -155,40 +161,40 @@ const ExtOptions = {
      * Restores select box and checkbox state using the preferences
      * stored in chrome.storage
      */
-    optionsRestore : function() {
-        
+    optionsRestore: function() {
+
         let darkModeSystemDetected = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
         chrome.storage.sync.get({
 
             // Set default values on read if not found
-            'switch_fe_openSelectedPageUid' :   true,
-            'switch_be_useBaseHref' :           true,
-            'env_projects' :                    [],     // leave for compatibility - must try to read old projects array to migrate
-            'env_projects_storing_version' :    1,      // version 1 is original all-projects-one-key method. version 2 means projects stored in separated items, with index and counter. version 3 is items with unique id
-            'env_projects_autosorting' :        false,
-            'env_enable' :                      true,
-            //'env_switching' :                   true,
-            'env_menu_show_allprojects' :       true,
-            'env_menu_short_custom1' :          '/typo3/install.php | Install Tool',
-            'env_menu_short_custom2' :          '',
-            'env_badge' :                       true,
-            'env_badge_projectname' :           true,
-            'env_badge_position' :              'right',
-            'env_badge_scale' :                 '1.0',
-            'env_favicon' :                     true,
-            'env_favicon_alpha' :               '0.85',
-            'env_favicon_fill' :                '0.25', 
-            'env_favicon_position' :            'bottom',
-            'env_favicon_composite' :           'source-over',
-            'ext_debug' :                       false,
-            'ext_dark_mode' :                   darkModeSystemDetected, 
-            'env_repo' :                        false,
-            'env_repo_url' :                    '',
-            'env_repo_key' :                    '',
+            'switch_fe_openSelectedPageUid':    true,
+            'switch_be_useBaseHref':            true,
+            'env_projects':                     [],     // leave for compatibility - must try to read old projects array to migrate
+            'env_projects_storing_version':     1,      // version 1 is original all-projects-one-key method. version 2 means projects stored in separated items, with index and counter. version 3 is items with unique id
+            'env_projects_autosorting':         false,
+            'env_enable':                       true,
+            'env_menu_show_allprojects':        true,
+            'env_menu_short_custom1':           '/typo3/install.php | - Install Tool',
+            'env_menu_short_custom2':           '',
+            'env_badge':                        true,
+            'env_badge_projectname':            true,
+            'env_badge_position':               'right',
+            'env_badge_scale':                  '1.0',
+            'env_favicon':                      true,
+            'env_favicon_alpha':                '0.85',
+            'env_favicon_fill':                 '0.25', 
+            'env_favicon_position':             'bottom',
+            'env_favicon_composite':            'source-over',
+            'ext_dev':                          false,
+            'ext_debug':                        0,
+            'ext_dark_mode':                    darkModeSystemDetected, 
+            'env_repo':                         false,
+            'env_repo_url':                     '',
+            'env_repo_key':                     '',
             // after updating to the version where the per-host permissions are introduced, it requires going once to the options and call Save
             // - to trigger permission request for each of hosts found in user's projects. this keeps the state it's already done or not needed. state is used to display a notification about that.
-            'internal_permissions_acknowledged' : false,
+            'internal_permissions_acknowledged': false,
 
         }, function(options) {
 
@@ -197,14 +203,15 @@ const ExtOptions = {
                 $( 'body' ).removeClass('loading');
             }, 100);
 
+            // cast to int - for update reasons - ext_debug was previously bool. remove in future
+            options.ext_debug = + options.ext_debug;
 
             $( '#switch_fe_openSelectedPageUid' ).attr( 'checked',  options.switch_fe_openSelectedPageUid );
             $( '#switch_be_useBaseHref' ).attr( 'checked',          options.switch_be_useBaseHref );
             $( '#env_enable' ).attr( 'checked',                     options.env_enable );
-            //$( '#env_switching' ).attr( 'checked',                  options.env_switching );
             $( '#env_menu_show_allprojects' ).attr( 'checked',      options.env_menu_show_allprojects );
-            $( '#env_menu_short_custom1' ).val('' +                    options.env_menu_short_custom1 );
-            $( '#env_menu_short_custom2' ).val('' +                    options.env_menu_short_custom2 );
+            $( '#env_menu_short_custom1' ).val('' +              options.env_menu_short_custom1 );
+            $( '#env_menu_short_custom2' ).val('' +              options.env_menu_short_custom2 );
             $( '#env_badge' ).attr( 'checked',                      options.env_badge );
             $( '#env_badge_projectname' ).attr( 'checked',          options.env_badge_projectname );
             $( '#env_badge_position_left' ).attr( 'checked',        options.env_badge_position === 'left' );
@@ -219,20 +226,22 @@ const ExtOptions = {
             $( '#env_favicon_position' ).val(                       options.env_favicon_position );
             $( '#env_favicon_composite' ).val(                      options.env_favicon_composite );
             $( '#env_projects_autosorting' ).attr( 'checked',       options.env_projects_autosorting );
-            $( '#ext_debug' ).attr( 'checked',                      options.ext_debug );
+            $( '#ext_dev' ).attr( 'checked',                        options.ext_dev );
+            $( '#ext_debug' ).val(                                  options.ext_debug );
             $( '#ext_dark_mode' ).attr( 'checked',                  options.ext_dark_mode );
             $( '#env_repo' ).attr( 'checked',                       options.env_repo );
-            $( '#env_repo_url' ).val(                               options.env_repo_url ).trigger('change');
+            $( '#env_repo_url' ).val(                               options.env_repo_url ).trigger('change');   // describe why trigger
             $( '#env_repo_key' ).val(                               options.env_repo_key );
 
-            ExtOptions.DEV = options.ext_debug;
+            ExtOptions.DEV = options.ext_dev;
+            ExtOptions.DEBUG = options.ext_debug; 
             ExtOptions.options = options;
-            
+
             ExtOptions.permissionsInfo();
 
             ExtOptions.initFoldableSections();
             ExtOptions.handleDarkMode();
-            
+
             ExtOptions.setFaviconPreview();
             ExtOptions.setBadgePreview();
 
@@ -275,9 +284,8 @@ const ExtOptions = {
 
             ExtOptions.initCheckboxes();
             ExtOptions.debugStorageData();
-
             if ( ExtOptions.DEV )   {
-                $( 'body' ).addClass('debug-mode');
+                $( 'body' ).addClass('dev-mode');
             }
         });
     },
@@ -697,8 +705,8 @@ const ExtOptions = {
      * @param project element
      * @param linkItem object with data
      */
-    insertLinkItem : function(project, linkItem)   {
-        const link = $( '.linkItem._template' ).clone().removeClass( '_template' )
+    insertLinkItem: function(project, linkItem)   {
+        let link = $( '.linkItem._template' ).clone().removeClass( '_template' )
             .appendTo( project.find( '.links-container' ) );
 
         // populate data
@@ -733,8 +741,8 @@ const ExtOptions = {
      * Add some default contexts
      * @param project
      */
-    insertDefaultContextSet : function(project)    {
-        var defaultContexts = [{
+    insertDefaultContextSet: function(project)    {
+        let defaultContexts = [{
                 "color": "#00cc00",
                 "name": "LOCAL"
             }, {
@@ -747,7 +755,7 @@ const ExtOptions = {
                 "color": "#df0000",
                 "name": "LIVE"
             }];
-        $.each( defaultContexts, function( i, context ) {
+        $.each( defaultContexts, ( i, context ) => {
             ExtOptions.insertContextItem( project, context );
         });
     },
@@ -757,8 +765,8 @@ const ExtOptions = {
      * Delete project
      * @param project element
      */
-    deleteProjectItem : function(project)   {
-        var uuid = $(project).attr( "id" ).replace(/^project_+/g, '');
+    deleteProjectItem: function(project)   {
+        let uuid = $(project).attr( "id" ).replace(/^project_+/g, '');
         $( project ).remove();
         chrome.storage.sync.remove( 'project_' + uuid );
         // as long this removing works this way, I mean individual remove() and no global save options, textarea is not refreshing after deleting. so we have to do this manually
@@ -769,10 +777,10 @@ const ExtOptions = {
     /**
      * Delete all projects
      */
-    deleteAllProjectItems : function()  {
-        chrome.storage.sync.get( null, function(allOptions) {
+    deleteAllProjectItems: function()  {
+        chrome.storage.sync.get( null, (allOptions) => {
             // find every option which is a project
-            $.each(allOptions, function(key, value)    {
+            $.each(allOptions, (key, value) => {
                 if (key.match(/^project_/g)) {
                     chrome.storage.sync.remove( key );    
                 }
@@ -785,7 +793,7 @@ const ExtOptions = {
      * @param context element
      * @param project parent element
      */
-    deleteContextItem : function(context, project)   {
+    deleteContextItem: function(context, project)   {
         $( context ).remove();
         // if none left, display Add default set button
         if ( project.find( '.contexts-container .contextItem' ).length === 0 )
@@ -797,23 +805,23 @@ const ExtOptions = {
      * @param link element
      * @param project parent element
      */
-    deleteLinkItem : function(link, project)   {
+    deleteLinkItem: function(link, project)   {
         $( link ).remove();
     },
 
     /**
      * After sorting / dropping element 
      */
-    sortDropCallback : function()   {
+    sortDropCallback: function()   {
        ExtOptions.fillExportData();
     },
 
 
-    expandAllProjects : function()  {
+    expandAllProjects: function()  {
         $( '.projects-container .projectItem' ).removeClass('collapse');
     },
     
-    collapseAllProjects : function()  {
+    collapseAllProjects: function()  {
         $( '.projects-container .projectItem' ).addClass('collapse');
     },
 
@@ -825,11 +833,11 @@ const ExtOptions = {
      * Iterate projects / environments and collect data elements.
      * @return object
      */
-    collectProjects : function() {
-        var projects = {};
-        var i = 0; 
-        $( '.projects-container .projectItem' ).each( function() {
-            var project = ExtOptions.readProjectData( $(this) );
+    collectProjects: function() {
+        let projects = {},
+            i = 0;
+        $( '.projects-container .projectItem' ).each( (i, el) => {
+            let project = ExtOptions.readProjectData( $(el) );
             project.sorting = i++;
             projects[ 'project_' + project.uuid ] = project;
         });
@@ -841,7 +849,7 @@ const ExtOptions = {
      * Get projects as an array (most cases)
      * @return array 
      */
-    getProjectsArray : function() {
+    getProjectsArray: function() {
         return Object.values( ExtOptions.collectProjects() );
     },
 
@@ -850,8 +858,8 @@ const ExtOptions = {
      * @param project html object
      * @returns array
      */
-    readProjectData : function(project)   {
-        var projectItem = {};
+    readProjectData: function(project)   {
+        let projectItem = {};
         projectItem['name'] = project.find( "[name='project[name]']" ).val();
 
         projectItem['uuid'] = project.attr( "id" ).toString().replace(/^project_+/g, '')
@@ -862,9 +870,9 @@ const ExtOptions = {
         projectItem['hidden'] = project.find( "[name='project[hidden]']" ).is( ':checked' );
         projectItem['tstamp'] = project.data('tstamp') ?? 0;
 
-        project.find( '.contexts-container .contextItem' ).each( function() {
-            var context = $(this);
-            var contextItem = {};
+        project.find( '.contexts-container .contextItem' ).each( (i, el) => {
+            let context = $(el),
+                contextItem = {};
             contextItem['name'] = context.find( "[name='context[name]']" ).val();
             contextItem['url'] = context.find( "[name='context[url]']" ).val();
             contextItem['color'] = context.find( "[name='context[color]']" ).val();
@@ -873,9 +881,9 @@ const ExtOptions = {
             projectItem['contexts'].push( contextItem );
         });
 
-        project.find( '.links-container .linkItem' ).each( function() {
-            var link = $(this);
-            var linkItem = {};
+        project.find( '.links-container .linkItem' ).each( (i, el) => {
+            let link = $(el),
+                linkItem = {};
             linkItem['name'] = link.find( "[name='link[name]']" ).val();
             linkItem['url'] = link.find( "[name='link[url]']" ).val();
             linkItem['hidden'] = link.find( "[name='link[hidden]']" ).is( ':checked' );
@@ -907,7 +915,7 @@ const ExtOptions = {
         });
         
 
-        $.each( projects, function(i, projectItem)    {
+        $.each( projects, (i, projectItem) => {
 
             // no need to show or export sorting param anywhere. so cleanup before inserting
             delete(projectItem.sorting);
@@ -925,7 +933,7 @@ const ExtOptions = {
 
         if ( !$( '#env_projects_autosorting' ).is( ':checked' ) ) {
             // init drag & drop
-            $( '.projects-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer', update: function() { ExtOptions.sortDropCallback(); } });
+            $( '.projects-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer', update: () => { ExtOptions.sortDropCallback(); } });
         }
     },
 
@@ -979,27 +987,22 @@ const ExtOptions = {
         }
 
 
-        return;
-
         // permissions info
 
-        chrome.permissions.getAll( function( permissions )  {
+        chrome.permissions.getAll( (permissions) => {
             // display permissions list
             let containerPermittedOrigins = $('.container-permitted-origins');
             let originsContent = ''; 
-            $.each( permissions.origins, function (o, origin)  {
+            $.each( permissions.origins, (o, origin) => {
                 originsContent += '<li>' + origin + '</li>';
             });
             containerPermittedOrigins.html( '<ul>' + originsContent + '</ul>' );
+        });
 
-
-
-
+            /*
             // mark projects / url with unpermitted host/domain
-            
             // reset
             //$('.projects-container .unpermitted').removeClass('unpermitted');
-
 
             let checkUrlIsPermitted = function( url, callback ) {
                 let formattedHostUrl = ExtOptions.controlUrlHostFormat( url );
@@ -1013,27 +1016,21 @@ const ExtOptions = {
                 });
             };
 
-
-
             // iterate all projects on list
             $('.projects-container .projectItem').each( function(p, project){
                 let $project = $(project);
                 if ($project.hasClass('hidden'))
                     return;
 
-
                 $project.find( '.item input.url' ).each( function(i, itemInput){
                     let $itemInput = $(itemInput);
                     if ( $itemInput.val() ) { 
-
                         checkUrlIsPermitted( $itemInput.val(), function( permitted ){
-
                             // in check callback mark context as unpermitted
                             if ( !permitted )   {
                                 $itemInput.closest('.item').addClass('unpermitted')
                                     .attr('title', 'Host not permitted! Save and allow access to this domain when asked');
                             }
-
                             // check Project, if contains any 'unpermitted' items 
                             if ( $project.find('.unpermitted').length ) {
                                 $project.addClass('unpermitted');
@@ -1042,7 +1039,7 @@ const ExtOptions = {
                     }
                 });
             });
-        });
+        });*/
     },
 
     /**
@@ -1113,7 +1110,7 @@ const ExtOptions = {
 
         // permissions info
 
-        chrome.permissions.getAll( function( permissions )  {
+        /*chrome.permissions.getAll( function( permissions )  {
             // display permissions list
             let containerPermittedOrigins = $('.container-permitted-origins');
             let originsContent = ''; 
@@ -1172,7 +1169,7 @@ const ExtOptions = {
                     }
                 });
             });
-        });
+        });*/
     },
 
 
@@ -1719,9 +1716,16 @@ const ExtOptions = {
             );
             $( '#debugStorageContent' ).html(
                 '<p> Storage contents: <br>' +
-                '<i>(you may want to refresh the page to be 100% sure this content is up-to-date)</i></p>' + 
-                '<pre>' + JSON.stringify( options, null, 4 ) + '</pre>'
-            );
+                '<i>(you may want to refresh the page to be 100% sure this content is up-to-date)</i></a><br>' + 
+                '<a href="#" class="expand"> [ EXPAND ] </a><br>' +
+                '<pre class="section-foldable">' + JSON.stringify( options, null, 4 ) + '</pre>'
+            )
+                .find('a.expand').on('click', function (e){
+                    console.log( $(this).parent().parent() );    
+                    console.log( $(this).parent().parent().find('.section-foldable') );    
+                    $(this).parent().parent().find('.section-foldable').addClass('expand');    
+                    e.preventDefault();
+            });
         });
     },
 
@@ -1729,13 +1733,13 @@ const ExtOptions = {
      * link range inputs with their text fields
      */
     linkRangeInputs : function()    {
-        $( 'input[type=range]' ).each(function(){
+        $( 'input[type=range]' ).each( (i, el) => {
             // take range input and find its text input by id
-            var range = $(this);
-            var text = $( '#' + range.prop('id').replace('__range', '') );
-            text.on( 'keyup', function(){
+            let range = $(el),
+                text = $( '#' + range.prop('id').replace('__range', '') );
+            text.on( 'keyup', () => {
                 // prevent typing beyond range's scope
-                var value = Math.min(Math.max(text.val(), range.prop('min')), range.prop('max'));
+                let value = Math.min(Math.max(text.val(), range.prop('min')), range.prop('max'));
                 text.val( value );
                 range.val( value );
             });
@@ -1748,13 +1752,13 @@ const ExtOptions = {
     /**
      * Favicon preview - replace src of image with fresh generated using current configuration
      */
-    setFaviconPreview : function()  {
+    setFaviconPreview: function()  {
 
         Favicon.DEV = ExtOptions.DEV;
 
-        var faviconUrl = 'Icons/favicon-options-test.svg';
-        var newFaviconSrc = '';
-        var params = {
+        let faviconUrl = 'Icons/favicon-options-test.svg';
+        let newFaviconSrc = '';
+        let params = {
             'contextColor' :    '#dd0000',     // preview using red. do we need this configurable?
             'alpha' :           $( '#env_favicon_alpha' ).val(),
             'fill' :            $( '#env_favicon_fill' ).val(),
@@ -1762,12 +1766,12 @@ const ExtOptions = {
             'composite' :       $( '#env_favicon_composite' ).val()
         };
 
-        var originalIconImageObject = new Image();
+        let originalIconImageObject = new Image();
         originalIconImageObject.src = faviconUrl;
 
         originalIconImageObject.onload = function() {
 
-            var canvas = Favicon.renderFaviconWithOverlay( originalIconImageObject, params );
+            let canvas = Favicon.renderFaviconWithOverlay( originalIconImageObject, params );
             newFaviconSrc = canvas.toDataURL();
 
             $('#favicon-preview').prop('src', newFaviconSrc)
@@ -1782,28 +1786,35 @@ const ExtOptions = {
     /**
      * Badge preview - show badge like on normal page to see how it looks
      */
-    setBadgePreview : function()    {
+    setBadgePreview: function()    {
 
         //console.log('refresh badge - remove before setting new one');
-        $('.chrome-typo3switcher-badge').remove();
+        //$('.chrome-typo3switcher-badge').remove();
 
-        var badge_params = {
-            'DEV' :                 ExtOptions.DEV,
-            'projectLabel' :        'Badge',
-            'contextLabel' :        'Preview',
-            'contextColor' :        '#ff8000',
-            'projectLabelDisplay' : $( '#env_badge_projectname' ).prop('checked'),
-            'scale' :               parseFloat( $( '#env_badge_scale' ).val() ),
-            'position' :            $( 'input[name=badge_position]:checked' ).val(),
+        let badge_params = {
+            'DEV':                  ExtOptions.DEV,
+            'DEBUG':                ExtOptions.DEBUG,
+            'projectLabel':         'Badge',
+            'contextLabel':         'Preview',
+            'contextColor':         '#ff8000',
+            'projectLabelDisplay':  $( '#env_badge_projectname' ).prop('checked'),
+            'scale':                parseFloat( $( '#env_badge_scale' ).val() ),
+            'position':             $( 'input[name=badge_position]:checked' ).val(),
         };
 
         Badge.setBadge(badge_params);
+
+
+                // failed try: can't exec js on options screen this way! because restrictions
+                /*chrome.tabs.executeScript( null, {
+                    code: 'let badge_params = {' +
+                            .... */
     },
 
     /**
      * Make any use of favicon config controls auto refresh preview
      */
-    bindFaviconControlsForPreview : function()  {
+    bindFaviconControlsForPreview: function()  {
         $('.settings-block-section.__favicon input, .settings-block-section.__favicon select').each(function(){
             $(this).on('input', function(){
                 //console.log('favicon settings changed');
@@ -1815,7 +1826,7 @@ const ExtOptions = {
     /**
      * Make any use of badge config controls auto refresh badge
      */
-    bindBadgeControlsForPreview : function()  {
+    bindBadgeControlsForPreview: function()  {
         $('.settings-block-section.__badge input, .settings-block-section.__badge select').each(function(){
             $(this).on('input', function(){
                 //console.log('badge settings changed');
@@ -1827,7 +1838,7 @@ const ExtOptions = {
     /**
      * Make editing any field autosave after use
      */
-    bindAutosave : function () {
+    bindAutosave: function () {
         
         $( '.settings-block' )
             
@@ -1877,7 +1888,7 @@ const ExtOptions = {
             ;
     },
     
-    initFoldableSections : function ()  {
+    initFoldableSections: function ()  {
         $('.section-foldable').each(function( i, sectionNode )    {
             let section = $( sectionNode );
             let triggerSelector = section.data('visibility-trigger');
@@ -1899,7 +1910,7 @@ const ExtOptions = {
         });
     },
     
-    flushStorageKey : function ( key )   {
+    flushStorageKey: function ( key )   {
 
         if ( !ExtOptions.DEV )  {
             ExtOptions.displayMessage( 'Not called - option Debug must be enabled to execute this request', 'level-error', '#flush-storage-feedback', 10000 );
@@ -1926,7 +1937,7 @@ const ExtOptions = {
         }
     },
     
-    permissionOriginGrant : function ( value )   {
+    permissionOriginGrant: function ( value )   {
         if ( !value )  {
             return;
         }
@@ -1953,13 +1964,13 @@ const ExtOptions = {
             }
         });
     },
-    
-    permissionOriginDecline : function ( value )   {
+
+    permissionOriginDecline: function ( value )   {
         if ( !value )  {
             return;
         }
-        
-        if ( value === '_ALL' )  {
+
+        if ( value === '_ALL!' )  {
             chrome.permissions.getAll( function( permissions )  {
                 $.each( permissions.origins, function (o, origin)  {
                     ExtOptions.permissionOriginDecline( origin );
@@ -1989,7 +2000,7 @@ const ExtOptions = {
         });
     },
 
-    handleDarkMode : function() {
+    handleDarkMode: function() {
     	if ( ExtOptions.options.ext_dark_mode === true ) {
     		$('body').addClass( 'dark' );
         } else {
@@ -2000,7 +2011,7 @@ const ExtOptions = {
     /**
      * Build nice checkboxes instead of real ones
      */
-    initCheckboxes : function()    {
+    initCheckboxes: function()    {
 
         // set state of fake checkbox
         let syncState_setFake = function( input, niceCheck )  {
@@ -2013,8 +2024,8 @@ const ExtOptions = {
             if ( niceCheck.hasClass('checked') )    input.prop('checked', true);
             else                                       input.prop('checked', false);
         };
-        
-        
+
+
         // reversed
         let syncState_setFake_reversed = function( input, niceCheck )  {
             if ( input.is(':checked') )    niceCheck.removeClass('checked');
@@ -2025,7 +2036,7 @@ const ExtOptions = {
             if ( niceCheck.hasClass('checked') )    input.prop('checked', false);
             else                                       input.prop('checked', true);
         };
-        
+
 
         // process unprocessed checkboxes
         $( '.main input[type="checkbox"]:not(.nice)' ).each(function (i) {
@@ -2037,35 +2048,35 @@ const ExtOptions = {
                 input.prop( 'id', inputId );
             }
             let niceCheck = $( '<span class="nice-checkbox" id="nice__'+inputId+'"> ');
-            
-            
+
+
             // Make checkbox work inverse (for "disabled" or similar state options)
             if ( input.hasClass( 'inverse' ) )  {
                 niceCheck.addClass( 'inverse' );
                 syncState_setFake_reversed( input, niceCheck );
-    
+
                 input.on( 'change', function () {
                     syncState_setFake_reversed( input, niceCheck );
                 });
-                
+
                 niceCheck.on( 'click', function () {
                     syncState_setReal_reversed( input, niceCheck );
                 });
-    
+
                 niceCheck.insertAfter(input);
                 input.addClass('nice');
             }
             else    {
                 syncState_setFake( input, niceCheck );
-    
+
                 input.on( 'change', function () {
                     syncState_setFake( input, niceCheck );
                 });
-                
+
                 niceCheck.on( 'click', function () {
                     syncState_setReal( input, niceCheck );
                 });
-    
+
                 niceCheck.insertAfter(input);
                 input.addClass('nice');
             }
@@ -2076,7 +2087,8 @@ const ExtOptions = {
 
 // needed for favicon preview using code from setFavicon.js
 favicon_params = {
-    'DEV' : false
+    'DEV': false,
+    'DEBUG': 0,
 };
 
 
@@ -2153,7 +2165,10 @@ $( '#jump-to-projects' ).click( function () {
     $('html,body').animate({scrollTop: $("#settings_block_projects").offset().top - 100}, 300);  // offset correction by heading padding-top
 });
 $( '#jump-to-importexport' ).click( function () {
-    $('html,body').animate({scrollTop: $("#settings_block_importexport").offset().top - 100}, 300);  // offset correction by heading padding-top
+    $('html,body').animate({scrollTop: $("#settings_block_importexport").offset().top - 100}, 300);
+});
+$( '#jump-to-misc' ).click( function () {
+    $('html,body').animate({scrollTop: $("#settings_block_miscoptions").offset().top - 100}, 300);
 });
 
 $( '#projects-collapse-all' ).click( function (e) {
