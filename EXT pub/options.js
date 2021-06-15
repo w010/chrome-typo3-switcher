@@ -150,10 +150,11 @@ const ExtOptions = {
                             // reload extension to reapply settings
                             chrome.extension.getBackgroundPage().window.location.reload();
                         });*/
-
                     }
-                });
 
+                    // reload extension to reapply settings
+                    chrome.extension.getBackgroundPage().window.location.reload();
+                });
             }
         });
     },

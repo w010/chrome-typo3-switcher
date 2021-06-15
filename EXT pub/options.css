@@ -603,19 +603,20 @@ pre.section-foldable.expand   {
 }
 	.toggle .icon   {
 		display: block;
-		width: 16px;    height: 16px;
+		width: 18px;    height: 18px;
 		position: absolute;
 		top: 18px;
 		right: 10px;
 		background: transparent url(Icons/Options/Expand.svg) no-repeat 0 0;
+		transform: rotate(180deg);
 		opacity: 0;
-		transition: opacity 0.4s;
+		transition: opacity 0.4s, transform 0.5s;
 	}
 	.projectItem:hover > .toggle .icon    {
 		opacity: 0.2;
 	}
 	.projectItem.collapse > .toggle .icon    {
-		background: transparent url(Icons/Options/Collapse.svg) no-repeat 0 0;
+		transform: rotate(0deg);
 	}
 .contextItem .toggle {
 	width: 100px;

@@ -15,7 +15,6 @@
  * It's important in this file, where the context menu are set up. Please remember this and don't mix them!)
  */
 
-// console.log('environment.js loaded');
 
 
 
@@ -455,10 +454,28 @@ let Env = {
                                 if ( context.hidden )
                                     continue;
 
-                                // compare ignoring schema (& trailing slash in configured url)
-                                if ( context.url  &&  tab.url.replace( /^https?:\/\//, '//')
-                                        .match( context.url.replace( /^https?:\/\//, '//').replace( /\/$/, '') ) ) {
+                                // compare ignoring schema (& trailing slash in context url)
+                                if ( context.url  &&
 
+                                        // generally use raw tab url, but add trailing slash, in case it's only a domain in tab and we have it
+                                        // in config with this slash added. if it's some long url, this slash doesn't do anything bad during comparison
+                                        (tab.url.replace( /\/$/, '' ) + '/')
+
+                                            // match to a pattern made from context url,
+                                            .match( new RegExp(
+
+                                                // with leading double slash, with schema stripped,
+                                                ('//' + (context.url.replace( /^https?:\/\//, '')
+
+                                                    // with one trailing slash,
+                                                    .replace( /\/$/, '') ) + '/')
+
+                                                        // with double-escaped slashes and dots,
+                                                        .replaceAll( '/', '\\/' )
+                                                        .replaceAll( '.', '\\.' )
+                                                , 'gmi'     // case-insensitive
+                                            ))
+                                ) {
                                     isProjectFound = true;
                                     
                                     // close group, then open next on the same level
