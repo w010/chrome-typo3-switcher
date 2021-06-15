@@ -84,6 +84,7 @@ const ExtOptions = {
             'ext_dev':                          $( '#ext_dev' ).is( ':checked' ),
             'ext_debug':                        $( '#ext_debug' ).val(),
             'ext_dark_mode':					$( '#ext_dark_mode' ).is( ':checked' ),
+            //'ext_backend_path':                  $( '#ext_backend_path' ).val(),
             'env_repo':                         $( '#env_repo' ).is( ':checked' ),
             'env_repo_url':                     $( '#env_repo_url' ).val(),
             'env_repo_key':                     $( '#env_repo_key' ).val(),
@@ -107,7 +108,7 @@ const ExtOptions = {
 
                     projects
 
-                , function() {
+                , () => {
                     // update storage info
                     ExtOptions.updateStorageInfo();
                     ExtOptions.debugStorageData();
@@ -122,7 +123,7 @@ const ExtOptions = {
                         // blink window after saveflashContainer
                         if ( flashFeedback )    {
                             $('body').addClass('flashContainer');
-                            setTimeout(function() { $('body').removeClass('flashContainer'); }, 1000);
+                            setTimeout(() => { $('body').removeClass('flashContainer'); }, 1000);
                         }
 
 
@@ -136,19 +137,19 @@ const ExtOptions = {
                         }
 
 
-                        chrome.storage.sync.set({
+                        /*chrome.storage.sync.set({
                             // store project storing method version
                             'env_projects_storing_version' : 3     // projects as item_[unique id]
                         }, function() {
                             // cleanup projects saved with storing version 2
-                            /*for (let i = 0; i < 99; i++) {
+                            /!*for (let i = 0; i < 99; i++) {
                                 chrome.storage.sync.remove('proj_' + i);
-                            }*/
+                            }*!/
 
                             // if settings + projects was saved successfully, we can assume this was too. so no need to check again
                             // reload extension to reapply settings
                             chrome.extension.getBackgroundPage().window.location.reload();
-                        });
+                        });*/
 
                     }
                 });
@@ -171,7 +172,7 @@ const ExtOptions = {
             'switch_fe_openSelectedPageUid':    true,
             'switch_be_useBaseHref':            true,
             'env_projects':                     [],     // leave for compatibility - must try to read old projects array to migrate
-            'env_projects_storing_version':     1,      // version 1 is original all-projects-one-key method. version 2 means projects stored in separated items, with index and counter. version 3 is items with unique id
+            'env_projects_storing_version':     3,      // version 1 is original all-projects-one-key method. version 2 means projects stored in separated items, with index and counter. version 3 is items with unique id
             'env_projects_autosorting':         false,
             'env_enable':                       true,
             'env_menu_show_allprojects':        true,
@@ -183,9 +184,10 @@ const ExtOptions = {
             'env_badge_scale':                  '1.0',
             'env_favicon':                      true,
             'env_favicon_alpha':                '0.85',
-            'env_favicon_fill':                 '0.25', 
+            'env_favicon_fill':                 '0.25',
             'env_favicon_position':             'bottom',
             'env_favicon_composite':            'source-over',
+            'ext_backend_path':                 'typo3',
             'ext_dev':                          false,
             'ext_debug':                        0,
             'ext_dark_mode':                    darkModeSystemDetected, 
@@ -1911,30 +1913,50 @@ const ExtOptions = {
     },
     
     flushStorageKey: function ( key )   {
-
-        if ( !ExtOptions.DEV )  {
-            ExtOptions.displayMessage( 'Not called - option Debug must be enabled to execute this request', 'level-error', '#flush-storage-feedback', 10000 );
-            return;
-        }
+        if ( !key )
+            return ExtOptions.displayMessage( 'Not called - no key name given!', 'error', '.status-manipulate-storage', 10000 );
+        if ( !ExtOptions.DEV )
+            return ExtOptions.displayMessage( 'Not called - DEV mode must be enabled to execute this request', 'warn', '.status-manipulate-storage', 10000 );
 
         if ( key === '_ALL!')   {
-            ExtOptions.confirmDialog( 'FLUSH _WHOLE_ STORAGE REQUESTED!', 'Are you sure, that you\'re sure?',function() {
+            ExtOptions.confirmDialog( 'FLUSH _WHOLE_ STORAGE REQUESTED!', 'Are you sure, that you\'re sure?',() => {
                 // sync.clear() might be used, but this way we can also log every removed item 
                 chrome.storage.sync.get( null, function(options) {
-                    $.each(options, function(k, v){
+                    $.each(options, (k, v) => {
                         console.log('Flushing key: ' + k);
-                        chrome.storage.sync.remove( k, function() {});
+                        chrome.storage.sync.remove( k, ()=>{});
                     });
-                    ExtOptions.displayMessage( 'FLUSH WHOLE STORAGE WAS CALLED!', 'level-error', '#flush-storage-feedback', 10000 );
+                    ExtOptions.displayMessage( 'FLUSH WHOLE STORAGE WAS CALLED!', 'error', '.status-manipulate-storage', 10000 );
+                    ExtOptions.updateStorageInfo();
+                    ExtOptions.debugStorageData();
                 });
             });
         }
         else    {
             chrome.storage.sync.remove( key, function() {
-                ExtOptions.displayMessage( 'Removed key <b>' + key+'</b>', 
-                    'info', '.status-flush-storage-key', 30000 );
+                ExtOptions.displayMessage( 'Removed key <b>' + key+'</b>', 'info', '.status-manipulate-storage', 30000 );
+                ExtOptions.updateStorageInfo();
+                ExtOptions.debugStorageData();
             });
         }
+    },
+    
+    setStorageKey: function ( key, value )   {
+        if ( !key )
+            return ExtOptions.displayMessage( 'Not called - no key name given!', 'error', '.status-manipulate-storage', 10000 );
+
+        if ( !ExtOptions.DEV  &&  key !== 'ext_dev' )
+            return ExtOptions.displayMessage( 'Not called - DEV mode must be enabled to execute this request', 'warn', '.status-manipulate-storage', 10000 );
+
+        let storeObj = {};
+        storeObj[key] = value;
+        chrome.storage.sync.set( storeObj, () => {
+            ExtOptions.options[key] = value;
+            ExtOptions.displayMessage( 'Storage item set', 'success', '.status-manipulate-storage', 10000 );
+            
+            ExtOptions.updateStorageInfo();
+            ExtOptions.debugStorageData();
+        });
     },
     
     permissionOriginGrant: function ( value )   {
@@ -2145,6 +2167,13 @@ $( 'button#flush-storage' ).click( function() {
         ExtOptions.flushStorageKey( $flushStorageKey.val() );
         $flushStorageKey.val('');
     });
+});
+$( 'button#set-storage-item' ).click( function() {
+    let $setStorageKey = $( '#set-storage-key' ),
+        $setStorageValue = $( '#set-storage-value' );
+    ExtOptions.setStorageKey( $setStorageKey.val(), $setStorageValue.val() );
+    $setStorageKey.val('');
+    $setStorageValue.val('');
 });
 
 $( 'button#origin-grant' ).click( function() {

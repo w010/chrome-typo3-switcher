@@ -27,14 +27,18 @@ let Switcher = {
     _currentTab: null,
     _url: null,
 
+    backendPath: '',
 
 
     main: function(options)  {
 
         Switcher.options = options;
-        Switcher.DEV = options.ext_debug;
+        Switcher.DEV = options.ext_dev;
+        Switcher.DEBUG = options.ext_debug;
 
-        let isInBackend = Switcher._url.match( /\/typo3\// );
+        Switcher.backendPath = options.ext_backend_path ?? 'typo3';
+
+        let isInBackend = Switcher._url.match( new RegExp('/'+Switcher.backendPath+'/') );
 
 
         // IS IN BACKEND
@@ -44,7 +48,7 @@ let Switcher = {
 
             if ( options.switch_fe_openSelectedPageUid ) {
                 // tries to extract current pid from backend pagetree and sends a message
-                chrome.tabs.executeScript( null, {
+                chrome.tabs.executeScript( Switcher._currentTab?.id, {
 
                     file: 'backend_getData.js'
 
@@ -71,7 +75,7 @@ let Switcher = {
 
             if ( options.switch_be_useBaseHref )  {
                 // try to find proper backend url and open it
-                chrome.tabs.executeScript( null, {
+                chrome.tabs.executeScript( Switcher._currentTab?.id, {
 
                     file: 'frontend_getData.js'
 
@@ -95,8 +99,8 @@ let Switcher = {
 
 
     openFrontend: function(pageUid) {
-        // remove /typo3/ and everything after it in url. add page id, if received
-        let newTabUrl = Switcher._url.replace( /typo3\/.*/, '' )
+        // remove backend path segment and everything after it in url. add page id, if received
+        let newTabUrl = Switcher._url.replace( new RegExp('/'+Switcher.backendPath+'/.*'), '/' )
             + ( pageUid > 0  ?  '?id=' + pageUid  :  '' );
 
         // note, that this logs only to the extension dev console, not to page devtools.
@@ -131,7 +135,7 @@ let Switcher = {
 
         // strip trailing slash, if present
         let newTabUrl = siteUrl.replace( /\/$/, '' )
-            + '/typo3/';
+            + '/'+Switcher.backendPath+'/';
 
         console.info('newTabUrl: ' + newTabUrl);
 
@@ -229,6 +233,7 @@ chrome.browserAction.onClicked.addListener((tab) => {
             ext_dev:                        false,
             ext_debug:                      0,
             env_enable:                     true,
+            ext_backend_path:               'typo3',
         },
         (options) => {
             if ( options.ext_dev  &&  options.ext_debug > 0 )

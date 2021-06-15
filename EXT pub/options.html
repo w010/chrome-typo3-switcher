@@ -462,13 +462,28 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                     </label>
                     <br>
 
-                    <span class="message status status-flush-storage-key"></span>
+
+                    <span class="message status status-manipulate-storage"></span>
+
+
                     <label class="primary text">
-                        <span>Flush storage key (THINK TWICE):</span>
-                        <input type="text" id="flush-storage-key" class="no-autosave">
+                        <span>Flush storage item (THINK TWICE):</span>
+                        <input type="text" id="flush-storage-key" class="no-autosave" placeholder="key">
                         <button class="btn confirm-warn" id="flush-storage"><span class="text">Remove item!</span></button>
                         <br>
                         <i>(write _ALL! to wipe whole storage for this ext - in case of problems or to make a fresh start)</i>
+                    </label>
+                    <br>
+
+
+                    <label class="primary text">
+                        <span>Add storage item:</span><br>
+                        <input type="text" id="set-storage-key" class="no-autosave" placeholder="key">
+                        <input type="text" id="set-storage-value" class="no-autosave" placeholder="value">
+                        <button class="btn add" id="set-storage-item"><span class="text">Set item!</span></button>
+                        <br>
+                        <i>(if key exists, it will overwrite it without asking!)</i><br>
+                        <i>(it wont self-update its state in form, if writing some of existing options!)</i>
                     </label>
                 </div>
             </div>
