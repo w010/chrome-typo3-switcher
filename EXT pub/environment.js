@@ -154,7 +154,7 @@ let Env = {
                 /*  do the whole job on these specified events hit, to reinit the menu etc. every time in current window a tab
                     is switched / page is loaded in current tab / - basically when current window's content / viewport / url changes
                     we rebuild the menu and replace the action icon indicator
-                    (but don't run on window focus change - it's unnecessary) */
+                    (also when focusing other window with tab currently loaded) */
 
 
         // on TAB FOCUS
@@ -165,12 +165,39 @@ let Env = {
 
             console_setupStartDivider(' --  event: TAB FOCUS    [tabs.onActivated / activeInfo]');
 
-            Env.runCheck( tabId, 'onActivated', activeInfo );
-
-            // make a 10-50ms delay to avoid colliding flood runs, which can mysteriously start between locks
-            setTimeout(() => {
+            if ( Env.runCheck( tabId, 'onActivated', activeInfo ) ) {
                 Env.projectDetection( tabId, 'onActivated', activeInfo );
-            }, 30 );
+            }
+        });
+
+
+
+
+        // on WINDOW SWITCH
+        // (focus window with some tab open doesn't hit any event on this tab, so we need this also)
+
+        chrome.windows.onFocusChanged.addListener( function (windowId) {
+
+            console_setupStartDivider(' --  event: WINDOW SWITCH    [windows.onFocusChanged / windowId]');
+
+            if ( Env.lock )   {
+                console.log( ': LOCKED! operation in progress. exit' );
+                return;
+            }
+
+            // gets current tab with details (tab from events only returns id)
+            Env.promiseTabsQuery({active: true, lastFocusedWindow: true})
+                .then( async tabs => {
+                    let tab = tabs[0] ?? {};
+                    if ( typeof tab === 'undefined'  ||  !tab  ||  !tab.id ) {
+                        console.log('Can\'t read tab (system?) - exit');
+                        return;
+                    }
+
+                    if ( Env.runCheck( tab.id, 'onFocusChanged', tab ) ) {
+                        Env.projectDetection( tab.id, 'onFocusChanged', tab );
+                    }
+                });
         });
 
 
@@ -184,7 +211,7 @@ let Env = {
                 if ( Env.DEBUG > 2 )      Env.consoleLogCustom(': EXIT / Not a page re/load event, but some other onUpdated hit (like injected badge)', Env.consoleColor.FgGray );
                 return;
             }
-            
+
             if ( changeInfo?.status !== 'complete' )   {
                 if ( Env.DEBUG > 2 )      Env.consoleLogCustom(': EXIT / Page is still loading', Env.consoleColor.FgGray, tabId );
                 return;
@@ -193,12 +220,9 @@ let Env = {
 
             console_setupStartDivider('   --   on: PAGE LOADED    [tabs.onUpdated] / status = completed');
 
-            Env.runCheck( tabId, 'onUpdated', changeInfo );
-            
-            // make a 10-50ms delay to avoid colliding flood runs, which can mysteriously start between locks
-            setTimeout(() => {
+            if ( Env.runCheck( tabId, 'onUpdated', changeInfo ))  {
                 Env.projectDetection( tabId, 'onUpdated', changeInfo );
-            }, 30 );
+            }
         });
     },
 
@@ -212,8 +236,8 @@ let Env = {
 
         // reset previous data stored for this tab
         // later: will be done somehow different when caching and reusing will be finished
-        Env.tabs_setup[tabId] = {};
-        Env.tabs_log[tabId] = [];
+        Env.tabs_setup[tabId] = Env.tabs_setup[tabId] ?? {};
+        Env.tabs_log[tabId] = Env.tabs_log[tabId] ?? [];
 
         // init new empty setup cache-storage and log array
         /*if (typeof Env.tabs_setup[tabId] === 'undefined')
@@ -223,13 +247,16 @@ let Env = {
 
         // control valid tab id came
         if ( !tabId ) {
-            return console.log( Env.consoleColor.FgRed + '- ERROR - no tabId from event ' + _debugEventTriggered, eventResponseData );
+            console.log( Env.consoleColor.FgRed + '- ERROR - no tabId from event ' + _debugEventTriggered, eventResponseData );
+            return false;
         }
 
         // check if process is locked, already doing this
         if ( Env.tabs_setup[tabId]?.lock )   {
-            return Env.consoleLogCustom( '== : LOCKED - operation on this tab is in progress. - EXIT.', Env.consoleColor.FgCyan );
+            Env.consoleLogCustom( '== : LOCKED - operation on this tab is in progress. - EXIT.', Env.consoleColor.FgCyan );
+            return false;
         }
+        return true;
     },
 
 
@@ -242,66 +269,71 @@ let Env = {
      */
     projectDetection: function(tabId, _debugEventTriggered, eventResponseData)    {
 
-        // START SETUP
+        // make a 10-50ms delay to avoid colliding flood runs, which can mysteriously start between locks
+        setTimeout(() => {
 
-        // set lock
-        Env.logGroup( '== SETUP TAB id = '+tabId, true, tabId );
-        Env.log( '[LOCK]', tabId, 1, 0 );
-        Env.tabs_setup[tabId].lock = true;
-        
-        // Cleanup
-        
-        // deactivate icon
-        // do this later, to avoid ugly blink on every tab switch
-        // Env.log( '-- ICON: deactivate', tabId, 0, 2 );
-        // Env.setActionIcon( '', tabId );
+            // START SETUP
+
+            // set lock
+            Env.logGroup( '== SETUP TAB id = '+tabId, true, tabId );
+            Env.log( '[LOCK]', tabId, 1, 0 );
+            Env.tabs_setup[tabId].lock = true;
             
-        // empty current menu (action + rmb)
-        Env.log('-- MENU: flush', tabId, 0, 2 );
+            // Cleanup
+            
+            // deactivate icon
+            // do this later, to avoid ugly blink on every tab switch
+            // Env.log( '-- ICON: deactivate', tabId, 0, 2 );
+            // Env.setActionIcon( '', tabId );
+    
+            // empty current menu (action + rmb)
+            Env.log('-- MENU: flush', tabId, 0, 2 );
 
-        // the promise-way was supposed to help the menu "duplicate id" / cleaning menu problem, but it didn't actually
-        // change anything, the callback after removeAll just seems to run to early before menu is really empty
-        let flushMenu = new Promise((resolve, reject) => {
-            chrome.contextMenus.removeAll(() => {
-                if (chrome.runtime.lastError)   {
-                    reject(chrome.runtime.lastError.message);
-                }
-                resolve();
+            // the promise-way was supposed to help the menu "duplicate id" / cleaning menu problem, but it didn't actually
+            // change anything, the callback after removeAll just seems to run to early before menu is really empty
+            let flushMenu = new Promise((resolve, reject) => {
+                chrome.contextMenus.removeAll(() => {
+                    if (chrome.runtime.lastError)   {
+                        reject(chrome.runtime.lastError.message);
+                    }
+                    resolve();
+                });
             });
-        });
 
-        flushMenu
-            .then( async () => {
-                
-                // REQUEST AND SETUP CURRENT TAB ONCE THE MENU IS EMPTIED
-                Env.findAndApplyProjectConfigForCurrentTabUrl( tabId, _debugEventTriggered );
-                
+            flushMenu
+                .then( () => {
+                    
+                    // REQUEST AND SETUP CURRENT TAB ONCE THE MENU IS EMPTIED
+                    Env.findAndApplyProjectConfigForCurrentTabUrl( tabId, _debugEventTriggered );
+                    
 
-                // this construction here was an absurd, it did the query twice...
-                /*Env.promiseTabsGet(tabId)
-                    .then( async tab => {
-                        Env.log('* Got Tab object - START ->>>', tabId, 1, 1 );
-                        Env.log('- TAB object', tabId, Env.LEVEL_debug, 2, tab );
+                    // this construction here was an absurd, it did the query twice...
+                    /*Env.promiseTabsGet(tabId)
+                        .then( async tab => {
+                            Env.log('* Got Tab object - START ->>>', tabId, 1, 1 );
+                            Env.log('- TAB object', tabId, Env.LEVEL_debug, 2, tab );
 
-                        // ! in that bug situation it doesn't fail, it just returns undefined in success-way!
-                        if ( typeof tab === 'undefined' ) {
-                            Env.log( ' ! ** TAB OBJECT DOESN\'T EXIST. IT SHOULD NOT HAPPEN. INVESTIGATE THE SITUATION !', tabId, 3 );
-                            Env.log( ' - tabId: ' + tabId + ' event: ' + _debugEventTriggered, tabId, 3, 1, eventResponseData );
-                            Env.log( ' - output from .runtime.lastError: ' + chrome.runtime.lastError.message, tabId, 3, 0 )
-                            Env.log( ' : EXIT / No tab object for some reason', tabId, 1 );
+                            // ! in that bug situation it doesn't fail, it just returns undefined in success-way!
+                            if ( typeof tab === 'undefined' ) {
+                                Env.log( ' ! ** TAB OBJECT DOESN\'T EXIST. IT SHOULD NOT HAPPEN. INVESTIGATE THE SITUATION !', tabId, 3 );
+                                Env.log( ' - tabId: ' + tabId + ' event: ' + _debugEventTriggered, tabId, 3, 1, eventResponseData );
+                                Env.log( ' - output from .runtime.lastError: ' + chrome.runtime.lastError.message, tabId, 3, 0 )
+                                Env.log( ' : EXIT / No tab object for some reason', tabId, 1 );
+                                Env.helper_finishProjectSetup(tabId, true);
+                                return;
+                            }
+
+                            Env.findAndApplyProjectConfigForCurrentTabUrl( tabId, _debugEventTriggered );
+
+                        })
+                        .catch( (e) => {
+                            //console.log( Env.consoleColor.FgRed + e );
+                            Env.log( e, tabId, -1, 0 );
                             Env.helper_finishProjectSetup(tabId, true);
-                            return;
-                        }
+                        });*/
+                });
 
-                        Env.findAndApplyProjectConfigForCurrentTabUrl( tabId, _debugEventTriggered );
-
-                    })
-                    .catch( (e) => {
-                        //console.log( Env.consoleColor.FgRed + e );
-                        Env.log( e, tabId, -1, 0 );
-                        Env.helper_finishProjectSetup(tabId, true);
-                    });*/
-            });
+        }, 30 );
     },
 
     
@@ -317,7 +349,7 @@ let Env = {
                 
                     chrome.tabs.get( tabId, function(tab) {
                         if (chrome.runtime.lastError)   {
-                            Env.log(chrome.runtime.lastError.message, tabId, 3, 1)
+                            Env.log(chrome.runtime.lastError.message, tabId, 2, 1)
                         }
 
                         if (tab)    {
@@ -363,7 +395,9 @@ let Env = {
                 const loop = function () {
 
                     chrome.tabs.query( query, async function(tabs) {
-                        
+                        if (chrome.runtime.lastError)   {
+                            Env.log(chrome.runtime.lastError.message, tabs, 2, 1)
+                        }
                         if (tabs)    {
                             resolve( tabs );
                         }
@@ -405,6 +439,12 @@ let Env = {
             loadFavicon = _debugEventTriggered === 'onUpdated',
             loadBadge = _debugEventTriggered === 'onUpdated';
 
+        if ( Env.tabs_setup[tabId]?.badgeLoaded === true)   {
+            loadBadge = false;
+        }
+        if ( Env.tabs_setup[tabId]?.faviconLoaded === true)   {
+            loadFavicon = false;
+        }
 
         Env.logGroup( '=== Match url, preparations', true, tabId );
         Env.log('- PROJECT CONTEXT SETUP begin - find project for current url & rebuild menu', tabId, 0, 2 );
@@ -871,7 +911,7 @@ let Env = {
                             if ( chrome.runtime.lastError ) {
                                 Env.log('Warn: Probably duplicated url for various projects. Project: ' + project.name + ', from event: ' + _debugEventTriggered, tabId, 3, 0 );
                                 Env.log('menu pos: ', tabId, -1, 0, menuItems[i] );
-                                Env.log(chrome.runtime.lastError.message, tabId, 4, 0);
+                                Env.log(chrome.runtime.lastError.message, tabId, 2, 0);
                             }
 
                             Env.log('--- MENU: Successfully built', tabId, 0, 2);
@@ -886,7 +926,7 @@ let Env = {
                     menuCallback = function () {
                             if ( chrome.runtime.lastError ) {
                                 Env.log('Warn: Probably duplicated url for various projects. Project: ' + project.name + ', from event: ' + _debugEventTriggered, tabId, 3, 0 );
-                                Env.log(chrome.runtime.lastError.message, tabId, 4, 0);
+                                Env.log(chrome.runtime.lastError.message, tabId, 2, 0);
                             }
                     };
                 }
@@ -955,6 +995,8 @@ let Env = {
         if ( !context.color )   {
             return Env.log('Env.setupBadge(): color not set. project / context: \n'+ project.name +' / '+context.name, tab.id, 3, 0);
         }
+        
+        Env.tabs_setup[tab.id].badgeLoaded = true;
 
         chrome.tabs.executeScript( tab.id, {
 
@@ -1008,6 +1050,8 @@ let Env = {
         if ( !context.color )   {
             return Env.log('Env.setupFavicon(): color not set. project / context: \n' + project.name + ' / ' + context.name, tab.id, 3, 0);
         }
+        
+        Env.tabs_setup[tab.id].faviconLoaded = true;
 
         chrome.tabs.executeScript( tab.id, {
 
