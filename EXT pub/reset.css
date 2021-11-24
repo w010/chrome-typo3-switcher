@@ -65,6 +65,7 @@ pre {
 h1, h2, h3 {
     font-weight: normal;
     line-height: 1;
+	user-select: initial;
 }
 
 h1 {

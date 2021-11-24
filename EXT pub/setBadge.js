@@ -2,7 +2,9 @@
 
 
 // we can't use this, because preview in options won't work - it needs to be inserted there in other way than on normal page
-//if (typeof Badge === 'undefined')  {
+if (typeof badge_params === 'undefined')  {
+    let badge_params = {};
+}
 
     let Badge = {
 
@@ -103,6 +105,6 @@
         Badge.setBadge( badge_params );
     }
 
-// }
+//Badge = null;
 
 

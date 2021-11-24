@@ -90,7 +90,7 @@ let Env = {
     promiseConfig: function() {
         return new Promise((resolve, reject) => {
             try {
-                chrome.storage.sync.get( null, function(options) {
+                chrome.storage.sync.get( null, (options) => {
                     
                     // exit now, if whole env functionality is disabled
                     // not here - reject floods errors to console!
@@ -116,7 +116,7 @@ let Env = {
         let projects = [];
 
         // recent raw js method to foreach
-        Object.entries(options).forEach(function([key, value])    {
+        Object.entries(options).forEach( ([key, value]) => {
             if (key.match(/^project_/g)) {
                 // if, for some reason, project doesn't have a uuid, take it from key (probably uuid is not needed here, but keep the code in sync with Options) 
                 if (typeof options[key].uuid === 'undefined')
@@ -125,7 +125,7 @@ let Env = {
             }
         });
         // put them in right order
-        projects.sort(function(a, b){
+        projects.sort((a, b) => {
             if (a.sorting > b.sorting)  return 1;
             if (a.sorting < b.sorting)  return -1;
             return 0;
@@ -221,8 +221,24 @@ let Env = {
             console_setupStartDivider('   --   on: PAGE LOADED    [tabs.onUpdated] / status = completed');
 
             if ( Env.runCheck( tabId, 'onUpdated', changeInfo ))  {
+
+                // reset visual indicators load status - page reloaded, so must reinit them
+                Env.tabs_setup[tabId].badgeLoaded = false;
+                Env.tabs_setup[tabId].faviconLoaded = false;
+
                 Env.projectDetection( tabId, 'onUpdated', changeInfo );
             }
+        });
+
+
+        // cleanup on tab close (to avoid the storage array grow too big, also not needed anymore) 
+
+        chrome.tabs.onRemoved.addListener( function (tabId, removeInfo) {
+
+            Env.consoleLogCustom('TAB WAS CLOSED: ' + tabId, Env.consoleColor.FgYellow );
+
+            delete Env.tabs_setup[tabId];
+            delete Env.tabs_log[tabId];
         });
     },
 
@@ -234,16 +250,11 @@ let Env = {
      */
     runCheck: function(tabId, _debugEventTriggered, eventResponseData)    {
 
-        // reset previous data stored for this tab
+        // init new empty setup cache-storage and log array, if not found there
         // later: will be done somehow different when caching and reusing will be finished
         Env.tabs_setup[tabId] = Env.tabs_setup[tabId] ?? {};
         Env.tabs_log[tabId] = Env.tabs_log[tabId] ?? [];
 
-        // init new empty setup cache-storage and log array
-        /*if (typeof Env.tabs_setup[tabId] === 'undefined')
-            Env.tabs_setup[tabId] = {};
-        if (typeof Env.tabs_log[tabId] === 'undefined')
-            Env.tabs_log[tabId] = [];*/
 
         // control valid tab id came
         if ( !tabId ) {
@@ -269,16 +280,22 @@ let Env = {
      */
     projectDetection: function(tabId, _debugEventTriggered, eventResponseData)    {
 
+        if ( Env.tabs_setup[tabId]?.lock )  {
+            return;
+        }
+
+        // set lock
+        Env.tabs_setup[tabId].lock = true;
+        Env.logGroup( '== SETUP TAB id = '+tabId, true, tabId );
+        Env.log( '[LOCK]', tabId, 1, 0 );
+
+
         // make a 10-50ms delay to avoid colliding flood runs, which can mysteriously start between locks
         setTimeout(() => {
 
             // START SETUP
 
-            // set lock
-            Env.logGroup( '== SETUP TAB id = '+tabId, true, tabId );
-            Env.log( '[LOCK]', tabId, 1, 0 );
-            Env.tabs_setup[tabId].lock = true;
-            
+
             // Cleanup
             
             // deactivate icon
@@ -290,7 +307,7 @@ let Env = {
             Env.log('-- MENU: flush', tabId, 0, 2 );
 
             // the promise-way was supposed to help the menu "duplicate id" / cleaning menu problem, but it didn't actually
-            // change anything, the callback after removeAll just seems to run to early before menu is really empty
+            // change anything, the callback after removeAll just seems to run too early before menu is really empty
             let flushMenu = new Promise((resolve, reject) => {
                 chrome.contextMenus.removeAll(() => {
                     if (chrome.runtime.lastError)   {
@@ -494,18 +511,26 @@ let Env = {
                                 if ( context.hidden )
                                     continue;
 
+                                let urlLocal = ''+context?.url; 
+                                let urlRemote = ''+tab?.url;
+
+                                if ( options?.env_ignore_www )  {
+                                    urlLocal = urlLocal.replace('www\.', '');
+                                    urlRemote = urlRemote.replace('www\.', '');
+                                }
+
                                 // compare ignoring schema (& trailing slash in context url)
-                                if ( context.url  &&
+                                if ( urlLocal  &&
 
                                         // generally use raw tab url, but add trailing slash, in case it's only a domain in tab and we have it
                                         // in config with this slash added. if it's some long url, this slash doesn't do anything bad during comparison
-                                        (tab.url.replace( /\/$/, '' ) + '/')
+                                        (urlRemote.replace( /\/$/, '' ) + '/')
 
                                             // match to a pattern made from context url,
                                             .match( new RegExp(
 
                                                 // with leading double slash, with schema stripped,
-                                                ('//' + (context.url.replace( /^https?:\/\//, '')
+                                                ('//' + (urlLocal.replace( /^https?:\/\//, '')
 
                                                     // with one trailing slash,
                                                     .replace( /\/$/, '') ) + '/')
@@ -1502,11 +1527,14 @@ let Env = {
      */
     helper_finishProjectSetup: function (tabId, unlock) {
         if (unlock) {
-            Env.tabs_setup[tabId].lock = false;
             Env.log( '[UNLOCK]', tabId, 1, 0);
+            if (typeof Env.tabs_setup[tabId] === 'undefined')   {   // for some weird reason, sometimes it may be null at that stage
+                Env.tabs_setup[tabId] = {};
+            }
+            Env.tabs_setup[tabId].lock = false;
         }
         Env.logGroup( null, false, tabId );
-        if ( Env.tabs_setup[tabId].projectIsSet )   {
+        if ( Env.tabs_setup[tabId]?.projectIsSet )   {
             Env.log( '[Project was found and is set]', tabId, 2, 0);
         }
         Env.printLogs( tabId );

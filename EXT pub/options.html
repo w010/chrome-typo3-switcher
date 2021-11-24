@@ -80,6 +80,17 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                         <i>(disabled = no env menu, no badges, no favicon. <br>only FE/BE switching)</i></span>
                 </label>
 
+
+                <div class="section-foldable" data-visibility-trigger="#env_enable">
+                    <br>
+                    <label class="primary check">
+                        <input type="checkbox" id="env_ignore_www">
+                        <span>Ignore WWW, when matching project url<br>
+                            <i>(don't mind if it's there or not, or someone forgot)<br>
+                                (disabled = strict compare, treats www and non-www <br>as different things)</i></span>
+                    </label>
+                </div>
+
             </div>
             <div class="col-6 settings-block-section __contextmenu section-foldable" data-visibility-trigger="#env_enable">
 
@@ -249,13 +260,15 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                 <label class="primary check">
                     <input type="checkbox" id="env_repo"><span>Project repo<br>
                         <i>(Test feature)</i></span>
+
+                    <button class="btn  help transparent to-right" id="env_repo_help" title="Info / Help"><span class="icon"></span><!-- <span class="text">Info / Help</span>--></button>
                 </label>
 
 
                 <div class="section-foldable" data-visibility-trigger="#env_repo">
 
                     <label class="primary">
-                        <p class="level-info">You've found a hidden test feature! The repository functionality is not yet finished / tested well enough (works in basics though, so you can give it a try)</p>
+                        <p class="level-info"><em>You've found a hidden test feature! The repository functionality is not yet finished / tested well enough (works in basics though, so you can give it a try)</em></p>
                     </label>
 
                     <p class="row config-repo">
@@ -282,9 +295,6 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                         <i>Check repo for available projects to import</i>
                     </p>
 
-                    <p>
-                        <button class="btn  help transparent" id="env_repo_help" title="Info / Help"><span class="icon"></span><!-- <span class="text">Info / Help</span>--></button>
-                    </p>
                     <br>
                 </div>
 
@@ -297,7 +307,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
         <br>
         <div class="projects-list-toolbar">
             
-            <label class="primary">
+            <label class="primary" for="projects_filter">
                 
                 <button class="btn add env_projectAdd"><span class="icon"></span> <span class="text">Add new empty Project</span></button>
         
@@ -307,7 +317,6 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                 <input id="projects_filter" type="text" placeholder="Filter / search">
                 <button class="input-reset" id="projects_filter_reset" title="Reset">x</button>
                 </span>
-                
                 
                 <span class="projects-list-control">
                     <a href="#" id="projects-expand-all">Expand all</a>
@@ -386,7 +395,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                 <br>
 
                 <div class="textarea-holder">
-                    <textarea placeholder="paste json" id="env_importexport-data" cols="70" rows="5"></textarea>
+                    <textarea placeholder="paste json" id="env_importexport-data" cols="70" rows="7"></textarea>
                     <div class="textarea-cover"></div>
                 </div>
 
@@ -507,7 +516,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
             <i>(write the keyword <b>_ALL!</b> - to decline all permitted origins, if are set individually, you may see a list below)</i><br>
             <i>(write the <b>*</b> - to grant all hosts and not ask anymore - if you are aware, what that means)</i>
             <br><br>
-            <i>(so what that means? - it allows Switcher to access any active tab you open. It uses that for two things:
+            <i>(so what do that mean? - it allows Switcher to access any active tab you open. It uses that for two things:
                 1. to read domain from tab's URL / base href, search for it in YOUR configuration (which is kept in browser's Local Storage)
                 and mark tab if found,  2. to insert html Badge and new Favicon into that tab's current DOM.<br>
                 basically, that's the essentials of what this ext do - the whole idea, there's no other way to achieve something
@@ -547,12 +556,12 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
 
 <div id="templates">
 
-    <div class="projectItem collapse _template">
+    <div class="projectItem collapse _template" tabindex="-1">
 
-        <input type="text" name="project[name]" placeholder="Name" class="required">
+        <input type="text" name="project[name]" placeholder="Name" class="required  no-autosave">
+        <input type="text" name="project[uuid]" placeholder="Uuid" class="masked  dev-mode-restricted  no-autosave" title="Change UUID of project - KNOW WHAT YOU'RE DOING!">
 
         <div class="contexts">
-
             <h3>Environments / contexts:</h3>
 
             <div class="contexts-container"></div>
@@ -563,7 +572,6 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
         </div>
 
         <div class="links">
-
             <h3>External links:</h3>
 
             <div class="links-container"></div>
@@ -575,20 +583,21 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
 
         <div class="toggle project"><span class="icon"></span></div>
 
-        <label class="check hideItem" title="Visibility"><input type="checkbox" name="project[hidden]" class="inverse"> </label>
+        <label class="check hideItem" title="Visibility"><input type="checkbox" name="project[hidden]" class="inverse  no-autosave"> </label>
         <button class="btn transparent remove env_projectRemove" title="Remove"><span class="icon"></span></button>
     </div>
     
     
     <div class="item contextItem collapse _template">
-        <label><input type="text" name="context[name]" placeholder="Name" class="required"></label>
-        <label><input type="text" name="context[url]" placeholder="Url" class="url required"></label>
+        <label><input type="text" name="context[name]" placeholder="Name" class="required  no-autosave"></label>
+        <label><input type="text" name="context[url]" placeholder="Url" class="url required  no-autosave"></label>
         
         <button class="btn transparent opentab" title="Open in new tab"><span class="icon"></span></button>
                             
-        <label class="color">Color:
-            <input type="color" class="color-picker">
-            <input type="text" name="context[color]" placeholder="#Hex" class="color-text" maxlength="7">
+        <label class="color">
+            <span>Color:</span>
+            <input type="color" class="color-picker  no-autosave">
+            <input type="text" name="context[color]" placeholder="#Hex" class="color-text  no-autosave" maxlength="7">
         </label>
     
         <!--<div class="moreSettings">
@@ -599,17 +608,17 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
     
         <div class="toggle context"><span class="icon"></span></div>-->
     
-        <label class="check hideItem" title="Visibility"><input type="checkbox" name="context[hidden]" class="inverse"> </label>
+        <label class="check hideItem" title="Visibility"><input type="checkbox" name="context[hidden]" class="inverse  no-autosave"> </label>
         <button class="btn transparent remove env_contextRemove" title="Remove"><span class="icon"></span></button>
     </div>
 
     <div class="item linkItem _template">
-        <label><input type="text" name="link[name]" placeholder="Name" class="required"></label>
-        <label><input type="text" name="link[url]" placeholder="Url" class="url required"></label>
+        <label><input type="text" name="link[name]" placeholder="Name" class="required  no-autosave"></label>
+        <label><input type="text" name="link[url]" placeholder="Url" class="url required  no-autosave"></label>
 
         <button class="btn transparent opentab" title="Open in new tab"><span class="icon"></span></button>
 
-        <label class="check hideItem" title="Visibility"><input type="checkbox" name="link[hidden]" class="inverse"> </label>
+        <label class="check hideItem" title="Visibility"><input type="checkbox" name="link[hidden]" class="inverse  no-autosave"> </label>
         <button class="btn transparent remove env_linkRemove" title="Remove"><span class="icon"></span></button>
     </div>
     

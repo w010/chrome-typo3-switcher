@@ -23,7 +23,49 @@ const ExtOptions = {
 
     /* stores which dialog is the "active" one, when more than one is open at once (submodals) - usually this handles
     which is the one to close on esc key hit */
-    dialogToCloseOnGlobalEvents: null,
+    // now stack an array and pop when used
+    dialogsOpenStack: [],
+
+    // To handle some minor browser differences
+    engine: 'webkit',
+
+    consoleColor: {},
+
+
+    init: function()    {
+        // browser simple detection
+        if ( typeof browser !== 'undefined' )   {
+            ExtOptions.engine = 'gecko';
+            $('body').addClass('firefox');
+            ExtOptions.consoleColor = {
+                //FgBlack: '\x1b[30m',
+                FgGray: 'color: #aaa;',
+                FgRed: 'color: #d00;',
+                FgGreen: 'color: green;',
+                FgGreenBright: 'color: lightgreen;',
+                FgYellow: 'color: yellow;',
+                FgBlue: 'color: blue;',
+                FgMagenta: 'color: magenta;',
+                FgCyan: 'color: cyan;',
+                FgWhite: 'color: white;',
+            };
+        }
+        else {
+            $('body').addClass('chrome');
+            ExtOptions.consoleColor = {
+                //FgBlack: '\x1b[30m',
+                FgGray: '\x1b[90m',
+                FgRed: '\x1b[31m',
+                FgGreen: '\x1b[32m',
+                FgGreenBright: '\x1b[92m',
+                FgYellow: '\x1b[33m',
+                FgBlue: '\x1b[34m',
+                FgMagenta: '\x1b[35m',
+                FgCyan: '\x1b[36m',
+                FgWhite: '\x1b[37m',
+            };
+        }
+    },
     
     /**
      * Saves options to chrome.storage.sync.
@@ -48,9 +90,27 @@ const ExtOptions = {
             sortedProjects.appendTo( $( '.projects-container' ) );
 
             // scroll to the current project, if name changed it might have been moved in other sort position, so catch the form
-            let focusedProject = $( '.projectItem.active-focus' )[0];
-            if ( typeof focusedProject !== 'undefined' )  {
-                $('html,body').animate({scrollTop: $(focusedProject).offset().top - 100}, 400);
+            let focusedProject = $( '.projectItem.active-focus' );
+            if ( focusedProject  &&  focusedProject?.length )  {
+
+                // scroll position + port height = [max offset from top for the item visible above bottom screen end].
+                // - minus item actual offset = more than ~150px  
+                let isProjectVisibleInViewport_factor_top = ( $(window).scrollTop() + window.innerHeight )  -  (focusedProject?.offset()?.top ?? 0);
+
+                // scroll position - minus item real offset  + 100 page padding correction - minus item height =  
+                // = least than -150 px to not hide above top border.
+                let isProjectVisibleInViewport_factor_bottom = ( $(window).scrollTop() - focusedProject?.offset()?.top ?? 0 ) - (focusedProject?.outerHeight() ?? 0) + 100;
+
+                if ( isProjectVisibleInViewport_factor_top >= 200  &&  isProjectVisibleInViewport_factor_bottom <= -250 )   {
+                    console.log( 'Visible well - inside viewport whole or in most part' );
+                }
+                else    {
+                    console.log( 'Probably mostly or whole beyond viewport! Should scroll' );
+                    // console.log( isProjectVisibleInViewport_factor_top );
+                    // console.log( isProjectVisibleInViewport_factor_bottom );
+                    focusedProject.removeClass('collapse');
+                    $('html,body').animate({scrollTop: $(focusedProject)?.offset()?.top ?? 0 - 150}, 400);
+                }
             }
         }
         
@@ -68,6 +128,7 @@ const ExtOptions = {
             'switch_fe_openSelectedPageUid':    $( '#switch_fe_openSelectedPageUid' ).is( ':checked' ),
             'switch_be_useBaseHref':            $( '#switch_be_useBaseHref' ).is( ':checked' ),
             'env_enable':                       $( '#env_enable' ).is( ':checked' ),
+            'env_ignore_www':                   $( '#env_ignore_www' ).is( ':checked' ),
             'env_menu_show_allprojects':        $( '#env_menu_show_allprojects' ).is( ':checked' ),
             'env_menu_short_custom1':           $( '#env_menu_short_custom1' ).val(),
             'env_menu_short_custom2':           $( '#env_menu_short_custom2' ).val(),
@@ -130,11 +191,11 @@ const ExtOptions = {
                         // todo: remove & cleanup in next major release
                         // finish migration - try to make sure it's ready to cleanup - proceed if some current projects exists.
                         // empty array may mean that importing of old items failed - better keep them in storage, there's always a chance to retrieve them
-                        if ( Object.keys(projects).length > 0 )   {
+                        /*if ( Object.keys(projects).length > 0 )   {
                             // remove old (method 1) projects key from storage
                             chrome.storage.sync.remove( 'env_projects' );
                             console.log( 'update: project storing method migrated to method version 3' )
-                        }
+                        }*/
 
 
                         /*chrome.storage.sync.set({
@@ -176,6 +237,7 @@ const ExtOptions = {
             'env_projects_storing_version':     3,      // version 1 is original all-projects-one-key method. version 2 means projects stored in separated items, with index and counter. version 3 is items with unique id
             'env_projects_autosorting':         false,
             'env_enable':                       true,
+            'env_ignore_www':                   true,
             'env_menu_show_allprojects':        true,
             'env_menu_short_custom1':           '/typo3/install.php | - Install Tool',
             'env_menu_short_custom2':           '',
@@ -212,6 +274,7 @@ const ExtOptions = {
             $( '#switch_fe_openSelectedPageUid' ).attr( 'checked',  options.switch_fe_openSelectedPageUid );
             $( '#switch_be_useBaseHref' ).attr( 'checked',          options.switch_be_useBaseHref );
             $( '#env_enable' ).attr( 'checked',                     options.env_enable );
+            $( '#env_ignore_www' ).attr( 'checked',                 options.env_ignore_www );
             $( '#env_menu_show_allprojects' ).attr( 'checked',      options.env_menu_show_allprojects );
             $( '#env_menu_short_custom1' ).val('' +              options.env_menu_short_custom1 );
             $( '#env_menu_short_custom2' ).val('' +              options.env_menu_short_custom2 );
@@ -559,6 +622,13 @@ const ExtOptions = {
         const project = $( '.projectItem._template' ).clone().removeClass( '_template' )
             .appendTo( $( '.projects-container' ) );
         
+        // store project row in dom object. this way we can later  compare and detect that it was modified 
+        project.prop('projectItem_lastReadData', projectItem);
+        project.delegate('input', 'change paste keyup', (el) => {
+            // todo: temporary, to see when it launches
+            project.addClass('modified')
+        });
+        
         if (typeof classes === 'string')
             project.addClass( classes );
 
@@ -568,6 +638,7 @@ const ExtOptions = {
         project.attr('id', 'project_' + projectItem.uuid);
 
         // populate data
+        project.find( '[name="project[uuid]"]' ).val( projectItem.uuid );
         project.find( '[name="project[name]"]' ).val( projectItem.name );
         project.find( '[name="project[hidden]"]' ).prop( 'checked', projectItem.hidden );
         if ( projectItem.hidden )
@@ -844,7 +915,7 @@ const ExtOptions = {
             project.sorting = i++;
             projects[ 'project_' + project.uuid ] = project;
         });
-        console.info('collectProjects - projects: ', projects);
+        //console.info('collectProjects - projects: ', projects);
         return projects;
     },
 
@@ -904,8 +975,8 @@ const ExtOptions = {
      * @param markAsNew bool
      */
     populateEnvSettings : function(projects, markAsNew)   {
-        if ( ExtOptions.DEV )
-            console.info('projects from conf:', projects);
+        //if ( ExtOptions.DEV )
+        //    console.info('projects from conf:', projects);
 
         if ( !Array.isArray( projects ) )
             projects = [];
@@ -972,7 +1043,7 @@ const ExtOptions = {
             let dialog = ExtOptions.openDialog('Handy Switcher - permissions', content, 'text-left');
 
             dialog.find('.dialog-close').remove();  // remove X button - force to make a choose from buttons
-            ExtOptions.dialogToCloseOnGlobalEvents = null;  // prevent dismiss modal using esc key
+            ExtOptions.dialogsOpenStack = [];  // prevent dismiss modal using esc key
 
             dialog.find('.confirm-close').click( function() {
                 chrome.storage.sync.set({'internal_permissions_acknowledged': true});
@@ -1092,7 +1163,7 @@ const ExtOptions = {
             let dialog = ExtOptions.openDialog('Handy Switcher was updated recently - permissions must be reconfirmed', content, 'text-left');
 
             dialog.find('.dialog-close').remove();  // remove X button - force to make a choose from buttons
-            ExtOptions.dialogToCloseOnGlobalEvents = null;  // prevent dismiss modal using esc key
+            ExtOptions.dialogsOpenStack = [];  // prevent dismiss modal using esc key
 
             dialog.find('.confirm-close').click( function() {
                 chrome.storage.sync.set({'internal_permissions_acknowledged': true});
@@ -1626,12 +1697,14 @@ const ExtOptions = {
      * @param callback function
      */
     openDialog : function(title, content, classname, callback)   {
-        if ( typeof classname === 'undefined' )
+        let id = Math.floor(Math.random() * 1024);
+        let dialog_overlay;
+        if ( !classname )
             classname = '';
 
         if ( $( 'body > .dialog' ).length === 0 )
-            var dialog_overlay = $( '<div class="dialog-overlay">' );
-        let dialog = $( '<div class="dialog  '+ classname +'  dialog-loading">' )
+            dialog_overlay = $( '<div class="dialog-overlay">' );
+        let dialog = $( '<div class="dialog  '+ classname +'  dialog-loading" id="dialog_'+id+'">' )
             .css('display', 'none')
             .append(
                 $( '<div class="dialog-inner">' )
@@ -1646,8 +1719,8 @@ const ExtOptions = {
         if (callback instanceof Function) {
             callback( dialog );
         }
-        
-        ExtOptions.dialogToCloseOnGlobalEvents = dialog;
+        // stack open dialogs
+        ExtOptions.dialogsOpenStack.push( dialog );
         
         return dialog;
     },
@@ -1656,7 +1729,9 @@ const ExtOptions = {
      * Close dialog / remove modal object
      */
     closeDialog : function(dialog)  {
-        $( dialog ).remove();
+        dialog?.remove();
+        ExtOptions.dialogsOpenStack.pop();
+
         // sometimes there's more dialogs at once (ie. confirmation popup but called in modal) so remove overlay when there's no more left
         if ( $( 'body > .dialog' ).length === 0 )
             $( 'body > .dialog-overlay' ).remove();
@@ -1691,8 +1766,6 @@ const ExtOptions = {
                 '<h4> Storage info: </h4>' +
                 '<p> Bytes in storage: ' + bytes + '</p>');
         });
-
-        //chrome.storage.sync.clear();
     },
 
     /**
@@ -1701,8 +1774,8 @@ const ExtOptions = {
     debugSaveEnv : function() {
         if ( !ExtOptions.DEV )    return;
         console.log('called: ExtOptions.debugSaveEnv');
-        var envSettings = ExtOptions.getProjectsArray();
-        $( '#debug' ).html( JSON.stringify( envSettings, null, 4 ) );
+        let envSettings = ExtOptions.getProjectsArray();
+        $( '#debug' ).html( JSON.stringify( envSettings, null, 4 ).replaceAll(/(["{}\[\],])/gm, ' ').replaceAll(/( :)/gm, ':') );
     },
 
     /**
@@ -1711,7 +1784,6 @@ const ExtOptions = {
     debugStorageData : function() {
         if ( !ExtOptions.DEV )  return;
         chrome.storage.sync.get( null, function(options) {
-            //console.log(options);
             $( '#debugExtInfo' ).html(
                 '<h4> Extension info: </h4>' +
                 '<p> Version: ' + chrome.runtime.getManifest().version + '<br>' +
@@ -1721,11 +1793,12 @@ const ExtOptions = {
                 '<p> Storage contents: <br>' +
                 '<i>(you may want to refresh the page to be 100% sure this content is up-to-date)</i></a><br>' + 
                 '<a href="#" class="expand"> [ EXPAND ] </a><br>' +
-                '<pre class="section-foldable">' + JSON.stringify( options, null, 4 ) + '</pre>'
+                '<pre class="section-foldable">' + (JSON.stringify( options, null, 4 )
+                    ).replaceAll(/(["{}\[\],])/gm, ' ').replaceAll(/( :)/gm, ':') + '</pre>'
             )
                 .find('a.expand').on('click', function (e){
-                    console.log( $(this).parent().parent() );    
-                    console.log( $(this).parent().parent().find('.section-foldable') );    
+                    // console.log( $(this).parent().parent() );    
+                    // console.log( $(this).parent().parent().find('.section-foldable') );    
                     $(this).parent().parent().find('.section-foldable').addClass('expand');    
                     e.preventDefault();
             });
@@ -1846,18 +1919,73 @@ const ExtOptions = {
         $( '.settings-block' )
             
             // prepare text inputs to check state
-            .on( 'change', 'input[type=text]:not(.no-autosave)', function(e) {
-                // store this state in property - can't check this out-of-the-box
+            .on( 'change', 'input[type=text]:not(.no-autosave)', (e) => {
+                // store this state in property - can't check this out-of-the-box  [it was for autosave on blur problem solve]
                 $(this).data('hasChanged', true);
             })
             
             
+            // try to autosave on project block loose focus
+            .on( 'blur', '.projectItem', (e) => {
+                // .on( 'focusout', '.projectItem', (e) => {
+                
+                console.log( e );
+                console.log('currentTarget', e.currentTarget);
+                console.log('target', e.target);
+                
+                console.log('target found in current target: ', $(e.currentTarget).find( $(e.target) ).length );
+                console.log('target IS current target: ', e.currentTarget  ===   e.target  );
+                
+                
+                // rozpisac rodzaje TARGETS w przypadku Project
+                
+                
+                // rozpisac rodzaje CURRENTTARGETS w przypadku Project
+                
+                
+                /*if (  $(e.currentTarget).find( $(e.target) ).length )   {
+                    
+                    console.log('BLUR PROJECT!');
+                    
+                }
+                else    {
+                    console.log(' click inside!');
+                    
+                }
+*/
+
+  /*              console.log('BLUR PROJECT!');
+
+            }else    {
+            console.log(' click inside!');
+
+        }*/
+        // if( !$(e.target).is('#foo') )
+                // console.log( $.contains( $(e.target), $(e.currentTarget) ) );
+                // console.log( $.contains( e.currentTarget, e.target ) );
+                // console.log( $.contains( e.target, e.currentTarget ) );
+                // console.log( $(e.target).contains( $(e.currentTarget) ) );
+
+               /* if ( $.contains( e.currentTarget, e.target ))
+{
+                    console.log('BLUR PROJECT!');
+    // console.log();
+}
+                else    {
+                    console.log(' click inside!');
+                    
+                }*/
+                
+                // if (e.relatedTarget)
+            })
+            
+            
             // text: on enter key pressed in text input
-            .on( 'keypress', 'input[type=text]:not(.no-autosave)', function(e) {
+            .on( 'keypress', 'input[type=text]:not(.no-autosave)', (e) => {
                 if ( e.which === 13 )       ExtOptions.optionsSave( e );
             })
             // text: on input loose focus 
-            .on( 'blur', 'input[type=text]:not(.no-autosave)', function(e) {
+            .on( 'blur', 'input[type=text]:not(.no-autosave)', (e) => {
                 // delay needed to run other events first, - like handle button clicked when blurring. if still happens, try to increase time
                 setTimeout(() => {
                     if ($(this).data('hasChanged')) {
@@ -1869,23 +1997,23 @@ const ExtOptions = {
                 }, 150);
             })
             // checkbox: click
-            .on( 'click', 'input[type=checkbox]:not(.no-autosave)', function(e) {
+            .on( 'click', 'input[type=checkbox]:not(.no-autosave)', (e) => {
                 ExtOptions.optionsSave( e );
             })
             // radio: change
-            .on( 'change', 'input[type=radio]:not(.no-autosave)', function(e) {
+            .on( 'change', 'input[type=radio]:not(.no-autosave)', (e) => {
                 ExtOptions.optionsSave( e );
             })
             // select: change
-            .on( 'change', 'select:not(.no-autosave)', function(e) {
+            .on( 'change', 'select:not(.no-autosave)', (e) => {
                 ExtOptions.optionsSave( e );
             })
             // range: change
-            .on( 'change', 'input[type=range]:not(.no-autosave)', function(e) {
+            .on( 'change', 'input[type=range]:not(.no-autosave)', (e) => {
                 ExtOptions.optionsSave( e );
             })
             // color: change
-            .on( 'change', 'input[type=color]:not(.no-autosave)', function(e) {
+            .on( 'change', 'input[type=color]:not(.no-autosave)', (e) => {
                 ExtOptions.optionsSave( e );
             })
             ;
@@ -1934,7 +2062,7 @@ const ExtOptions = {
             });
         }
         else    {
-            chrome.storage.sync.remove( key, function() {
+            chrome.storage.sync.remove( key, () => {
                 ExtOptions.displayMessage( 'Removed key <b>' + key+'</b>', 'info', '.status-manipulate-storage', 30000 );
                 ExtOptions.updateStorageInfo();
                 ExtOptions.debugStorageData();
@@ -2122,6 +2250,7 @@ favicon_params = {
 
 // init
 $(function() {
+    ExtOptions.init();
     ExtOptions.optionsRestore();
     ExtOptions.updateStorageInfo();
     ExtOptions.debugStorageData();
@@ -2132,8 +2261,13 @@ $(function() {
     ExtOptions.initVisualDetails();
 
 	$(document).on('keydown',function(e) {
+	    // on escape key press - close last modal/dialog
         if (e.keyCode === 27) {
-            ExtOptions.closeDialog( ExtOptions.dialogToCloseOnGlobalEvents );
+            if ( !ExtOptions.dialogsOpenStack.length )
+                return;
+
+	        let dialogToClose = ExtOptions.dialogsOpenStack[ ExtOptions.dialogsOpenStack.length-1 ];
+            ExtOptions.closeDialog( dialogToClose );
         }
     });
 });
@@ -2141,11 +2275,10 @@ $(function() {
 // bind basic buttons
 $( 'button.save' ).click( function (e) {
     ExtOptions.optionsSave( e );
-    //ExtOptions.debugSaveEnv();
 });
 
 $( 'button.env_projectAdd' ).click( function () {
-    var newProject = ExtOptions.insertProjectItem( {} );
+    let newProject = ExtOptions.insertProjectItem( {} );
     newProject.removeClass( 'collapse' );
     newProject.find( '[name="project[name]"]' ).focus();
 });
@@ -2229,7 +2362,7 @@ $( 'textarea#env_importexport-data' )
     })
     .on( 'blur', function(){
         setTimeout(() => {  
-            $(this).animate({width: 457, height: 80}, 200);
+            $(this).animate({width: 457, height: 120}, 200);
 
             // scroll to only if we are lower than textarea begin
             if ( $(document).scrollTop() > $("#settings_block_importexport").offset().top )

@@ -156,9 +156,11 @@ input[type="checkbox"].nice {
     height: 20px;
     position: relative;
     border-radius: 10px;
-	transition: background-color 0.5s;
+	transition: background-color 0.5s, box-shadow 0.5s;
 	vertical-align: top;
 	cursor: pointer;
+	
+	box-shadow: inset #0000006b 1px 1px 3px;
 }
 	.nice-checkbox::before    {
 		content: ' \2299';
@@ -170,9 +172,16 @@ input[type="checkbox"].nice {
 		transition: left .3s, color .4s;
 		cursor: pointer;
 	}
+		.firefox .nice-checkbox::before    {
+			/* this symbol renders differently in ff - so tune */
+			font-size: 22px;
+			top: -8px;
+			left: 1px;
+		}
 	.nice-checkbox:hover    {
 		background: #e44444;
         color: #fdbaba;
+		box-shadow: inset #0000006b 2px 2px 5px 0px
 	}
 
 		.nice-checkbox.checked    {
@@ -182,6 +191,9 @@ input[type="checkbox"].nice {
 		.nice-checkbox.checked::before    {
 			left: 12px;
 		}
+			.firefox .nice-checkbox.checked::before {
+			    left: 10px;
+			}
 		.nice-checkbox.checked:hover    {
 			background-color: #28a528;
 			color: #dbecd0;
@@ -202,7 +214,7 @@ input[type="text"]    {
 	min-height: 2em;
 	padding: 1px 7px;
 	transition: background-color 0.3s;
-	font-size: 1.3em;
+	font-size: 18px; /*1.3em*/
 	border-color: #ddd;
 }
 input[type="text"].required:placeholder-shown {
@@ -210,17 +222,17 @@ input[type="text"].required:placeholder-shown {
 }
 input[name="context[name]"],
 input[name="link[name]"] {
-	width: 150px;
+	width: 160px;
 }
 input[name="context[url]"]  {
-	width: 300px;
+	width: 350px;
 }
 input[name="link[url]"] {
 	width: 500px;
 }
 input[type="color"] {
 	vertical-align: top;    /* middle doesn't work well here */
-	margin-top: 4px;
+	margin-top: 6px;
 	height: 1.9em;
 	margin-left: 8px;
 	cursor: pointer;
@@ -234,9 +246,11 @@ select{
 	}
 input.color-text    {
     width: 82px;
+	margin-top: 4px;
     margin-left: 6px;
     font-size: 1.2em;
     text-transform: uppercase;
+	color: #515151;
 }
 input[type=range]   {
 	margin: 0;
@@ -279,7 +293,7 @@ input[type=range]::-webkit-slider-thumb {
 	margin-top: -6px;
 	transition: background-color .2s, border-color .2s, box-shadow .2s/*, width .1s, height .1s, margin-top .1s*/;
 	border-radius: 8px;
-    background: #fd9e44;
+    background: #ff9a3c;
     cursor: pointer;
 	-webkit-appearance: none;
 }
@@ -290,7 +304,7 @@ input[type=range]::-webkit-slider-thumb {
 		margin-top: -6px;
 		transition: background-color .2s, border-color .2s, box-shadow .2s/*, width .1s, height .1s, margin-top .1s*/;
 		border-radius: 8px;
-	    background: #fd9e44;
+	    background: #ff9a3c;
 	    cursor: pointer;
 	}
 input[type=range]:focus::-webkit-slider-thumb,
@@ -329,14 +343,19 @@ input[type=range]:hover::-webkit-slider-runnable-track  {
 
 
 label.color {
-	margin-left: 20px;
+	margin-left: 8px;
 	vertical-align: top;
+}
+label.color > span {
+    /*top: -2px;
+    position: relative;*/
+	display: none;
 }
 label.hideItem  {
 	position: absolute;
 	padding: 3px 0 0 0 !important;
-	top: 15px;
-	right: 60px;
+	top: 16px;
+    right: 56px;
 	cursor: pointer;
 }
 label.text > span    {
@@ -375,7 +394,7 @@ label.range input.range-text    {
 	.textarea-cover    {
 		position: absolute;
 		left: 1px;        bottom: 4px;
-		height: 20px;   width: 96%;
+		height: 20px;   width: 438px;
 		pointer-events: none;
 		box-shadow: inset -20px -20px 30px -10px rgba(255,255,255,1);
 	}
@@ -450,7 +469,7 @@ button.exchange .icon { background-image: url(/Icons/Options/Exchange.svg);  }
 button.export .icon  {  background-image: url(/Icons/Options/Export.svg);  }
 button.fetch .icon  {   background-image: url(/Icons/Options/Fetch.svg);  }
 button.getAll .icon  {  background-image: url(/Icons/Options/GetWholePack.svg);  }
-button.help .icon    {  background-image: url(/Icons/Options/Help.svg); }
+button.help .icon    {  background-image: url(/Icons/Options/Help.svg); cursor: help; }
 button.import .icon  {  background-image: url(/Icons/Options/Import.svg);  }
 button.merge .icon  {  background-image: url(/Icons/Options/Merge.svg);  }
 button.opentab .icon {  background-image: url(/Icons/Options/TabOpen.svg); }
@@ -479,6 +498,10 @@ button.env_contextAddDefaultSet {
     top: 4px;
     position: relative;
     cursor: zoom-in;
+}
+
+.settings-block-section {
+	margin-bottom: 40px;
 }
 
 /* "Use max-height in the transition and not height. And set a value on max-height to something bigger than your box will ever get." */
@@ -532,7 +555,18 @@ pre.section-foldable.expand   {
 }
 
 .projectItem.new    {
+	background-color: #8cbc8f29;
+	border: 1px solid #9fc2a4;
+}
+	.projectItem.new.active-focus    {
+		border: 1px solid #60e56e;
+	}
+	.projectItem.modified    {
 	background: #d8f0f7;
+		border: 1px solid #d8f0f7;
+	}
+	.projectItem.modified.active-focus    {
+		border: 1px solid #74ceef;
 }
 .projectItem.uuid-collision    {
 	background: #ede9ce;
@@ -562,6 +596,35 @@ pre.section-foldable.expand   {
 	font-weight: 600;
 	font-size: 1.25em;
 }
+.projectItem input[name="project[uuid]"]    {
+	font-weight: 600;
+	font-size: 1.25em;
+	position: absolute;
+	right: 12px;    top: 64px;
+	z-index: 2;
+	text-align: right;
+	width: 160px;
+}
+.projectItem.collapse input[name="project[uuid]"]    {
+	display: none;
+}
+	.projectItem input[type="text"].masked  {
+		color: transparent;
+		background: none;
+		border: 1px solid transparent;
+	}
+		.projectItem input[type="text"].masked::placeholder   {
+			color: transparent;
+		}
+	.projectItem input[type="text"].masked:hover,
+	.projectItem input[type="text"].masked:focus {
+		color: #333;
+		background-color: #eee;
+	}
+		.projectItem input[type="text"].masked:hover::placeholder,
+		.projectItem input[type="text"].masked:focus::placeholder{
+			color: #444;
+		}
 .projectItem > label  {
 	display: block;
 }
@@ -669,7 +732,7 @@ pre.section-foldable.expand   {
 }
 .projectItem .btn.remove   {
 	position: absolute;
-	top: 10px;  right: 10px;
+	top: 10px;  right: 2px;
 	padding: 8px 9px;
 	background-color: transparent;
 }
@@ -906,6 +969,8 @@ label.primary span  {
 	color: #50be2c;
 }
 
+body .dialog {              opacity: 0.5;   }
+body .dialog:last-child {opacity: 1;}
 
 
 .btn.confirm-warn,

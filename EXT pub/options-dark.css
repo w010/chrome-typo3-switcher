@@ -38,7 +38,7 @@ body.dark {
 }
 
 .dark #top-shadow {
-    box-shadow: inset 0 23px 30px -10px #343333
+    box-shadow: inset 0 23px 30px -13px #343333
 }
 
 /* form inputs etc */
@@ -140,6 +140,9 @@ input[type=range] {
 .dark input[type="color"]   {
 	background-color: #94949433;
     border-color: #404040;
+}
+.dark input[type="text"].color-text   {
+	color: #adadad;
 }
 .dark select {
 	text-shadow: rgb(59, 59, 59) 0px 1px 0px;
@@ -265,7 +268,18 @@ body.dark .btn {
 }
 
 .dark .projectItem.new    {
+	background-color: #e1ffe34f;
+	border: 1px solid #1b902a;
+}
+	.dark .projectItem.new.active-focus    {
+		border: 1px solid #2bc73c;
+	}
+	.dark .projectItem.modified    {
 	background-color: #617c848f;
+		border: 1px solid #3189a5;
+	}
+	.dark .projectItem.modified.active-focus    {
+		border: 1px solid #74ceef;
 }
 .dark .projectItem.uuid-collision    {
 	background: #e9e1ad47;
@@ -294,6 +308,20 @@ body.dark .btn {
 .dark .projectItem input[name="project[name]"]    {
 	text-shadow: 3px 2px 1px #333;
 }
+	.dark .projectItem input[type="text"].masked    {
+		/*background-color: #575757;*/
+		background: none;
+		border: 1px solid transparent;
+	}
+	.dark .projectItem input[type="text"].masked:hover,
+	.dark .projectItem input[type="text"].masked:focus {
+		color: #444;
+		background-color: #8a8a8a;
+	}
+		.dark .projectItem input[type="text"].masked:hover::placeholder,
+		.dark .projectItem input[type="text"].masked:focus::placeholder {
+			color: #666;
+		}
 
 .dark .contextItem, .dark .linkItem    {
 	border-color: #4a4a4a;

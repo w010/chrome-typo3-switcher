@@ -1,7 +1,7 @@
 /**
  * TYPO3 Backend-Frontend Handy Switcher - Chrome extension
  *
- * wolo.pl '.' studio 2020
+ * wolo.pl '.' studio 2020-21
  * Adam wolo Wolski
  * wolo.wolski+t3becrx@gmail.com
  */
@@ -17,10 +17,6 @@ const minRepoVersionRequest = '0.2.0';    // repo performs auto-check and sends 
 
 let RepoHelper = {
 
-    DEV: true,
-    DEBUG: 0,
-    options: {},
-    
     // store last auth level to control gui (don't rely on that, it's not a security control)
     authLevel: '',
 
@@ -683,29 +679,7 @@ let RepoHelper = {
 
         let projectExistingItem = ExtOptions.readProjectData( $('#project_'+projectPreviewItem.uuid) );
         let content = RepoHelper.renderDiff(projectExistingItem, projectPreviewItem);
-
-        // display as another container above modal (don't create new modal, it replaces current and we need it)
-        let overdialog = $( '<div class="dialog dialog-independent dialog-compare">' );
-        $( 'body' ).append( overdialog );
-
-        $( '<div class="dialog-inner">' )
-            .append( $( '<h2 class="dialog-head">' ).html( 'Compare config' ) )
-            .append( $( '<span class="dialog-close" title="Close">' ).html( 'X' ).on('click', function(){
-                $( 'body > .dialog-compare' ).remove();
-                // restore fetch modal dim
-                $('.dialog-repo-fetch').css('opacity', '');
-            }) )
-            .append( $( '<div class="dialog-body">' ).html( content ) )
-            .appendTo( overdialog );
-
-
-        // dim the fetch dialog under
-        $('.dialog-repo-fetch').css('opacity', '0.5');
-
-        // good idea is to disable here esc-key event - because pressing it when being in
-        // comparison dialog closes all modals and you loose your fetch/search etc. better just do nothing, or try that: 
-        // using this to keep modal to esc-close allows temporary disabling this handler
-        ExtOptions.dialogToCloseOnGlobalEvents = overdialog;
+        let dialog = ExtOptions.openDialog('Compare config', content, 'text-left dialog-compare');
     },
 
 
@@ -730,9 +704,8 @@ let RepoHelper = {
         delete project_right.hidden;  // don't compare that - unset for comparison
         delete project_left.hidden;
 
-        let project_left_string = JSON.stringify(project_left, null, 4);
-        let project_right_string = JSON.stringify(project_right, null, 4);
-
+        let project_left_string = JSON.stringify(project_left, null, 4).replaceAll(/(["{}\[\],])/gm, ' ').replaceAll(/( :)/gm, ':');
+        let project_right_string = JSON.stringify(project_right, null, 4).replaceAll(/(["{}\[\],])/gm, ' ').replaceAll(/( :)/gm, ':');
 
         content.find( '.compare-mine' ).append('<div class="compare-diff">' +
                 project_right_string.diff( project_left_string ) +
