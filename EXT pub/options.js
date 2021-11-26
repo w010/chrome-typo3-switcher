@@ -1702,7 +1702,7 @@ const ExtOptions = {
         if ( !classname )
             classname = '';
 
-        if ( $( 'body > .dialog' ).length === 0 )
+        if ( $( '#dialog-group > .dialog' ).length === 0 )
             dialog_overlay = $( '<div class="dialog-overlay">' );
         let dialog = $( '<div class="dialog  '+ classname +'  dialog-loading" id="dialog_'+id+'">' )
             .css('display', 'none')
@@ -1712,7 +1712,12 @@ const ExtOptions = {
                     .append( $( '<span class="dialog-close" title="Close">' ).html( 'X' ).on('click', function(){ ExtOptions.closeDialog( dialog ); }) )
                     .append( $( '<div class="dialog-body">' ).html( content ) )
         );
-        $( 'body' ).append( dialog_overlay, dialog );
+        let $dialog_group = $( '#dialog-group' );
+        $( dialog_overlay )
+            .insertBefore( $dialog_group );
+        $dialog_group
+            .append( dialog );
+
         // must unhide right before removing load class to make transition work. create as hidden
         dialog.show().removeClass('dialog-loading');
 
@@ -1733,7 +1738,7 @@ const ExtOptions = {
         ExtOptions.dialogsOpenStack.pop();
 
         // sometimes there's more dialogs at once (ie. confirmation popup but called in modal) so remove overlay when there's no more left
-        if ( $( 'body > .dialog' ).length === 0 )
+        if ( $( '#dialog-group > .dialog' ).length === 0 )
             $( 'body > .dialog-overlay' ).remove();
     },
 
