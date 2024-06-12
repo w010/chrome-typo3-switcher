@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "author": "wolo.pl '.' studio",
-  "homepage_url": "https://wolo.pl/handyswitcher/",
+  "homepage_url": "http://wolostudio.free.nf/handyswitcher/",
 
   "name": "TYPO3 - BE/FE/Env Handy Switcher",
   "short_name": "TYPO3 Switcher",

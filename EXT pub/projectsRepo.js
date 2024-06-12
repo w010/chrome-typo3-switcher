@@ -84,7 +84,7 @@ let RepoHelper = {
                 '<h3>Host own Repo:</h3>' +
                 '<p>There are two roads to go:</p>' +
                 '<p>1. Use featured Projects Repository micro app, it\'s a 5 minute job, unpack, set keys, add optional htpassword. Optionally add some projects. ' +
-                    '<a class="external" href="https://wolo.pl/handyswitcher/projectrepo/" target="_blank">See details</a>.</p>' +
+                    '<a class="external" href="http://wolostudio.free.nf/handyswitcher/projectrepo/" target="_blank">See details</a>.</p>' +
                 '<p>or 2. Go pro and ie. write a TYPO3 extension for that. I didn\'t do this yet, but it\'s somewhere on a todo-list.</p>' +
             '</div>'
         );
@@ -96,7 +96,7 @@ let RepoHelper = {
             // bind test link
             content.find('#repo_example').on('click', function() {
                 $('#env_repo_url')
-                    .val('https://wolo.pl/handyswitcher/repoexample/');
+                    .val('http://wolostudio.free.nf/handyswitcher/repoexample/');
                 $('#env_repo_key')
                     .val('fakeWriteKeyForDemo');
                 ExtOptions.optionsSave();
