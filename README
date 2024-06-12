@@ -3,10 +3,10 @@ Handy Switcher TYPO3/BE/FE/Env
 (a.k.a. Magic server teleporter for TYPO3 & other webprojects)
 
 
-wolo.pl '.' studio
-2017-2021
+wolo '.' studio
+2017-2024
 wolo.wolski(at)gmail.com
-http://wolo.pl/
+http://wolostudio.free.nf/
 
 https://chrome.google.com/webstore/detail/typo3-backend-frontend-ha/ohemimdlihjdeacgbccdkafckackmcmn
 https://github.com/w010/chrome-typo3-switcher
@@ -144,6 +144,23 @@ A: No, this extension doesn't do anything with the urls it reads. All it does it
 
 **
 Changelog:
+
+v2.2.597
+12.06.2024
+- getting things together to start preparations for MANIFEST 3 migration
+
+v2.2.596
+12.06.2024
+- few improvements in badge and favicon inject code (still kind of problematic, but works)
+- WIP: backend preselect. currently not used, should be reworked to use deep backend links instead
+- options: fix modal display
+
+v2.2.594
+26.11.2021
+- major rebuild of env background engine. events, locks, project detect, performance, cleanup, badges and favicons should now finally display when expected. + importand fix - workaround for chrome tabs query bug
+- fixed / rebuilt project detection (url match) - won't hit anymore when it finds garbage, like single letters in url fields
+- env: many low-level fixes in project setup, locks, favico/badge, event listeners
+- env: ignore "www" option, fixes with setup, caching info, favicon replacing, potential memory leaks, config styles, autosaving options tune, modals stack, better event handling, general stability
 
 v2.2.0
 3.06.2021
