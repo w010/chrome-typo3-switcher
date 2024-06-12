@@ -1,0 +1,16 @@
+
+## Manifest3 update TODO:
+
+- fix action button - doesn't work when switching BE -> FE
+
+	//- action button menu is not generating (while the right-click menu works well) DONE?
+
+- finally do the backend switching with opening current page uid (taken from body class/id etc.)
+	/typo3/module/web/layout?id=54
+
+- find traces of "custom backend url / path" function which was never finished, and try to make it work
+	(someone asked of possibility to set completely different domain for backend, but at least we need
+	to be able to set custom "typo3" (per project or globally? depends what will be possible)
+	this way it can be finally used with other cms
+
+- backend favicon is broken again (it makes overlay from empty) - compare with one of 2.2.5xx versions where it worked but some fix broke it

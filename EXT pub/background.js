@@ -1203,7 +1203,7 @@ let Env = {
 
         // clear current options again / to be sure it's empty before adding anything
         // (because for some strange reason, it's usually not...)
-        chrome.contextMenus.removeAll( function () { 
+        chrome.contextMenus.removeAll(() => { 
         
         
             // New permissions info     // todolater: delete in a few minor version
@@ -1223,7 +1223,7 @@ let Env = {
                     &&  ! options.internal_permissions_acknowledged )  {
 
 
-                let tempMenuContexts = [ 'page', 'frame', 'selection', 'link', 'editable', 'image', 'video', 'audio', 'page_action', 'browser_action' ];
+                let tempMenuContexts = [ 'page', 'frame', 'selection', 'link', 'editable', 'image', 'video', 'audio', 'page_action', 'action' ];
                 chrome.contextMenus.create({
                     title:      '!!!  IMPORTANT  !!!  Your attention needed - open Options / SEE DETAILS ->',
                     contexts:   tempMenuContexts,
@@ -1519,7 +1519,7 @@ let Env = {
 
                     chrome.contextMenus.create({
                             title:      menuItems[i].title,
-                            contexts:   [ 'browser_action' ],
+                            contexts:   [ 'action' ],
                             id:         'ICON-'+menuItems[i].id,
                             type:       menuItems[i]?.type === 'separator'
                                 ? 'separator'
