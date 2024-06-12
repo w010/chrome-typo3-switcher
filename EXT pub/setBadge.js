@@ -95,10 +95,3 @@ if (typeof Badge === 'undefined')  {
 
 
 
-// Variable badge_params is defined in environment.js / background.js
-// That definition is executed on tab, so is readable here in global scope
-
-if ( typeof badge_params !== 'undefined' ) {
-    Badge.setBadge( badge_params );
-}
-

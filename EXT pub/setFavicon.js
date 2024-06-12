@@ -1,11 +1,10 @@
 
 
 
-// todo: should be checked to avoid errors "Favicon has already been declared", but then favicon in backend doesn't work in many cases
-// investigate that after Manifest 3 migration
 
-//if (typeof Favicon === 'undefined')  {
-let Favicon = {
+if (typeof Favicon === 'undefined')  {
+	// must be defined in global scope so don't change to let
+  var Favicon = {
 
     DEV: false,
     DEBUG: 0,
@@ -223,22 +222,9 @@ let Favicon = {
 
         return canvas;
     }
-};
+  };
 
-//}
-
-
-// this runs also in options preview. for now doesn't look like a problem, but in future it may check in params if should autorun
-
-
-if ( typeof favicon_params !== 'undefined' )    {
-    
-    //if ( document.readyState === 'complete' ) {
-        Favicon.setFavicon( favicon_params );
-    // }
-    // else {
-    //     document.addEventListener("DOMContentLoaded", function(event) {
-    //         Favicon.setFavicon( favicon_params );
-    //     });
-    // }
 }
+
+
+
