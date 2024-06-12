@@ -434,7 +434,7 @@ return;
 // depending on what it detects we're currently at, what domain, what url segment to strip (if subdir)
 // and try to use the pid from fe to open backend with this page already found and open for us.  
 
-chrome.browserAction.onClicked.addListener((tab) => {
+chrome.action.onClicked.addListener((tab) => {
 
     // store current tab and its url for later
     Switcher._currentTab = tab;
@@ -1007,8 +1007,8 @@ let Env = {
     findAndApplyProjectConfigForCurrentTabUrl: function(tabId, _debugEventTriggered) {
         let options = Env.options,
             projectsAll = Env.projectsAll,
-            loadFavicon = _debugEventTriggered === 'onUpdated',
-            loadBadge = _debugEventTriggered === 'onUpdated';
+            loadFavicon = (_debugEventTriggered === 'onUpdated'  ||  _debugEventTriggered === 'onFocusChanged'),
+            loadBadge = (_debugEventTriggered === 'onUpdated'  ||  _debugEventTriggered === 'onFocusChanged');
 
         if ( Env.tabs_setup[tabId]?.badgeLoaded === true)   {
             loadBadge = false;
@@ -1577,35 +1577,47 @@ let Env = {
         
         Env.tabs_setup[tab.id].badgeLoaded = true;
 
-        chrome.tabs.executeScript( tab.id, {
 
-            code: 'let badge_params = {' +
-                    'DEV: '+Env.DEV+',' +
-                    'DEBUG: '+Env.DEBUG+',' +
-                    'projectLabel: "'+project.name+'",' +
-                    'contextLabel: "'+context.name+'",' +
-                    'contextColor: "'+context.color+'",' +
-                    'projectLabelDisplay: '+( typeof Env.options.env_badge_projectname === 'undefined'  ||  Env.options.env_badge_projectname === true  ?  'true'  :  'false' )+',' +
-                    'scale: '+( typeof Env.options.env_badge_scale !== 'undefined'  ?  parseFloat( Env.options.env_badge_scale )  :  1.0 )+',' +
-                    'position: "'+( typeof Env.options.env_badge_position !== 'undefined'  ?  Env.options.env_badge_position  :  'left' )+'",' +
-                    '_debugEventTriggered: "'+_debugEventTriggered+'"' +
-                '};'
-
-        }, function () {
+        // 1st include the lib, then after - pass the code which calls the object with passed params 
+        chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ['setBadge.js']
+        }).then(() => {
 
             // on system pages you can't inject any scripts
             if ( chrome.runtime.lastError ) {
-                Env.log('Env.setupBadge(): Error executing code: \n' + chrome.runtime.lastError.message, tab.id, 3, 1);
-            }
-            else {
-                chrome.tabs.executeScript( tab.id, {
+                Env.log('Error injecting badge script: \n' + chrome.runtime.lastError.message, tab.id, 1, 1);
+            } else  {
 
-                    file: 'setBadge.js'
+                let argumentsToInject = {
+                    DEV: Env.DEV,
+                    DEBUG: Env.DEBUG,
+                    projectLabel: project.name,
+                    contextLabel: context.name,
+                    contextColor: context.color,
+                    projectLabelDisplay: ( typeof Env.options.env_badge_projectname === 'undefined'  ||  Env.options.env_badge_projectname === true  ?  'true'  :  'false' ),
+                    scale: ( typeof Env.options.env_badge_scale !== 'undefined'  ?  parseFloat( Env.options.env_badge_scale )  :  1.0 ),
+                    position: ( typeof Env.options.env_badge_position !== 'undefined'  ?  Env.options.env_badge_position  :  'left' ),
+                    _debugEventTriggered: _debugEventTriggered,
+                };
+                Env.log('------- setBadge.js injected! arguments to pass: ', argumentsToInject, 1, 1);
 
+                chrome.scripting.executeScript({
+                    target: { tabId: tab.id },
+                    func: (_incoming_params) => {
+                        if (_incoming_params?.DEBUG > 1) {
+                            console.info('Injected badge params: ', _incoming_params);
+                            console.log('typeof Badge', typeof Badge);
+                        }
+                        Badge.setBadge(_incoming_params);
+                    },
+                    args: [argumentsToInject],
                 }, () => {
                     // on system pages you can't inject any scripts
-                    if ( chrome.runtime.lastError ) {
-                        Env.log('Error injecting badge script: \n' + chrome.runtime.lastError.message, tab.id, 1, 1);
+                    if (chrome.runtime.lastError) {
+                        Env.log('Env.setupBadge(): Error injecting CODE/params: \n' + chrome.runtime.lastError.message, tab.id, 3, 1);
+                    } else {
+                        Env.log('Env.setupBadge(): badge_params script injected', tab.id, 0, 1, argumentsToInject);
                     }
                 });
             }
@@ -1632,34 +1644,45 @@ let Env = {
         
         Env.tabs_setup[tab.id].faviconLoaded = true;
 
-        chrome.tabs.executeScript( tab.id, {
-
-            code: 'let favicon_params = {' +
-                    'DEV: '+Env.DEV+',' +
-                    'DEBUG: '+Env.DEBUG+',' +
-                    'contextColor: "'+context.color+'",' +
-                    'alpha: '+( typeof Env.options.env_favicon_alpha !== 'undefined'  ?  parseFloat( Env.options.env_favicon_alpha )  :  0.85 )+',' +
-                    'fill: '+( typeof Env.options.env_favicon_alpha !== 'undefined'  ?  parseFloat( Env.options.env_favicon_fill )  :  0.25 )+',' +
-                    'position: "'+( typeof Env.options.env_favicon_position !== 'undefined'  ?  Env.options.env_favicon_position  :  'bottom' )+'",' +
-                    'composite: "'+( typeof Env.options.env_favicon_composite !== 'undefined'  ?  Env.options.env_favicon_composite  :  'source-over' )+'",' +
-                    '_debugEventTriggered: "'+_debugEventTriggered+'"' +
-                '};'
-
-        }, function () {
-
+        // 1st include the lib, then after - pass the code which calls the object with passed params 
+        chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ['setFavicon.js']
+        }).then(() => {
+            
             // on system pages you can't inject any scripts
             if ( chrome.runtime.lastError ) {
-                Env.log('Env.setupFavicon(): Error executing code: \n' + chrome.runtime.lastError.message, tab.id, 3, 1);
-            }
-            else {
-                chrome.tabs.executeScript( null, {
+                Env.log('Error injecting favicon script: \n' + chrome.runtime.lastError.message, tab.id, 1, 1);
+            } else  {
 
-                    file: 'setFavicon.js'
+                let argumentsToInject = {
+                    DEV: Env.DEV,
+                    DEBUG: Env.DEBUG,
+                    contextColor: context.color,
+                    alpha: ( typeof Env.options.env_favicon_alpha !== 'undefined'  ?  parseFloat( Env.options.env_favicon_alpha )  :  0.85 ),
+                    fill: ( typeof Env.options.env_favicon_alpha !== 'undefined'  ?  parseFloat( Env.options.env_favicon_fill )  :  0.25 ),
+                    position: ( typeof Env.options.env_favicon_position !== 'undefined'  ?  Env.options.env_favicon_position  :  'bottom' ),
+                    composite: ( typeof Env.options.env_favicon_composite !== 'undefined'  ?  Env.options.env_favicon_composite  :  'source-over' ),
+                    _debugEventTriggered: _debugEventTriggered,
+                };
+                Env.log('------- setFavicon.js injected! arguments to pass: ', argumentsToInject, 1, 1);
 
+                chrome.scripting.executeScript({
+                    target: { tabId: tab.id },
+                    func: (_incoming_params) => {
+                        if (_incoming_params?.DEBUG > 1) {
+                            console.info('Injected favicon params: ', _incoming_params);
+                            console.log('typeof Favicon', typeof Badge);
+                        }
+                        Favicon.setFavicon(_incoming_params);
+                    },
+                    args: [argumentsToInject],
                 }, () => {
                     // on system pages you can't inject any scripts
-                    if ( chrome.runtime.lastError ) {
-                        Env.log('Error injecting favicon script: \n' + chrome.runtime.lastError.message, tab.id, 1, 1);
+                    if (chrome.runtime.lastError) {
+                        Env.log('Env.setupFavicon(): Error injecting CODE/params: \n' + chrome.runtime.lastError.message, tab.id, 3, 1);
+                    } else {
+                        Env.log('Env.setupFavicon(): favicon_params script injected', tab.id, 0, 1, argumentsToInject);
                     }
                 });
             }
@@ -1725,14 +1748,14 @@ let Env = {
 
         switch (type)   {
             case 'active':
-                chrome.browserAction.setIcon({
+                chrome.action.setIcon({
                     path : 'Icons/icon-48-act.png',
                     tabId: tabId
                 });
                 break;
 
             default:
-                chrome.browserAction.setIcon({
+                chrome.action.setIcon({
                     path : 'Icons/icon-48.png',
                     tabId: tabId
                 });
@@ -1949,7 +1972,7 @@ let Env = {
      * Store log messages in collection, console.log if needed (in debug mode)
      * @param msg string
      * @param tabId int, Basically a key for grouping logs
-     * @param severityLevel int [-1-3], Default 0 (log)
+     * @param severityLevel int [-1-4], Default 0 (log)     (blue - purple - yellow[warn] - red[error], 0 = white, -1 = debug?)
      * @param logDetailLevel int, Higher number allows not to see it, unless debugLevel >= logLevel. 0 [default] = show always [todo]
      * @param variable <misc>, Variable to log
      * @param forceOutput bool - For exceptions and other errors
@@ -2013,7 +2036,7 @@ let Env = {
     printLogs: function (key)  {
         //console.log(Env.tabs_log[key]); return;
         Object.entries(Env.tabs_log[key] ?? []).forEach(function([i, row])    {
-            if ( (Env.DEBUG >= row.logLevel) || row?.group || Env.DEV ) {
+            if ( (Env.DEBUG >= row.logLevel) || row?.group/* || Env.DEV */) {
                 if (row?.group)     {
                     switch (row.group) {
                         case 'open':
