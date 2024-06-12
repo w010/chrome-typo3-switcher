@@ -1,12 +1,10 @@
 
 
 
-// we can't use this, because preview in options won't work - it needs to be inserted there in other way than on normal page
-if (typeof badge_params === 'undefined')  {
-    let badge_params = {};
-}
 
-    let Badge = {
+if (typeof Badge === 'undefined')  {
+    // let Badge = {    // must be defined in global scope
+    var Badge = {
 
         DEV: false,
         DEBUG: 0,
@@ -17,7 +15,6 @@ if (typeof badge_params === 'undefined')  {
          * @param params object - configuration  
          */
         setBadge: function(params) {
-            //console.log('badge from event: ' + params._debugEventTriggered);
 
             if ( typeof params === 'undefined' )  {
                 return console.warn('Handy Switcher: Badge insert - no params given - exiting');
@@ -94,17 +91,14 @@ if (typeof badge_params === 'undefined')  {
             }
         }
     }
+}
 
 
 
+// Variable badge_params is defined in environment.js / background.js
+// That definition is executed on tab, so is readable here in global scope
 
-    // Variable badge_params is defined in environment.js / background.js
-    // That definition is executed on tab, so is readable here in global scope
-
-    if ( typeof badge_params !== 'undefined' ) {
-        Badge.setBadge( badge_params );
-    }
-
-//Badge = null;
-
+if ( typeof badge_params !== 'undefined' ) {
+    Badge.setBadge( badge_params );
+}
 
