@@ -53,11 +53,12 @@ let Switcher = {
         // click switches to frontend
         if ( isInBackend ) {
 
-            if ( options.switch_fe_openSelectedPageUid ) {
+            if ( options.switch_fe_openSelectedPageUid  &&  Switcher._currentTab?.id ) {
                 // tries to extract current pid from backend pagetree and sends a message
-                chrome.tabs.executeScript( Switcher._currentTab?.id, {
+                chrome.scripting.executeScript({
 
-                    file: 'backend_getData.js'
+                    target: { tabId: Switcher._currentTab.id },
+                    files: ['backend_getData.js']
 
                 }, () => {
                     // on system pages you can't inject any scripts

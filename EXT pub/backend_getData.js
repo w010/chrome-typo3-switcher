@@ -1,7 +1,7 @@
 
 
 /**
- * Try to read or estimate TYPO3 version - works for 8, 9, 10, 11
+ * Try to read or estimate TYPO3 version - works for 8, 9, 10, 11, 12
  * @return {number}
  */
 function getTypo3MajorVersion() {
@@ -33,6 +33,8 @@ function getSelectedPageUid() {
 
     switch ( typo3MajorVersion ) {
 
+        case 12:
+        case 11:
         case 10:
         case 9:
             selectedNode = document.querySelector('.svg-tree-wrapper .node-selected');

@@ -1,9 +1,9 @@
 
 ## Manifest3 update TODO:
 
-- fix action button - doesn't work when switching BE -> FE
+		//- fix action button - doesn't work when switching BE -> FE - DONE
 
-	//- action button menu is not generating (while the right-click menu works well) DONE?
+		//- action button menu is not generating (while the right-click menu works well) - DONE
 
 - finally do the backend switching with opening current page uid (taken from body class/id etc.)
 	/typo3/module/web/layout?id=54
