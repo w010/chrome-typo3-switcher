@@ -151,6 +151,7 @@ const ExtOptions = {
             'env_repo_key':                     $( '#env_repo_key' ).val(),
             'env_projects_storing_version':     3,
             'internal_permissions_acknowledged': true,
+            'info_manifest_acknowledged':       true,
         };
 
 
@@ -260,6 +261,7 @@ const ExtOptions = {
             // after updating to the version where the per-host permissions are introduced, it requires going once to the options and call Save
             // - to trigger permission request for each of hosts found in user's projects. this keeps the state it's already done or not needed. state is used to display a notification about that.
             'internal_permissions_acknowledged': false,
+            'info_manifest_acknowledged':       false,
 
         }, function(options) {
 
@@ -304,6 +306,7 @@ const ExtOptions = {
             ExtOptions.options = options;
 
             ExtOptions.permissionsInfo();
+            ExtOptions.manifestUpdateInfo();    // temporary message
 
             ExtOptions.initFoldableSections();
             ExtOptions.handleDarkMode();
@@ -1008,6 +1011,55 @@ const ExtOptions = {
         if ( !$( '#env_projects_autosorting' ).is( ':checked' ) ) {
             // init drag & drop
             $( '.projects-container' ).sortable({ placeholder: 'ui-state-highlight', delay: 150, tolerance: 'pointer', update: () => { ExtOptions.sortDropCallback(); } });
+        }
+    },
+
+
+    /**
+     * Show Manifest 3 update info
+     */
+    manifestUpdateInfo : function( ) {
+
+        // display modal infobox about needed actions 
+        if ( !ExtOptions.options.info_manifest_acknowledged )  {
+            let content = $( '<h3>' ).html( 'MANIFEST version 3')
+
+                    //.add( $( '<h3>' ).html( '' ))
+                    .add( $( '<p>' ).html( 'I\'m sorry to bother you with this popup, just a quick info: '
+                        + '<br>Chrome will soon drop support for extensions based on old API called "Manifest v2", which will '
+                        + 'make the Handy Switcher unable to use, until it\'s rewritten to version 3. ' ))
+
+                    .add( $( '<p>' ).html( 'I\m not gonna ask for money etc., but for support with updating it in the near future, '
+                        + 'if we still wanna use this very helpful tool. Unfortunately, I wrote it a few years ago, and I don\'t really '
+                        + 'remember today how these things worked and I don\'t write browser extensions in JS on everyday basis. ' ))
+
+                    .add( $( '<h3>' ).html( '- You may:' ))
+                    .add( $( '<p>' ).html( 'a) - <b>Continue to use</b> it, while it still works, and then maybe it will work, or not.' ))
+                    .add( $( '<p>' ).html( 'b) - If it <b>disappears one morning</b> from your browser, you can go to my <a href="https://github.com/w010/chrome-typo3-switcher/issues" target="_blank"><b>GitHub</b></a> '
+                        + 'to see if something is moving with the update, or how to, maybe, force it run locally, or so.' ))
+                    .add( $( '<p>' ).html( 'c) - <b>Fork</b> the code from GitHub and <b>help me rewrite</b> it to the new API, if you know how to do it' ))
+                    .add( $( '<p>' ).html( 'd) - <b>Help testing</b> the update progress locally' ))
+                    
+                    .add( $( '<br>' ))
+                    .add( $( '<p>' ).html( '(And also the <a href="https://addons.mozilla.org/en-GB/firefox/addon/handy-switcher-t3/" target="_blank">Firefox port</a> should work for a while)' ))
+
+                    .add( $( '<br>' ))
+
+                    .add( $( '<button class="btn confirm-warn confirm-acknowledged"> <span class="text">OK / ANYWAY</span> </button> <span>...close and forget</span>' ))
+                    .add( $( '<br><br>' ))
+                    .add( $( '<button class="btn add confirm-close"> <span class="text">Close</span> </button> <span>...but remind me next time</span>' ))
+                ;
+
+            let dialog = ExtOptions.openDialog('IMPORTANT: Chrome Add-on API change', content, 'text-left');
+
+            dialog.find('.confirm-acknowledged').click( () => {
+                chrome.storage.sync.set({'info_manifest_acknowledged': true});
+                ExtOptions.options.info_manifest_acknowledged = true;
+                ExtOptions.closeDialog( dialog );
+            });
+            dialog.find('.confirm-close').click( () => {
+                ExtOptions.closeDialog( dialog );
+            });
         }
     },
 
