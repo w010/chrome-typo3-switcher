@@ -24,8 +24,12 @@ let Switcher = {
     DEBUG: 0,
     options: {},
 
+    // todo: describe these
     _currentTab: null,
     _url: null,
+
+    // test: try to pass the pid value to backend that way
+    _pageUid: 0,
 
     backendPath: '',
 
@@ -38,7 +42,10 @@ let Switcher = {
 
         Switcher.backendPath = options.ext_backend_path ?? 'typo3';
 
-        let isInBackend = Switcher._url.match( new RegExp('/'+Switcher.backendPath+'/') );
+        let isInBackend = Switcher._url.match( new RegExp('/'+ (Switcher.backendPath)
+                            .replaceAll('/', '\\/')
+                            .replaceAll('.', '\\.') +'/')
+        );
 
 
         // IS IN BACKEND
@@ -55,8 +62,8 @@ let Switcher = {
                 }, () => {
                     // on system pages you can't inject any scripts
                     if ( chrome.runtime.lastError ) {
-                        console.warn('Error injecting script: \n' + chrome.runtime.lastError.message);
-                        console.warn('You\'re probably trying to use this extension on some Chrome\'s system page.');
+                        console.info('Error injecting script: \n' + chrome.runtime.lastError.message);
+                        console.info('You\'re probably trying to use this extension on some Chrome\'s system page.');
                     }
                 });
             }
@@ -82,8 +89,8 @@ let Switcher = {
                 }, () => {
                     // on system pages you can't inject any scripts
                     if ( chrome.runtime.lastError ) {
-                        console.warn('Error injecting script: \n' + chrome.runtime.lastError.message);
-                        console.warn('You\'re probably trying to use this extension on some Chrome\'s system page.');
+                        console.info('Error injecting script: \n' + chrome.runtime.lastError.message);
+                        console.info('You\'re probably trying to use this extension on some Chrome\'s system page.');
                     }
                 });
             }
@@ -92,7 +99,6 @@ let Switcher = {
                 Switcher.openBackend( '' );
             }
         }
-
     },
 
 
@@ -100,7 +106,11 @@ let Switcher = {
 
     openFrontend: function(pageUid) {
         // remove backend path segment and everything after it in url. add page id, if received
-        let newTabUrl = Switcher._url.replace( new RegExp('/'+Switcher.backendPath+'/.*'), '/' )
+        // todo: try to get id from the url first for 11
+
+        let newTabUrl = Switcher._url.replace( new RegExp('/'+
+                    Switcher.backendPath
+                +'/.*'), '/' )
             + ( pageUid > 0  ?  '?id=' + pageUid  :  '' );
 
         // note, that this logs only to the extension dev console, not to page devtools.
@@ -116,7 +126,7 @@ let Switcher = {
 
 
 
-    openBackend: function(siteUrl) {
+    openBackend: function(siteUrl, pageUid) {
 
         // if base tag cannot be read / no url found, try only a domain
         if ( !siteUrl  &&  Switcher._currentTab  &&  Switcher._url ) {
@@ -141,24 +151,226 @@ let Switcher = {
 
         // finally open TYPO3 Backend tab next to current page:
         chrome.tabs.create({
-            'url':      newTabUrl,
-            'index':    Switcher._currentTab.index + 1
-        }, (tab) => {
-            /*
-            // WIP: pagetree preselect. todo: finish, check in conf if we use this feature
+                'url':      newTabUrl,
+                'index':    Switcher._currentTab.index + 1
+            }, (tab) => {
+                //console.log(tab);
 
-            console.info('tab id from callback: ' + tab.id);
+                // store page uid and try to make use of it in backend, once it loads
+                // Env.tabs_setup[tab.id] = {
+                //     'pageUid': pageUid,
+                //     'onLoad': 'PRESELECT_PAGE',
+                // };
 
-            // inject into new tab script which does initial stuff, like preselecting page in tree
-            chrome.tabs.executeScript( tab.id, {
+                // pagetree preselect
 
-                file: 'backend_preselect.js'
+return;
 
-            }, function () {
-                console.log('location:', window.location.href);
-            });
-            */
-        })
+// TODO: GET RID OF ALL NEXT TEMPORARY CODE, I JUST HAD TO COMMIT THESE EXPERIMENTS TO GO TO MANIFEST 3 UPDATE.
+// Currently, on win 11-13 this is probably not needed to experiment with pagetree injection, because deep links just works in BE
+// TODO: implement Backend deep links instead            
+
+                // chrome.tabs.executeScript( tab.id, {
+                chrome.tabs.executeScript( tab.id, {
+                                            
+                        file: 'backend_test.js',
+
+                        /*code: 'let badge_params = {' +
+                            'DEV: '+Env.DEV+',' +
+                            'DEBUG: '+Env.DEBUG+',' +
+                            'projectLabelDisplay: '+( typeof Env.options.env_badge_projectname === 'undefined'  ||  Env.options.env_badge_projectname === true  ?  'true'  :  'false' )+',' +
+                            'scale: '+( typeof Env.options.env_badge_scale !== 'undefined'  ?  parseFloat( Env.options.env_badge_scale )  :  1.0 )+',' +
+                            'position: "'+( typeof Env.options.env_badge_position !== 'undefined'  ?  Env.options.env_badge_position  :  'left' )+'",' +
+                        '};',*/
+                        
+                        /*code: 'var pagepreselect_params = {' +
+                               // 'DEV: '+Switcher.DEV+',' +
+                                //'DEBUG: '+Switcher.DEBUG+',' +
+                                'pageUid: "'+pageUid+'",' +
+                                'backendUrl: "'+Switcher.backendPath+'&v=11111111111",' +
+                        '};',*/
+                        // allFrames: true,
+
+                    }, (res) => {
+//console.log(res);
+                            // on system pages you can't inject any scripts
+                            if (chrome.runtime.lastError) {
+                                console.warn('Switcher.openBackend(): Error executing code: \n' + chrome.runtime.lastError.message);
+                            } else {
+
+                                
+                                chrome.tabs.sendMessage(tab.id, {
+                                        action: 'backend_preselect',
+                                });
+                                
+                                
+                                    // chrome.tabs.executeScript( tab.id, {
+                                    /*chrome.tabs.executeScript( tab.id, {
+
+
+                                        }, (res2) => {
+                                                console.log('333 =====================');
+                                                console.log(tab.id);
+                                                console.log(res2);
+                                                if ( chrome.runtime.lastError ) {
+                                                    console.warn("Error injecting preselect script: \n" + chrome.runtime.lastError.message);
+                                                }
+                                    });*/
+                            }
+                    });
+
+
+    // return;
+    
+                // let loopWaitStatusDone = false;
+                // let c = 0;
+                
+                
+                /*(() => {
+                        console.log("GO !");
+                  var i = 0;
+                  while (new Promise(resolve => setTimeout(() => resolve(i++), 1000)) < 100) {
+                    console.log("I get printed 100 times every second");
+                  }
+                })();*/
+    
+                /*let fun = function(c) {
+                    console.log(c);
+                    if( ++c > 10)
+                        clearInterval(incrementEveryOneSecond);
+                }
+                
+                let incrementEveryOneSecond = window.setInterval(fun, 1000, c); 
+                console.log('-----STOP!!=----------');
+                
+                incrementEveryOneSecond;*/
+                
+                
+                /*while ( loopWaitStatusDone === false ) {
+                    console.log (tab.status);
+                    
+                    
+                                        
+                        
+                    ((c) => {
+                    
+                        setTimeout(() => {
+                            c++;
+                            console.log (tab.status);
+                            if (tab.status === 'done'  ||  c > 4)  {
+                                loopWaitStatusDone = true;
+                            }
+                        }, 1000);
+                    
+                    })(c++)
+                }*/
+                
+                
+                /*while ( loopWaitStatusDone === false ) {
+                    console.log (tab.status);
+                    ((c) => {
+                    
+                        setTimeout(() => {
+                            c++;
+                            console.log (tab.status);
+                            if (tab.status === 'done'  ||  c > 4)  {
+                                loopWaitStatusDone = true;
+                            }
+                        }, 1000);
+                    
+                    })(c++)
+                }*/
+                
+                //console.log(loopWaitStatusDone);
+                
+    
+                // for now, run with some delay. later try with loop to detect status = loaded
+                /*setTimeout(() => {
+                    console.log(tab.status);
+    
+                    chrome.tabs.executeScript( tab.id, {
+    // temporary 11 backend url for tests
+                            code: //'console.log("PRESELECT config inserted");' +
+                                    //'debugger' + "\n" +
+                                'let pagepreselect_params = {' +
+                                    'DEV: '+Switcher.DEV+',' +
+                                    'DEBUG: '+Switcher.DEBUG+',' +
+                                    'pageUid: "'+pageUid+'",' +
+                                    'backendUrl: "'+Switcher.backendPath+'&v=11111111111",' +
+                                '};'
+    
+                        }, () => {                         
+                            // on system pages you can't inject any scripts
+                            if ( chrome.runtime.lastError ) {
+                                console.warn('Switcher.openBackend(): Error executing code: \n' + chrome.runtime.lastError.message);
+                            }
+                            else {
+                                // if config executed successfully, now execute the script itself  (not possible to do this at once)
+                               
+                            }
+                        });
+                }, 100);*/
+    
+    
+                        
+                        
+                        /*setTimeout(() => { 
+                            
+                            console.log(tab.status);
+                        
+                            
+                            chrome.tabs.executeScript( tab.id, {
+                                    
+                                                    code: 'alert("yyy");' +
+                                                        'var pagepreselect_params = {' +
+                                                            'DEV: '+Switcher.DEV+',' +
+                                                            'pageUid: "'+pageUid+'"' +
+                                                            //'_debugEventTriggered: "'+_debugEventTriggered+'"' +
+                                                        '};'
+                                    
+                                    }, function () {
+                                                    // on system pages you can't inject any scripts
+                                                    if ( chrome.runtime.lastError ) {
+                                                        console.warn('Env.setupBadge(): Error executing code: \n' + chrome.runtime.lastError.message);
+                                                        console.log('bbbbb');
+                                                    }
+                                                    else {
+                                                        console.log('ccccc');
+                                                    }
+                                    });
+                        }, 10000);*/
+                        
+                                    // if ( !pageUid )
+                                    //     return;
+                                    // if ( typeof Switcher.options.env_be_page_preselect !== 'undefined'  &&  Switcher.options.env_be_page_preselect === false )
+                                    //     return;
+                                    
+                        // todo: finish
+                        // todo: add option
+                                    //console.info('tab id from callback: ' + tab.id);
+                        // console.log('222=====================');
+                                   /* chrome.storage.local.set({
+                                        'pagepreselect_params':  {
+                                            'DEV': Switcher.DEV,
+                                            'pageUid': pageUid
+                                            //'_debugEventTriggered: "'+_debugEventTriggered+'"' +
+                                        }
+                                    }, function() {*/
+                                        
+                            // console.log('333=====================');
+                            // console.log(tab.id);
+                                                // inject into new tab script which does initial stuff, like preselecting page in tree
+                                                    
+                                                    //console.log('location:', window.location.href);
+                                    
+                                                    // on system pages you can't inject any scripts
+                                                    /*if ( chrome.runtime.lastError ) {
+                                                        console.warn('Env.openBackend(): Error executing code: \n' + chrome.runtime.lastError.message);
+                                                    }
+                                                    else {*/
+                                        //}
+        });
+
     },
 
 
@@ -209,7 +421,6 @@ let Switcher = {
             });
         });
     },
-
 };
 
 
@@ -217,7 +428,11 @@ let Switcher = {
 
 
 
-// on icon click action inject the script to current page
+// on Action icon click: read options and run main handler to calculate decision what to open:
+// it will try to exec our js on current tab, which will extract (and send back using runtime message)
+// tech stuff like basehref, pid (body class) etc. - and then use these to open backend or frontend,
+// depending on what it detects we're currently at, what domain, what url segment to strip (if subdir)
+// and try to use the pid from fe to open backend with this page already found and open for us.  
 
 chrome.browserAction.onClicked.addListener((tab) => {
 
@@ -251,28 +466,33 @@ chrome.browserAction.onClicked.addListener((tab) => {
 chrome.runtime.onMessage.addListener((request, sender) => {
 
 
-    if ( request  &&  request.action === 'backend_getData' ) {
+    // came from BE, now go -> TO FRONTEND
+    if ( request?.action === 'backend_getData' ) {
+        console.log('received message, action: backend_getData');
 
-        let selectedPageUid = request.data.selectedPageUid;
-        console.info('pid: ' + selectedPageUid);
+        let selectedPageUid = request?.data?.selectedPageUid;
+        console.info('data pid: ' + selectedPageUid);
         Switcher.openFrontend( selectedPageUid );
+        return;
     }
 
 
 
-    if (request  &&  request.action === 'frontend_getData') {
+    // came from FRONT, now go -> TO BACKEND 
+    if ( request?.action === 'frontend_getData' ) {
+        console.log('received message, action: frontend_getData');
 
         let baseUrl = request?.data?.baseUrl;
-
-        console.info('baseHref: ' + baseUrl);
-        console.info('pid: ' + request?.data?.pageUid);
+        let selectedPageUid = request?.data?.pageUid;
+        Env.log('baseHref: ', null, Env.LEVEL_success, 1, baseUrl, true);
+        Env.log('pid: ', null, Env.LEVEL_success, 1, selectedPageUid, true);
 
 	    // prevent wrong url if someone sets base to other value than site's address
-        if ( baseUrl === '/'  ||  baseUrl === 'auto' )	{
+        if ( baseUrl === '/'  ||  baseUrl === 'auto' )  {
             baseUrl = '';
         }
 
-        Switcher.openBackend( baseUrl );
+        Switcher.openBackend( baseUrl, selectedPageUid );
     }
 
 });
@@ -280,7 +500,7 @@ chrome.runtime.onMessage.addListener((request, sender) => {
 
 
 
-// on install or update open info / changelog page
+// on install or update: open info / changelog website if it's a big update 
 
 chrome.runtime.onInstalled.addListener(() => {
 

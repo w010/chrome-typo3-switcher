@@ -206,6 +206,34 @@ let Env = {
         // on LOAD PAGE
 
         chrome.tabs.onUpdated.addListener( function (tabId, changeInfo) {
+            
+            
+            // if works - move to separated listener?
+// console.log(Env.tabs_setup[tabId]);
+            /*if ( Env.tabs_setup[tabId]?.onLoad === 'PRESELECT_PAGE'  &&  Env.tabs_setup[tabId]?.pageUid)   {
+                let pageUid = parseInt(Env.tabs_setup[tabId]?.pageUid);
+                
+                Env.log('^ onUpdated - PAGE UID: ', null, 1, 1, pageUid, true)
+                Env.log('^ onUpdated - STATUS: ', null, 1, 1, changeInfo?.status, true)
+
+                // if changeInfo?.status !== 'complete' ? or dont wait
+                
+                // todo: try to get version
+// raczej injectowac to od razu tam, bo na jedno wychodzi. dac jakis delay moze, ogolnie sprawdzic kiedy to sie wykonuje i kiedy jest szansa wczytania tego diva z wersja                
+// trzeba tam przekazac bodajze tylko id, url mozna zbudowac tam bezposrednio na podstawie tab url
+                
+                chrome.tabs.executeScript( tabId, {
+
+                    file: 'backend_preselect.js'
+
+                }, () => {
+                    if ( chrome.runtime.lastError ) {
+                        console.info('Error injecting script: \n' + chrome.runtime.lastError.message);
+                    }
+                });
+            }*/
+
+
 
             if ( !changeInfo?.status )   {
                 if ( Env.DEBUG > 2 )      Env.consoleLogCustom(': EXIT / Not a page re/load event, but some other onUpdated hit (like injected badge)', Env.consoleColor.FgGray );
@@ -235,7 +263,7 @@ let Env = {
 
         chrome.tabs.onRemoved.addListener( function (tabId, removeInfo) {
 
-            Env.consoleLogCustom('TAB WAS CLOSED: ' + tabId, Env.consoleColor.FgYellow );
+            Env.consoleLogCustom('- TAB CLOSED. wipe cache for: ' + tabId, Env.consoleColor.FgYellow );
 
             delete Env.tabs_setup[tabId];
             delete Env.tabs_log[tabId];
@@ -360,7 +388,7 @@ let Env = {
      */
     promiseTabsGet: function(tabId ) {
         return new Promise((resolve, reject) => {
-            try {
+            /*try {
                 // workaround for chrome 91 bug with error 'Tabs cannot be edited right now (user may be dragging a tab).'
                 const loop = function () {
                 
@@ -386,18 +414,18 @@ let Env = {
 
             } catch (e) {
                 reject(e);
-            }
+            }*/
 
             // todo: restore / cleanup once they fixed that
 
             // normally this should work:
-            /*try {
+            try {
                 chrome.tabs.get( tabId, async function(tab) {
                     resolve( tab );
                 });
             } catch (e) {
                 reject(e);
-            }*/
+            }
         })
     },
 
@@ -407,7 +435,7 @@ let Env = {
      */
     promiseTabsQuery: function( query ) {
         return new Promise((resolve, reject) => {
-            try {
+            /*try {
                 // workaround for chrome 91 bug with error 'Tabs cannot be edited right now (user may be dragging a tab).'
                 const loop = function () {
 
@@ -431,17 +459,17 @@ let Env = {
 
             } catch (e) {
                 reject(e);
-            }
+            }*/
 
 
             // normally this should work:
-            /*try {
+            try {
                 chrome.tabs.query( query, async function(tab) {
                     resolve( tab );
                 });
             } catch (e) {
                 reject(e);
-            }*/
+            }
         })
     },
 
@@ -935,8 +963,8 @@ let Env = {
                     menuCallback = function () {
                             if ( chrome.runtime.lastError ) {
                                 Env.log('Warn: Probably duplicated url for various projects. Project: ' + project.name + ', from event: ' + _debugEventTriggered, tabId, 3, 0 );
-                                Env.log('menu pos: ', tabId, -1, 0, menuItems[i] );
-                                Env.log(chrome.runtime.lastError.message, tabId, 2, 0);
+                                Env.log('menu pos: ', tabId, 3, 0, menuItems[i] );
+                                Env.log(chrome.runtime.lastError.message, tabId, 3, 0);
                             }
 
                             Env.log('--- MENU: Successfully built', tabId, 0, 2);
