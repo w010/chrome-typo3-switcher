@@ -1671,9 +1671,9 @@ let Env = {
                 chrome.scripting.executeScript({
                     target: { tabId: tab.id },
                     func: (_incoming_params) => {
-                        if (_incoming_params?.DEBUG > 1) {
+                        if (_incoming_params?.DEBUG > 2) {
                             console.info('Injected favicon params: ', _incoming_params);
-                            console.log('typeof Favicon', typeof Badge);
+                            console.log('typeof Favicon', typeof Favicon);
                         }
                         Favicon.setFavicon(_incoming_params);
                     },
