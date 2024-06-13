@@ -1,7 +1,7 @@
 /**
  * TYPO3 Backend-Frontend Handy Switcher - Chrome extension
  *
- * wolo.pl '.' studio 2017-2021
+ * wolo '.' studio 2017-2024
  * Adam wolo Wolski
  * wolo.wolski+t3becrx@gmail.com
  */
@@ -81,11 +81,13 @@ let Switcher = {
         // otherwise, open backend
         else {
 
-            if ( options.switch_be_useBaseHref )  {
+            // not yet such option exist, if it works then add
+            if (( 1  ||  options.switch_be_useBaseHref  ||  options.switch_be_openCurrentPageUid )   &&  Switcher._currentTab?.id )  {
                 // try to find proper backend url and open it
-                chrome.tabs.executeScript( Switcher._currentTab?.id, {
+                chrome.scripting.executeScript({
 
-                    file: 'frontend_getData.js'
+                    target: { tabId: Switcher._currentTab.id },
+                    files: ['frontend_getData.js']
 
                 }, () => {
                     // on system pages you can't inject any scripts
@@ -125,9 +127,13 @@ let Switcher = {
     },
 
 
+    /**
+     * @param siteUrl string
+     * @param params {*} parameters fetched from frontend html to build backend deep link
+     */
+    openBackend: function(siteUrl, params) {
 
-
-    openBackend: function(siteUrl, pageUid) {
+        siteUrl = params?.baseHref ?? siteUrl;
 
         // if base tag cannot be read / no url found, try only a domain
         if ( !siteUrl  &&  Switcher._currentTab  &&  Switcher._url ) {
@@ -139,14 +145,23 @@ let Switcher = {
             let parts = Switcher._url.split( '/' );
             siteUrl = parts[0] + '//' + parts[2];
 
-            /*console.log('url: ' + _url);
-            console.log(parts);
-            console.log(siteUrl);*/
+            //console.log(parts);
+            //console.log(siteUrl);
         }
 
         // strip trailing slash, if present
         let newTabUrl = siteUrl.replace( /\/$/, '' )
             + '/'+Switcher.backendPath+'/';
+
+        // for typo3 try to build deep links. todo: must be possible to switch this off, because it will cause problems in older than 10/11
+        if (Switcher.backendPath === 'typo3')   {
+            if ( params?.pageUid )  {
+                newTabUrl += 'module/web/layout?id='+params.pageUid
+            }
+            if ( params?.languageUid )  {
+                newTabUrl += '&language='+params.languageUid
+            }
+        }
 
         console.info('newTabUrl: ' + newTabUrl);
 
@@ -483,17 +498,21 @@ chrome.runtime.onMessage.addListener((request, sender) => {
     if ( request?.action === 'frontend_getData' ) {
         console.log('received message, action: frontend_getData');
 
-        let baseUrl = request?.data?.baseUrl;
-        let selectedPageUid = request?.data?.pageUid;
-        Env.log('baseHref: ', null, Env.LEVEL_success, 1, baseUrl, true);
-        Env.log('pid: ', null, Env.LEVEL_success, 1, selectedPageUid, true);
+        Env.log('fetch info results: ', null, Env.LEVEL_info, 1, request?.data, true);
+        //Env.log('pid: ', null, Env.LEVEL_success, 1, selectedPageUid, true);
 
+        let baseUrl = Switcher.options.switch_be_useBaseHref ? request?.data?.baseUrl : '';
 	    // prevent wrong url if someone sets base to other value than site's address
         if ( baseUrl === '/'  ||  baseUrl === 'auto' )  {
             baseUrl = '';
         }
+        //console.log('-------');
+        //console.log(Switcher.options);
+        console.log('request.data from response: ', request.data);
 
-        Switcher.openBackend( baseUrl, selectedPageUid );
+        //Switcher.openBackend( Switcher.options.switch_be_useBaseHref ? baseUrl : '', Switcher.options.switch_be_openCurrentPageUid ? selectedPageUid : 0);
+        // todo: add such option, make it default true
+        Switcher.openBackend(baseUrl, {pageUid: request?.data?.pageUid, language: request?.data?.languageUid});
     }
 
 });
