@@ -187,35 +187,11 @@ const ExtOptions = {
                             $('body').addClass('flashContainer');
                             setTimeout(() => { $('body').removeClass('flashContainer'); }, 1000);
                         }
-
-
-                        // todo: remove & cleanup in next major release
-                        // finish migration - try to make sure it's ready to cleanup - proceed if some current projects exists.
-                        // empty array may mean that importing of old items failed - better keep them in storage, there's always a chance to retrieve them
-                        /*if ( Object.keys(projects).length > 0 )   {
-                            // remove old (method 1) projects key from storage
-                            chrome.storage.sync.remove( 'env_projects' );
-                            console.log( 'update: project storing method migrated to method version 3' )
-                        }*/
-
-
-                        /*chrome.storage.sync.set({
-                            // store project storing method version
-                            'env_projects_storing_version' : 3     // projects as item_[unique id]
-                        }, function() {
-                            // cleanup projects saved with storing version 2
-                            /!*for (let i = 0; i < 99; i++) {
-                                chrome.storage.sync.remove('proj_' + i);
-                            }*!/
-
-                            // if settings + projects was saved successfully, we can assume this was too. so no need to check again
-                            // reload extension to reapply settings
-                            chrome.extension.getBackgroundPage().window.location.reload();
-                        });*/
                     }
 
                     // reload extension to reapply settings
-                    chrome.extension.getBackgroundPage().window.location.reload();
+                        // not possible anymore like that. is this needed? then use messages
+                    //chrome.extension.getBackgroundPage().window.location.reload();
                 });
             }
         });
