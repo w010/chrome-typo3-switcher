@@ -77,11 +77,14 @@ if (typeof Badge === 'undefined')  {
             }
             document.getElementsByTagName( 'body' )[0].appendChild( badgeContainer );
 
-            if ( Badge.DEV  &&  Badge.DEBUG > 2 ) {
-                console.log('* Handy Switcher: set BADGE / setBadge.js successfully inserted');
+            if ( Badge.DEV ) {
+                if ( Badge.DEBUG > 2 ) {
+                    console.log('* Handy Switcher: set BADGE / setBadge.js successfully inserted');
+                }
+
+                console.log('DONE!');
+                console.groupEnd();
             }
-            console.log('DONE!');
-            console.groupEnd();
         },
 
 
