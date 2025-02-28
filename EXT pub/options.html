@@ -22,6 +22,7 @@
         </header>
 
         <button class="btn save"><span class="icon"></span> <span class="text">Save</span></button>
+        <button class="btn help" title="Show/hide help" id="toggle_ext_hide_help"><span class="icon"></span> </button><input type="hidden" id="ext_show_help"> 
         <div id="top-shadow"></div>
     </div>
 
@@ -60,6 +61,27 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
 
             </div>
         </div>
+
+
+        <div class="helptext-container">
+            <span class="helpmarker" title="Info / Help"></span>
+        </div>
+        
+        <p class="helptext">
+            That was the basic and very first functionality of this addon: a toolbar button opens Backend tab when you are in frontend (adds '/typo3' to the domain),
+            and when in Backend - it opens Frontend, optionally with url param <b>id=</b> to <abbr title="When you activate the left option, during switch it injects 
+            small JS into backend's DOM, and tries to find out which page is currently active in tree's html. Before TYPO3 11 which introduced backend deep linking, it was the only
+            possibility to get this id somehow. Now it can be done by simply checking the url.">Open currently tree-selected page</abbr>. Opening selected page this way has some pros
+            and some cons. Pros are that you can always open frontend, even if current module doesn't show its native View button (and some modules earlier had pagetree hidden, but it was
+            still in the background with page selected, and our toolbar button always worked. Some disadvantages are that it doesn't use valid nice path/slug to a page, only raw
+            prepared ugly url parameter. Another thing is that it doesn't respect subsites-subtree domains in multisite installations, it just tries to open it within current backend's domain.
+            These will be probably impossible to solve, at least without installing some specialized code to TYPO3 to handle that natively - and that never sounded to me like any good idea.</p>
+        <p class="helptext">
+            And while some people were setting dev projects in subdirectories instead of own vhost, it didn't work well when it based on domain. Then retrieving &lt;base href&gt;
+            from page source did the thing. Probably today nobody uses subdirs for projects and base tag anymore, and we have here much better solution for that, which are <b>Projects and Environments</b>.
+            <br>But the option is still here if needed.
+        </p>
+
     </div>
 
 
@@ -128,7 +150,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                 <br>
                 <label class="primary check">
                     <input type="checkbox" id="env_badge">
-                    <span>Display badge on page to identify current context</span>
+                    <span>Display badge with project instance name</span>
                 </label>
 
                 <div class="section-foldable" data-visibility-trigger="#env_badge">
@@ -142,10 +164,10 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                         <span>Position: </span>
                         <label class="radio-item">
                             <input type="radio" class="env_badge_position" id="env_badge_position_left" value="left" name="badge_position">
-                            On left corner</label>
+                            Left corner</label>
                         <label class="radio-item">
                             <input type="radio" class="env_badge_position" id="env_badge_position_right" value="right" name="badge_position">
-                            On right corner</label>
+                            Right corner</label>
                     </label>
                     <label class="primary text range">
                         <span>Scale:</span>
@@ -166,20 +188,26 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                 <br>
                 <label class="primary check">
                     <input type="checkbox" id="env_favicon">
-                    <span>Show color overlay on favicon<br>
-                        <i>(this is a test feature, it seems to not show always<br> when it should)</i></span>
+                    <span>Show color bar on favicon<br>
+                        <i>(Some icons with some settings may look odd)</i></span>
                 </label>
-
+                
                 <div class="section-foldable" data-visibility-trigger="#env_favicon">
 
+                    <label class="primary select" id="favicon-preview-box">
+                        <span>Example preview:</span>
+                        <img id="favicon-preview">
+                    </label>
+
                     <label class="primary text range">
-                        <span>Alpha / opacity:</span>
+                        <span>Color opacity:</span>
                         <input type="text" id="env_favicon_alpha" class="range-text">
                         <input type="range" id="env_favicon_alpha__range" min="0" max="1" step="0.05">
+                        <span><i>(Alpha / transparency of color overlay)</i></span>
                     </label>
     
                     <label class="primary text range">
-                        <span>Overlay shape fill ratio:</span>
+                        <span>Fill ratio:</span>
                         <input type="text" id="env_favicon_fill" class="range-text">
                         <input type="range" id="env_favicon_fill__range" min="0" max="1" step="0.05">
                         <span><i>(how much of favicon is covered)</i></span>
@@ -213,11 +241,6 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                             <option value="xor">xor</option>
                         </select>
                         <span><i>(the way it blends into icon / transparency)</i></span>
-                    </label>
-    
-                    <label class="primary select">
-                        <span>Example icon preview:</span>
-                        <img id="favicon-preview">
                     </label>
 
                 </div>
@@ -267,7 +290,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
 
                 <div class="section-foldable" data-visibility-trigger="#env_repo">
 
-                    <label class="primary">
+                    <label class="primary help-hidable__">
                         <p class="level-info"><em>You've found a hidden test feature! The repository functionality is not yet finished / tested well enough (works in basics though, so you can give it a try)</em></p>
                     </label>
 
@@ -516,7 +539,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
             <i>(write the keyword <b>_ALL!</b> - to decline all permitted origins, if are set individually, you may see a list below)</i><br>
             <i>(write the <b>*</b> - to grant all hosts and not ask anymore - if you are aware, what that means)</i>
             <br><br>
-            <i>(so what do that mean? - it allows Switcher to access any active tab you open. It uses that for two things:
+            <i>(so what does that mean? - it allows Switcher to access any active tab you open. It uses that for two things:
                 1. to read domain from tab's URL / base href, search for it in YOUR configuration (which is kept in browser's Local Storage)
                 and mark tab if found,  2. to insert html Badge and new Favicon into that tab's current DOM.<br>
                 basically, that's the essentials of what this ext do - the whole idea, there's no other way to achieve something
@@ -655,8 +678,8 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
 
 <div id="dialog-group"></div>
 
-    <script src="Vendor/jquery-3.5.1.min.js"></script>
-    <script src="Vendor/jquery-ui-1.12.1-custom.min.js"></script>
+    <script src="Vendor/jquery-3.7.1.min.js"></script>
+    <script src="Vendor/jquery-ui-1.13.3-custom.min.js"></script>
     <script src="setBadge.js"></script>
     <script src="setFavicon.js"></script>
     <script src="options.js"></script>

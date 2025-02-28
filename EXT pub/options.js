@@ -145,6 +145,7 @@ const ExtOptions = {
             'ext_dev':                          $( '#ext_dev' ).is( ':checked' ),
             'ext_debug':                        $( '#ext_debug' ).val(),
             'ext_dark_mode':					$( '#ext_dark_mode' ).is( ':checked' ),
+            'ext_hide_help':                    $( '#ext_hide_help' ).val(),
             //'ext_backend_path':                  $( '#ext_backend_path' ).val(),
             'env_repo':                         $( '#env_repo' ).is( ':checked' ),
             'env_repo_url':                     $( '#env_repo_url' ).val(),
@@ -230,7 +231,8 @@ const ExtOptions = {
             'ext_backend_path':                 'typo3',
             'ext_dev':                          false,
             'ext_debug':                        0,
-            'ext_dark_mode':                    darkModeSystemDetected, 
+            'ext_dark_mode':                    darkModeSystemDetected,
+            'ext_hide_help':                    false,
             'env_repo':                         false,
             'env_repo_url':                     '',
             'env_repo_key':                     '',
@@ -254,8 +256,8 @@ const ExtOptions = {
             $( '#env_enable' ).attr( 'checked',                     options.env_enable );
             $( '#env_ignore_www' ).attr( 'checked',                 options.env_ignore_www );
             $( '#env_menu_show_allprojects' ).attr( 'checked',      options.env_menu_show_allprojects );
-            $( '#env_menu_short_custom1' ).val('' +              options.env_menu_short_custom1 );
-            $( '#env_menu_short_custom2' ).val('' +              options.env_menu_short_custom2 );
+            $( '#env_menu_short_custom1' ).val('' +                 options.env_menu_short_custom1 );
+            $( '#env_menu_short_custom2' ).val('' +                 options.env_menu_short_custom2 );
             $( '#env_badge' ).attr( 'checked',                      options.env_badge );
             $( '#env_badge_projectname' ).attr( 'checked',          options.env_badge_projectname );
             $( '#env_badge_position_left' ).attr( 'checked',        options.env_badge_position === 'left' );
@@ -273,6 +275,7 @@ const ExtOptions = {
             $( '#ext_dev' ).attr( 'checked',                        options.ext_dev );
             $( '#ext_debug' ).val(                                  options.ext_debug );
             $( '#ext_dark_mode' ).attr( 'checked',                  options.ext_dark_mode );
+            $( '#ext_hide_help' ).val(                              options.ext_hide_help );
             $( '#env_repo' ).attr( 'checked',                       options.env_repo );
             $( '#env_repo_url' ).val(                               options.env_repo_url ).trigger('change');   // describe why trigger
             $( '#env_repo_key' ).val(                               options.env_repo_key );
@@ -288,7 +291,7 @@ const ExtOptions = {
             ExtOptions.handleDarkMode();
 
             ExtOptions.setFaviconPreview();
-            ExtOptions.setBadgePreview();
+            ExtOptions.setBadgePreview(options.env_badge);
 
             // new project store way is 3, so it means it's after migration
             if (options.env_projects_storing_version === 3) {
@@ -325,6 +328,11 @@ const ExtOptions = {
             else    {
                 ExtOptions.populateEnvSettings( options.env_projects );
                 ExtOptions.fillExportData();
+            }
+
+            if ( options.ext_hide_help )   {
+                $( 'body' ).addClass('hide-help');
+                $( '#toggle_ext_hide_help' ).addClass('toggle_pressed');
             }
 
             ExtOptions.initCheckboxes();
@@ -1895,7 +1903,12 @@ const ExtOptions = {
     /**
      * Badge preview - show badge like on normal page to see how it looks
      */
-    setBadgePreview: function()    {
+    setBadgePreview: (enabled) => {
+
+        if ( !enabled )  {
+            $('.chrome-typo3switcher-badge').remove();
+            return;
+        }
 
         //console.log('refresh badge - remove before setting new one');
         //$('.chrome-typo3switcher-badge').remove();
@@ -2308,6 +2321,21 @@ $(function() {
 // bind basic buttons
 $( 'button.save' ).click( function (e) {
     ExtOptions.optionsSave( e );
+});
+
+$( 'button#toggle_ext_hide_help' ).click( function (e) {
+    // get current value, swap, handle action, store in storage (don't trigger full save)
+    let extHideHelp_updated = !ExtOptions.options.ext_hide_help
+    if ( extHideHelp_updated )  {
+        $( 'body' ).addClass('hide-help');
+        $( '#toggle_ext_hide_help' ).addClass('toggle_pressed');
+    }
+    else  {
+        $( 'body' ).removeClass('hide-help');
+        $( '#toggle_ext_hide_help' ).removeClass('toggle_pressed');
+    }
+    ExtOptions.setStorageKey( 'ext_hide_help', extHideHelp_updated);
+    ExtOptions.options.ext_hide_help = extHideHelp_updated;
 });
 
 $( 'button.env_projectAdd' ).click( function () {

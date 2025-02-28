@@ -1,8 +1,12 @@
 
 body {
 	font-size: 80%;
-	background: #f9f9f9;
-	transition: color .3s, background-color .3s, opacity .3s;
+	background: #dedede;
+	transition: color .25s, background-color .25s, opacity .25s;
+	opacity: 0.1;
+}
+body:not([class^=loading])  {
+	opacity: 1;
 }
 .main   {
 	padding: 110px 10px 10px;
@@ -65,7 +69,8 @@ a.external::before {
 	top: 0;
 	padding-top: 10px;
     width: inherit;
-	background: #f9f9f9;
+	background: #dedede;
+	transition: color .25s, background-color .25s, opacity .25s;
 	z-index: 10;
 	margin: 0 -1px;
 }
@@ -113,7 +118,11 @@ a.external::before {
     height: 40px;
     width: 100%;
     pointer-events: none;
-    box-shadow: inset 0 23px 30px -10px #f9f9f9;
+    box-shadow: inset 0 23px 30px -10px #dedede;
+	transition: color .25s, background-color .25s, opacity .25s, box-shadow .25s;
+}
+.loading #top-shadow   {
+	opacity: .1;
 }
 /* default inputs & labels */
 label   {
@@ -156,7 +165,7 @@ input[type="checkbox"].nice {
     height: 20px;
     position: relative;
     border-radius: 10px;
-	transition: background-color 0.5s, box-shadow 0.5s;
+	transition: background-color 0.4s, box-shadow 0.4s;
 	vertical-align: top;
 	cursor: pointer;
 	
@@ -169,7 +178,7 @@ input[type="checkbox"].nice {
 		left: 2px;
 		font-size: 15px;
 		background: none;
-		transition: left .3s, color .4s;
+		transition: left .25s, color .3s;
 		cursor: pointer;
 	}
 		.firefox .nice-checkbox::before    {
@@ -207,13 +216,13 @@ input[type="checkbox"].nice {
 input[type="radio"]    {
 	margin-right: 8px;
 	cursor: pointer;
-	vertical-align: top;
+	/*vertical-align: top;*/
 }
 input[type="text"]    {
 	width: 260px;
 	min-height: 2em;
 	padding: 1px 7px;
-	transition: background-color 0.3s;
+	transition: background-color 0.25s;
 	font-size: 18px; /*1.3em*/
 	border-color: #ddd;
 }
@@ -238,7 +247,7 @@ input[type="color"] {
 	cursor: pointer;
 }
 select{
-	transition: color .3s, border-color .3s, background-color .3s;
+	transition: color .25s, border-color .25s, background-color .25s;
 	outline: none;
 }
 	:enabled:focus:-webkit-any(select)  {
@@ -401,6 +410,29 @@ label.range input.range-text    {
 abbr    {
 	cursor: help;
 }
+/* descriptions between settings */
+p.helptext   {
+	font-size: 1em;
+    opacity: .9;
+    color: #8994db;
+    font-style: italic;
+    margin: 3px 0;
+	padding-left: 20px;
+}
+p.helptext::before  {
+	content: ' ';
+    position: relative;
+    display: inline-block;
+	width: 20px;
+	height: 20px;
+    left: -8px;
+    top: 4px;
+    cursor: help;
+
+	background-color: #8994db;
+    -webkit-mask-image: url(/Icons/Options/Help.svg);
+    mask-image: url(/Icons/Options/Help.svg);
+}
 
 /* buttons */
 button  {
@@ -499,6 +531,11 @@ button.env_contextAddDefaultSet {
     position: relative;
     cursor: zoom-in;
 }
+/*#favicon-preview-box    {
+	position: fixed;
+	top: 20px;
+	right: 300px;
+}*/
 
 .settings-block-section {
 	margin-bottom: 40px;
@@ -539,7 +576,7 @@ pre.section-foldable.expand   {
 	border-radius: 3px;
 	padding: 10px 10px 22px;
 	margin-bottom: 10px;
-	transition: opacity 0.4s, box-shadow 0.3s, margin 0.3s, border 0.2s;
+	transition: opacity 0.20s, box-shadow 0.15s, margin 0.15s, border 0.1s;
 }
 .projectItem.collapse    {
 	background: #eee;
@@ -639,7 +676,7 @@ pre.section-foldable.expand   {
 	border-radius: 3px;
 	padding: 10px;
 	margin-bottom: 10px;
-	transition: opacity 0.4s, background-color 0.3s, border-color 0.4s, box-shadow 0.4s;
+	transition: opacity 0.2s, background-color 0.15s, border-color 0.15s, box-shadow 0.2s;
 }
 .contextItem:hover,
 .contextItem:focus,
@@ -820,7 +857,7 @@ label.primary   {
 	font-size: 110%;
 	font-weight: 500;
 	margin-bottom: 14px;
-	transition: background-color .5s;
+	transition: background-color .2s;
 	border-radius: 12px;
 }
 	label.primary:hover {
@@ -921,7 +958,7 @@ label.primary span  {
 	max-height: 80vh;
 	overflow-y: auto;
 	border-radius: 8px;
-	transition: top .3s;
+	transition: top .25s;
 	top: 0;
 }
 	.dialog-loading .dialog-inner   {
@@ -1016,13 +1053,14 @@ body .dialog:last-child {opacity: 1;}
 /* jump toolbar */
 .jump-toolbar  {
 	position: fixed;
-	top: 100px;
-	right: 5%;
+	top: 130px;
+    right: 2%;
 	background: #eee;
 	width: 100px;
 	padding: 10px;
 	opacity: 0.5;
-	transition: opacity 0.3s;
+	transition: opacity 0.15s;
+	z-index: 30;
 }
 .jump-toolbar:hover  {
 	opacity: 1;
@@ -1452,10 +1490,16 @@ body.repo_auth__write .btn.push  {
 	background-color: transparent;
 }
 
+body.hide-help .helptext,
+body.hide-help .help-hidable    {
+	display: none;
+}
+
 body.loading {
-	opacity: 0.2;
-	background-color: #666666;
+	opacity: 0.1;
+	background-color: #353535;
+	pointer-events: none;
 }
 body.loading .heading {
-	background-color: #666666;
+	background-color: #353535;
 }
