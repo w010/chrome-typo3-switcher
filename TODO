@@ -9,6 +9,7 @@
 			/typo3/module/web/layout?id=54
 
 - add settings for these: switch_be_openCurrentPageUid
+							there is already the opposite: switch_fe_openSelectedPageUid
 
 - beside pid and language urls, add possibility to open directly in backend news and other records (prepared partially)
 
@@ -19,4 +20,4 @@
 
 		//- backend favicon is broken again (it makes overlay from empty) - compare with one of 2.2.5xx versions where it worked but some fix broke it - DONE
 
-- fix Project Repo ajax call / handshake / fetch - it says: "Ajax repo call failed: SyntaxError: Unexpected token '<',"
+		//- fix Project Repo ajax call / handshake / fetch - it says: "Ajax repo call failed: SyntaxError: Unexpected token '<'," // probably server problem
