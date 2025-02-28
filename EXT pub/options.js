@@ -1,7 +1,7 @@
 /**
  * TYPO3 Backend-Frontend Handy Switcher - Chrome extension
  *
- * wolo.pl '.' studio 2017-2021
+ * wolo.pl '.' studio 2017-2025
  * Adam wolo Wolski
  * wolo.wolski+t3becrx@gmail.com
  */
@@ -152,7 +152,7 @@ const ExtOptions = {
             'env_repo_key':                     $( '#env_repo_key' ).val(),
             'env_projects_storing_version':     3,
             'internal_permissions_acknowledged': true,
-            'info_manifest_acknowledged':       true,
+            'info_manifest3_acknowledged':       true,
         };
 
 
@@ -239,7 +239,8 @@ const ExtOptions = {
             // after updating to the version where the per-host permissions are introduced, it requires going once to the options and call Save
             // - to trigger permission request for each of hosts found in user's projects. this keeps the state it's already done or not needed. state is used to display a notification about that.
             'internal_permissions_acknowledged': false,
-            'info_manifest_acknowledged':       false,
+            'info_manifest3_acknowledged':       false,
+            'info_be_preselection_acknowledged': false,
 
         }, function(options) {
 
@@ -285,6 +286,7 @@ const ExtOptions = {
             ExtOptions.options = options;
 
             ExtOptions.permissionsInfo();
+            ExtOptions.backendPreselectionInfo();    // temporary message
             ExtOptions.manifestUpdateInfo();    // temporary message
 
             ExtOptions.initFoldableSections();
@@ -1005,40 +1007,100 @@ const ExtOptions = {
     manifestUpdateInfo : function( ) {
 
         // display modal infobox about needed actions 
-        if ( !ExtOptions.options.info_manifest_acknowledged )  {
-            let content = $( '<h3>' ).html( 'MANIFEST version 3')
+        if ( !ExtOptions.options.info_manifest3_acknowledged )  {
+            let content = $( '<h3>' ).html( 'MANIFEST version 3 issues')
 
                     //.add( $( '<h3>' ).html( '' ))
-                    .add( $( '<p>' ).html( 'I\'m sorry to bother you with this popup, just a quick info: '
-                        + '<br>Chrome will soon drop support for extensions based on old API called "Manifest v2", which will '
-                        + 'make the Handy Switcher unable to use, until it\'s rewritten to version 3. ' ))
+                    .add( $( '<p>' ).html( 'I\'m sorry to bother you, just a quick info: '
+                        + '<br>Chrome Web Store ended support for addons based on Manifest v2 API, and soon the browser '
+                        + 'will end possibility to run custom/local loaded v2 adds. That forced me to try to migrate too. '
+                        + '' ))
 
-                    .add( $( '<p>' ).html( 'I\m not gonna ask for money etc., but for support with updating it in the near future, '
-                        + 'if we still wanna use this very helpful tool. Unfortunately, I wrote it a few years ago, and I don\'t really '
-                        + 'remember today how these things worked and I don\'t write browser extensions in JS on everyday basis. ' ))
+                    .add( $( '<p>' ).html( 'The process was hard and tricky, for number of reasons: - the new API is completely different '
+                        + 'and more limited, - that extension as a whole is a collection of tricks, compromises, improvisation and magic, which together made '
+                        + 'that all possible, - I don\'t write much JS on everyday basis, even more I don\'t write browser addons, but this one. '
+                        + '- and I have time for that once a few months, usually I don\'t really remember much how that thing works...'
+                        + '' ))
 
-                    .add( $( '<h3>' ).html( '- You may:' ))
-                    .add( $( '<p>' ).html( 'a) - <b>Continue to use</b> it, while it still works, and then maybe it will work, or not.' ))
-                    .add( $( '<p>' ).html( 'b) - If it <b>disappears one morning</b> from your browser, you can go to my <a href="https://github.com/w010/chrome-typo3-switcher/issues" target="_blank"><b>GitHub</b></a> '
-                        + 'to see if something is moving with the update, or how to, maybe, force it run locally, or so.' ))
-                    .add( $( '<p>' ).html( 'c) - <b>Fork</b> the code from GitHub and <b>help me rewrite</b> it to the new API, if you know how to do it' ))
-                    .add( $( '<p>' ).html( 'd) - <b>Help testing</b> the update progress locally' ))
-                    
+                    .add( $( '<p>' ).html( 'So - the v3 Manifest migration was a huge struggle, and result is not perfect - <b>sometimes it doesn\'t load new data, doesn\'t '  
+                        + 'refresh the context menu, sometimes it just forgets to do anything. I couldn\'t find a solution for that</b>, how the new API works in background. '
+                        + 'It should be tested, fixed and released when stable - unfortunately, I must publish it now in current state. '
+                        + '- <i>It\'s still a great everyday helper, which I can\'t imagine working without anymore.</i> '
+                        + '' ))
+
+                    .add( $( '<p>' ).html( 'I hope it will work for you most of the time. And if you\'re familiar with browser addons, Manifest 3 topic etc. - please maybe '
+                        + 'take a look one day...'
+                        + '' ))
+
                     .add( $( '<br>' ))
-                    .add( $( '<p>' ).html( '(And also the <a href="https://addons.mozilla.org/en-GB/firefox/addon/handy-switcher-t3/" target="_blank">Firefox port</a> should work for a while)' ))
-
+                    .add( $( '<h3>' ).html( 'The GOOD NEWS:'))
+                    .add( $( '<p>' ).html( 'FINALLY! Backend Page Preselection works! ' ))
+                    .add( $( '<p>' ).html( 'See details in next popup message -> ' ))
                     .add( $( '<br>' ))
 
-                    .add( $( '<button class="btn confirm-warn confirm-acknowledged"> <span class="text">OK / ANYWAY</span> </button> <span>...close and forget</span>' ))
-                    .add( $( '<br><br>' ))
-                    .add( $( '<button class="btn add confirm-close"> <span class="text">Close</span> </button> <span>...but remind me next time</span>' ))
+                    .add( $( '<button class="btn confirm-warn confirm-acknowledged"> <span class="text">OK / Fine / Great</span> </button>' ))
                 ;
 
-            let dialog = ExtOptions.openDialog('IMPORTANT: Chrome Add-on API change', content, 'text-left');
+            let dialog = ExtOptions.openDialog('IMPORTANT: Chrome ext API change', content, 'text-left');
 
             dialog.find('.confirm-acknowledged').click( () => {
-                chrome.storage.sync.set({'info_manifest_acknowledged': true});
-                ExtOptions.options.info_manifest_acknowledged = true;
+                chrome.storage.sync.set({'info_manifest3_acknowledged': true});
+                ExtOptions.options.info_manifest3_acknowledged = true;
+                ExtOptions.closeDialog( dialog );
+            });
+            dialog.find('.confirm-close').click( () => {
+                ExtOptions.closeDialog( dialog );
+            });
+        }
+    },
+
+
+    /**
+     * Show Backend Preselection info
+     */
+    backendPreselectionInfo : function( ) {
+
+        // display modal infobox
+        if ( !ExtOptions.options.info_be_preselection_acknowledged )  {
+            let content = $( '<h3>' ).html( 'Backend Page preselection!')
+
+                    .add( $( '<p>' ).html( 'That means: when you are in Frontend and switch to Backend, it will try to get '
+                        + 'the page uid, to expand the Page Tree and directly display Page edit view - no need to search through the tree '
+                        + 'every time, what subpage that could be.'
+                        + '' ))
+
+                    .add( $( '<p>' ).html( '<i>(- I tried to achieve that long time ago, experimenting with injecting javascript to expand the tree '
+                        + ' somehow, but with no success... <br> '
+                        + ' Since TYPO v11 (or 12?) it\'s simple - deep linking in backend allows to just open any record with prepared url.)</i> ' 
+                        + '' ))
+
+                    .add( $( '<h3>' ).html( 'How that knows the page uid? What is needed?'))
+
+                    .add( $( '<p>' ).html( ' The idea is simple - the page uid must be included somewhere in frontend html. '
+                        + ' Then it\'s retrieved from the source when the Backend button is clicked. '
+                        + '' ))
+
+                    .add( $( '<p>' ).html( ' Most projects I\'ve seen or built has already some body or html classes or ids. '
+                        + ' It can be in: <b>html</b> or <b>body</b> tag, class or id attrib, containing a string which looks '
+                        + ' like: "pid-N", "page_N" or similar combinations - small javascript is injected to page source and it '
+                        + ' tries to find it before opening Backend tab. '
+                        + ' <br>If you prefer/get used to some other naming convention for page uid in your markup, let me know, I\'ll include yours in patterns. '
+                        + '' ))
+
+                    .add( $( '<p>' ).html( ' (For details you can take a look into source, to the <a href="https://github.com/w010/chrome-typo3-switcher/blob/master/EXT%20pub/frontend_getData.js">frontend_getData.js</a>'
+                        + ' file to see what it does exactly.) '
+                        + '' ))
+
+                    .add( $( '<br>' ))
+
+                    .add( $( '<button class="btn confirm-warn confirm-acknowledged"> <span class="text">Great!</span> </button>' ))
+                ;
+
+            let dialog = ExtOptions.openDialog('NEW FEATURE:', content, 'text-left');
+
+            dialog.find('.confirm-acknowledged').click( () => {
+                chrome.storage.sync.set({'info_be_preselection_acknowledged': true});
+                ExtOptions.options.info_be_preselection_acknowledged = true;
                 ExtOptions.closeDialog( dialog );
             });
             dialog.find('.confirm-close').click( () => {
