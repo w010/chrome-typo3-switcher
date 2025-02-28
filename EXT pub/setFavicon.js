@@ -38,7 +38,9 @@ if (typeof Favicon === 'undefined')  {
 
             // (check if it helps if prepend to head instead of append)
             if ( linkItem.getAttribute( 'rel' ).match( /^(shortcut )?icon$/im ) )    {
-                console.log('- found favicon tag');
+                if ( Favicon.DEV ) {
+                    console.log('- found favicon tag');
+                }
 
                 if ( linkItem.getAttribute( 'author' ) === 'chromeTYPO3switcher' ) {
                     if (Favicon.DEV)    {
