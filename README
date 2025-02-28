@@ -4,7 +4,7 @@ Handy Switcher TYPO3/BE/FE/Env
 
 
 wolo '.' studio
-2017-2024
+2017-2025
 wolo.wolski(at)gmail.com
 http://wolostudio.free.nf/
 
@@ -144,6 +144,12 @@ A: No, this extension doesn't do anything with the urls it reads. All it does it
 
 **
 Changelog:
+
+v2.5.666
+28.02.2025
+- MANIFEST 3 migrated version - let's call it a beta, still needs some fixes... it wasn't easy
+- But google forced me to publish it anyway... sorry
+- BACKEND PAGE PRESELECTION - when it finds a page UID in frontend (html or body class or id, pid_, page-... it should find it) 
 
 v2.2.597
 12.06.2024
