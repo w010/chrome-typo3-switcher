@@ -1,7 +1,7 @@
 /**
  * TYPO3 Backend-Frontend Handy Switcher - Chrome extension
  *
- * wolo '.' studio 2017-2024
+ * wolo '.' studio 2017-2025
  * Adam wolo Wolski
  * wolo.wolski+t3becrx@gmail.com
  */
@@ -24,7 +24,8 @@ let Switcher = {
     DEBUG: 0,
     options: {},
 
-    // todo: describe these
+    // placeholder to store current/last tab and its url for later
+    // set after clicking icon action
     _currentTab: null,
     _url: null,
 
@@ -42,7 +43,18 @@ let Switcher = {
 
         Switcher.backendPath = options.ext_backend_path ?? 'typo3';
 
-        let isInBackend = Switcher._url.match( new RegExp('/'+ (Switcher.backendPath)
+        // get the tab env configuration, which we stored earlier during setting up matching project
+        let tab_setup = Env.tabs_setup[Switcher._currentTab?.id] ?? {};
+        // null and empty string safe check
+        let finalBackendPath = typeof tab_setup?.envConfig?.project?.backendPathSegment === "string"
+            && tab_setup.envConfig.project.backendPathSegment.trim() !== ""
+                ? tab_setup.envConfig.project.backendPathSegment
+                : Switcher.backendPath;
+
+        //console.log(tab_setup);
+        //console.log(finalBackendPath);
+
+        let isInBackend = Switcher._url.match( new RegExp('/'+ (finalBackendPath)
                             .replaceAll('/', '\\/')
                             .replaceAll('.', '\\.') +'/')
         );
@@ -70,7 +82,7 @@ let Switcher = {
             }
             else {
                 // opens homepage
-                Switcher.openFrontend( 0 );
+                Switcher.openFrontend( 0, finalBackendPath );
             }
         }
 
@@ -99,20 +111,22 @@ let Switcher = {
             }
             else {
                 // open backend in classic way
-                Switcher.openBackend( '' );
+                Switcher.openBackend( '', {}, finalBackendPath );
             }
         }
     },
 
 
-
-
-    openFrontend: function(pageUid) {
+    /**
+     * @param pageUid
+     * @param backendPath
+     */
+    openFrontend: function(pageUid, backendPath) {
         // remove backend path segment and everything after it in url. add page id, if received
         // todo: try to get id from the url first for 11
 
         let newTabUrl = Switcher._url.replace( new RegExp('/'+
-                    Switcher.backendPath
+                (backendPath ?? Switcher.backendPath)
                 +'/.*'), '/' )
             + ( pageUid > 0  ?  '?id=' + pageUid  :  '' );
 
@@ -130,8 +144,9 @@ let Switcher = {
     /**
      * @param siteUrl string
      * @param params {*} parameters fetched from frontend html to build backend deep link
+     * @param backendPath
      */
-    openBackend: function(siteUrl, params) {
+    openBackend: function(siteUrl, params, backendPath) {
 
         siteUrl = params?.baseHref ?? siteUrl;
 
@@ -151,10 +166,10 @@ let Switcher = {
 
         // strip trailing slash, if present
         let newTabUrl = siteUrl.replace( /\/$/, '' )
-            + '/'+Switcher.backendPath+'/';
+            + '/'+(backendPath ?? Switcher.backendPath)+'/';
 
         // for typo3 try to build deep links. todo: must be possible to switch this off, because it will cause problems in older than 10/11
-        if (Switcher.backendPath === 'typo3')   {
+        if ((backendPath ?? Switcher.backendPath) === 'typo3')   {
             if ( params?.pageUid )  {
                 newTabUrl += 'module/web/layout?id='+params.pageUid
             }
@@ -278,9 +293,20 @@ chrome.runtime.onMessage.addListener((request, sender) => {
     if ( request?.action === 'backend_getData' ) {
         console.log('received message, action: backend_getData');
 
+        // determine the tab id from which that message was sent, and read its env config
+        let tab_setup = Env.tabs_setup[Switcher._currentTab?.id] ?? {};
+        // null and empty string safe check
+        let finalBackendPath = typeof tab_setup?.envConfig?.project?.backendPathSegment === "string"
+            && tab_setup.envConfig.project.backendPathSegment.trim() !== ""
+                ? tab_setup.envConfig.project.backendPathSegment
+                : Switcher.backendPath;
+
+        //console.log(finalBackendPath);
+        //console.log(tab_setup);
+
         let selectedPageUid = request?.data?.selectedPageUid;
         console.info('data pid: ' + selectedPageUid);
-        Switcher.openFrontend( selectedPageUid );
+        Switcher.openFrontend( selectedPageUid, finalBackendPath );
         return;
     }
 
@@ -290,6 +316,18 @@ chrome.runtime.onMessage.addListener((request, sender) => {
     if ( request?.action === 'frontend_getData' ) {
         console.log('received message, action: frontend_getData');
 
+        // determine the tab id from which that message was sent, and read its env config
+        let tab_setup = Env.tabs_setup[Switcher._currentTab?.id] ?? {};
+        // null and empty string safe check
+        let finalBackendPath = typeof tab_setup?.envConfig?.project?.backendPathSegment === "string"
+            && tab_setup.envConfig.project.backendPathSegment.trim() !== ""
+                ? tab_setup.envConfig.project.backendPathSegment
+                : Switcher.backendPath;
+
+        //console.log(finalBackendPath);
+        //console.log(tab_setup);
+
+
         Env.log('fetch info results: ', null, Env.LEVEL_info, 1, request?.data, true);
         //Env.log('pid: ', null, Env.LEVEL_success, 1, selectedPageUid, true);
 
@@ -298,13 +336,11 @@ chrome.runtime.onMessage.addListener((request, sender) => {
         if ( baseUrl === '/'  ||  baseUrl === 'auto' )  {
             baseUrl = '';
         }
-        //console.log('-------');
-        //console.log(Switcher.options);
         console.log('request.data from response: ', request.data);
 
         //Switcher.openBackend( Switcher.options.switch_be_useBaseHref ? baseUrl : '', Switcher.options.switch_be_openCurrentPageUid ? selectedPageUid : 0);
         // todo: add such option, make it default true
-        Switcher.openBackend(baseUrl, {pageUid: request?.data?.pageUid, language: request?.data?.languageUid});
+        Switcher.openBackend(baseUrl, {pageUid: request?.data?.pageUid, language: request?.data?.languageUid}, finalBackendPath);
     }
 
 });
@@ -887,6 +923,12 @@ let Env = {
                                     Env.logGroup(null, false, tabId);
                                     Env.log('* MATCHED URL: '+context.url+'   *****   FOUND PROJECT!', tabId, 2, 0, {project: project.name, context: context.name});
                                     Env.tabs_setup[tabId].projectIsSet = true;
+
+                                    // store found project and context configuration for later use (ie. custom backend path)
+                                    Env.tabs_setup[tabId].envConfig = {
+                                        'context': context,
+                                        'project': project,
+                                    };
 
                                     Env.logGroup( '=== Setup tab for active project [Context]', true, tabId );
 

@@ -925,11 +925,11 @@ const ExtOptions = {
     /**
      * Extract project settings from html representation
      * @param project html object
-     * @returns array
+     * @returns {}
      */
     readProjectData: function(project)   {
         let projectItem = {};
-        projectItem['name'] = project.find( "[name='project[name]']" ).val();
+        projectItem['name'] = project.find( "[name='project[name]']" ).val().trim();
 
         projectItem['uuid'] = project.attr( "id" ).toString().replace(/^project_+/g, '')
             || makeRandomUuid(6);
@@ -938,14 +938,14 @@ const ExtOptions = {
         projectItem['links'] = [];
         projectItem['hidden'] = project.find( "[name='project[hidden]']" ).is( ':checked' );
         projectItem['tstamp'] = project.data('tstamp') ?? 0;
-        projectItem['backendPathSegment'] = project.find( "[name='project[backendPathSegment]']" ).val();
+        projectItem['backendPathSegment'] = project.find( "[name='project[backendPathSegment]']" ).val().trim();
 
         project.find( '.contexts-container .contextItem' ).each( (i, el) => {
             let context = $(el),
                 contextItem = {};
-            contextItem['name'] = context.find( "[name='context[name]']" ).val();
-            contextItem['url'] = context.find( "[name='context[url]']" ).val();
-            contextItem['color'] = context.find( "[name='context[color]']" ).val();
+            contextItem['name'] = context.find( "[name='context[name]']" ).val().trim();
+            contextItem['url'] = context.find( "[name='context[url]']" ).val().trim();
+            contextItem['color'] = context.find( "[name='context[color]']" ).val().trim();
             contextItem['hidden'] = context.find( "[name='context[hidden]']" ).is( ':checked' );
 
             projectItem['contexts'].push( contextItem );
@@ -954,8 +954,8 @@ const ExtOptions = {
         project.find( '.links-container .linkItem' ).each( (i, el) => {
             let link = $(el),
                 linkItem = {};
-            linkItem['name'] = link.find( "[name='link[name]']" ).val();
-            linkItem['url'] = link.find( "[name='link[url]']" ).val();
+            linkItem['name'] = link.find( "[name='link[name]']" ).val().trim();
+            linkItem['url'] = link.find( "[name='link[url]']" ).val().trim();
             linkItem['hidden'] = link.find( "[name='link[hidden]']" ).is( ':checked' );
 
             projectItem['links'].push( linkItem );
