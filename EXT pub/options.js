@@ -146,7 +146,7 @@ const ExtOptions = {
             'ext_debug':                        $( '#ext_debug' ).val(),
             'ext_dark_mode':					$( '#ext_dark_mode' ).is( ':checked' ),
             'ext_hide_help':                    $( '#ext_hide_help' ).val(),
-            //'ext_backend_path':                  $( '#ext_backend_path' ).val(),
+            'ext_backend_path':                 $( '#ext_backend_path' ).val(),
             'env_repo':                         $( '#env_repo' ).is( ':checked' ),
             'env_repo_url':                     $( '#env_repo_url' ).val(),
             'env_repo_key':                     $( '#env_repo_key' ).val(),
@@ -273,6 +273,7 @@ const ExtOptions = {
             $( '#env_favicon_position' ).val(                       options.env_favicon_position );
             $( '#env_favicon_composite' ).val(                      options.env_favicon_composite );
             $( '#env_projects_autosorting' ).attr( 'checked',       options.env_projects_autosorting );
+            $( '#ext_backend_path' ).val(                           options.ext_backend_path );
             $( '#ext_dev' ).attr( 'checked',                        options.ext_dev );
             $( '#ext_debug' ).val(                                  options.ext_debug );
             $( '#ext_dark_mode' ).attr( 'checked',                  options.ext_dark_mode );
@@ -630,6 +631,7 @@ const ExtOptions = {
         project.find( '[name="project[uuid]"]' ).val( projectItem.uuid );
         project.find( '[name="project[name]"]' ).val( projectItem.name );
         project.find( '[name="project[hidden]"]' ).prop( 'checked', projectItem.hidden );
+        project.find( '[name="project[backendPathSegment]"]' ).val( projectItem.backendPathSegment );
         if ( projectItem.hidden )
             project.addClass( 'hidden' );
 
@@ -667,6 +669,10 @@ const ExtOptions = {
 				ExtOptions.deleteProjectItem( trigger.closest('.projectItem') );
                 //ExtOptions.optionsSave(); // probably is problematic to call it right after
             });
+        });
+
+        project.find( 'button.env_projectSettings' ).click( function() {
+            project.toggleClass( 'show_projectSettings' );
         });
 
         project.find( '> .hideItem input' ).on( 'change', function() {
@@ -932,6 +938,7 @@ const ExtOptions = {
         projectItem['links'] = [];
         projectItem['hidden'] = project.find( "[name='project[hidden]']" ).is( ':checked' );
         projectItem['tstamp'] = project.data('tstamp') ?? 0;
+        projectItem['backendPathSegment'] = project.find( "[name='project[backendPathSegment]']" ).val();
 
         project.find( '.contexts-container .contextItem' ).each( (i, el) => {
             let context = $(el),

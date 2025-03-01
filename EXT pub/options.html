@@ -113,6 +113,14 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                     </label>
                 </div>
 
+                <label class="primary text short">
+                    <span>Default backend <abbr title="it's the main indicator to tell you are in BE or FE.">slug</abbr>:</span>
+                    <input type="text" id="ext_backend_path">
+                    <i>(default: "typo3". it will be used when switching any unknown url.
+                        <br>change if you work with other cms.
+                        <br>try "wp-admin" for WordPress or "panel" for Kirby) <br> [can be also set per project? confirm]</i>
+                </label>
+
             </div>
             <div class="col-6 settings-block-section __contextmenu section-foldable" data-visibility-trigger="#env_enable">
 
@@ -582,7 +590,23 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
     <div class="projectItem collapse _template" tabindex="-1">
 
         <input type="text" name="project[name]" placeholder="Name" class="required  no-autosave">
-        <input type="text" name="project[uuid]" placeholder="Uuid" class="masked  dev-mode-restricted  no-autosave" title="Change UUID of project - KNOW WHAT YOU'RE DOING!">
+
+        <div class="projectSettings">
+            
+            <button class="btn transparent settings env_projectSettings" title="More settings"><span class="icon"></span></button>
+
+            <label class="settings-input">
+                <span>uuid:</span>
+                <input type="text" name="project[uuid]" placeholder="Uuid" class="masked  dev-mode-restricted  no-autosave" title="Change internal UUID of project - KNOW WHAT YOU'RE DOING!">
+            </label>
+            
+            <label class="settings-input">
+                <span>CMS Backend path:</span>
+                <input type="text" name="project[backendPathSegment]" placeholder="" title="URL part (slug) to admin panel. Overrides global option 'Default backend slug' to change CMS type per project">
+            </label>
+        </div>
+
+        <div class="toggle context"><span class="icon"></span></div>
 
         <div class="contexts">
             <h3>Environments / contexts:</h3>
@@ -623,7 +647,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
             <input type="text" name="context[color]" placeholder="#Hex" class="color-text  no-autosave" maxlength="7">
         </label>
     
-        <!--<div class="moreSettings">
+        <!--<div class="contextSettings">
             <label>
                 <input type="text" name="context[altBackendUrl]" placeholder="Alternative backend url">
             </label>

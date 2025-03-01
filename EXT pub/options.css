@@ -513,6 +513,7 @@ button.replace-localtest2 .icon  { background-image: url(/Icons/Options/ReplaceL
 button.replace-remote .icon { background-image: url(/Icons/Options/ReplaceRemote.svg);  }
 button.repository .icon{background-image: url(/Icons/Options/Repository.svg);  }
 button.save .icon  {    background-image: url(/Icons/Options/Save.svg);  }
+button.settings .icon  {  background-image: url(/Icons/Options/Settings.svg);   }
 
 
 label.primary .btn:first-child  {   margin-left: 0; }
@@ -577,6 +578,9 @@ pre.section-foldable.expand   {
 	padding: 10px 10px 22px;
 	margin-bottom: 10px;
 	transition: opacity 0.20s, box-shadow 0.15s, margin 0.15s, border 0.1s;
+
+	/* remove if causes problems, then style project settings panel other way */
+	overflow: hidden;
 }
 .projectItem.collapse    {
 	background: #eee;
@@ -633,18 +637,7 @@ pre.section-foldable.expand   {
 	font-weight: 600;
 	font-size: 1.25em;
 }
-.projectItem input[name="project[uuid]"]    {
-	font-weight: 600;
-	font-size: 1.25em;
-	position: absolute;
-	right: 12px;    top: 64px;
-	z-index: 2;
-	text-align: right;
-	width: 160px;
-}
-.projectItem.collapse input[name="project[uuid]"]    {
-	display: none;
-}
+
 	.projectItem input[type="text"].masked  {
 		color: transparent;
 		background: none;
@@ -730,7 +723,8 @@ pre.section-foldable.expand   {
 
 .projectItem.collapse .contexts,
 .projectItem.collapse .links,
-.contextItem.collapse .moreSettings    {
+.projectItem.collapse .projectSettings,
+.contextItem.collapse .contextSettings    {
 	display: none;
 }
 
@@ -781,6 +775,64 @@ pre.section-foldable.expand   {
 .contextItem:hover,
 .linkItem:hover    {
 	box-shadow: 3px 2px 6px 0px #aaa5;
+}
+
+
+/* project additional settings panel */
+.projectItem .projectSettings    {
+	border: 1px solid transparent;
+	padding: 6px 80px 6px 10px;
+	position: absolute;
+	z-index: 2;
+	right: 0px;    top: 50px;
+	transition: background-color 0.2s;
+}
+	.projectItem .projectSettings:hover    {
+		background: #85858538;
+		border-color: #B9B9B938;
+	}
+	.projectItem.show_projectSettings .projectSettings    {
+		border-color: #8f8f8f;
+		background-color: #6f6f6f;
+		border-radius: 3px;
+	}
+
+.projectItem .btn.settings   {
+	position: absolute;
+	top: 7px; right: 0;
+	padding: 8px 9px;
+}
+
+
+.projectSettings label.settings-input {
+	display: inline-block;
+	border: 1px solid transparent;
+	color: transparent;
+    margin: 4px 8px;
+	pointer-events: none;
+	/*border: 1px solid red;*/
+}
+	.show_projectSettings .projectSettings label.settings-input {
+		color: inherit;
+		pointer-events: initial;
+		/*border: 1px solid yellow;*/
+	}
+.projectSettings label.settings-input span {
+	display: inline-block;
+	/*border: 1px solid blue;*/
+}
+
+.projectItem .projectSettings input[type=text]    {
+	font-size: 1.25em;
+	width: auto;
+}
+
+.projectItem .projectSettings input[name="project[uuid]"]    {
+	text-align: right;
+	width: 100px;
+}
+.projectItem .projectSettings input[name="project[backendPathSegment]"]    {
+	width: 130px;
 }
 
 
