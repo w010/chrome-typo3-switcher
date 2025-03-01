@@ -37,6 +37,7 @@ let Switcher = {
 
     main: function(options)  {
 
+        // these are only few essential options! not all (is this ok?)
         Switcher.options = options;
         Switcher.DEV = options.ext_dev;
         Switcher.DEBUG = options.ext_debug;
@@ -264,7 +265,8 @@ chrome.action.onClicked.addListener((tab) => {
     Switcher._url = tab.url.toString();
 
 
-    // get configuration and use defaults if not configured (if null as first param: get all)
+    // get essential configuration and use defaults if not configured (if null as first param: get all)
+    // (is this ok that it's not full config?)
     chrome.storage.sync.get({
             switch_fe_openSelectedPageUid:  true,
             switch_be_useBaseHref:          true,
@@ -366,6 +368,21 @@ chrome.runtime.onInstalled.addListener(() => {
 
 
 
+
+
+// when extension Options are being saved, trigger reading the whole config and refresh
+// service worker's configuration
+
+chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "sync") {
+
+        chrome.storage.sync.get(null, function(allOptions)    {
+
+            Env.setupOptions( allOptions );
+
+        });
+    }
+});
 
 
 
@@ -1433,7 +1450,7 @@ let Env = {
                 chrome.scripting.executeScript({
                     target: { tabId: tab.id },
                     func: (_incoming_params) => {
-                        if (_incoming_params?.DEBUG > 1) {
+                        if (_incoming_params?.DEV  &&  _incoming_params?.DEBUG > 1) {
                             console.info('Injected badge params: ', _incoming_params);
                             console.log('typeof Badge', typeof Badge);
                         }
@@ -1498,7 +1515,7 @@ let Env = {
                 chrome.scripting.executeScript({
                     target: { tabId: tab.id },
                     func: (_incoming_params) => {
-                        if (_incoming_params?.DEBUG > 2) {
+                        if (_incoming_params?.DEV  &&  _incoming_params?.DEBUG > 2) {
                             console.info('Injected favicon params: ', _incoming_params);
                             console.log('typeof Favicon', typeof Favicon);
                         }
