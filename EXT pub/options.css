@@ -690,15 +690,16 @@ pre.section-foldable.expand   {
 .toggle {
 	position: absolute;
 	top: 0;
-	right: 150px;
-	width: 530px;   height: 49px;
+    right: 190px;
+    width: 490px;
+	height: 49px;
 	cursor: pointer;
 }
 	.toggle .icon   {
 		display: block;
 		width: 18px;    height: 18px;
 		position: absolute;
-		top: 18px;
+		top: 20px;
 		right: 10px;
 		background: transparent url(Icons/Options/Expand.svg) no-repeat 0 0;
 		transform: rotate(180deg);
@@ -781,11 +782,14 @@ pre.section-foldable.expand   {
 /* project additional settings panel */
 .projectItem .projectSettings    {
 	border: 1px solid transparent;
-	padding: 6px 80px 6px 10px;
+	padding: 6px 12px 6px 10px;
+	border-radius: 3px;
 	position: absolute;
 	z-index: 2;
-	right: 0px;    top: 50px;
+    right: 12px;
+    top: 56px;
 	transition: background-color 0.2s;
+	/*border: 1px solid red;*/
 }
 	.projectItem .projectSettings:hover    {
 		background: #85858538;
@@ -799,9 +803,16 @@ pre.section-foldable.expand   {
 
 .projectItem .btn.settings   {
 	position: absolute;
-	top: 7px; right: 0;
+    top: -47px;
+    right: 108px;
 	padding: 8px 9px;
 }
+	.projectItem .projectSettings:hover .btn.settings    {
+		border-color: rgba(129, 200, 214, 0.4);
+	}
+	.projectItem .projectSettings:hover label.settings-input {
+		color: inherit;
+	}
 
 
 .projectSettings label.settings-input {
@@ -809,12 +820,12 @@ pre.section-foldable.expand   {
 	border: 1px solid transparent;
 	color: transparent;
     margin: 4px 8px;
-	pointer-events: none;
+	/*pointer-events: none;*/
 	/*border: 1px solid red;*/
 }
 	.show_projectSettings .projectSettings label.settings-input {
 		color: inherit;
-		pointer-events: initial;
+		/*pointer-events: initial;*/
 		/*border: 1px solid yellow;*/
 	}
 .projectSettings label.settings-input span {
@@ -832,7 +843,9 @@ pre.section-foldable.expand   {
 	width: 100px;
 }
 .projectItem .projectSettings input[name="project[backendPathSegment]"]    {
-	width: 130px;
+	width: 140px;
+	font-style: italic;
+	color: #cbc6c6;
 }
 
 
@@ -1527,10 +1540,10 @@ body.repo_auth__write .btn.push  {
 		}
 
 .dev-mode-restricted  {
-	display: none;
+	display: none !important;
 }
 .dev-mode .dev-mode-restricted  {
-	display: initial;
+	display: initial !important;
 }
 
 /*.btn.noborder,

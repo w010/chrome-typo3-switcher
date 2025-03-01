@@ -145,7 +145,7 @@ const ExtOptions = {
             'ext_dev':                          $( '#ext_dev' ).is( ':checked' ),
             'ext_debug':                        $( '#ext_debug' ).val(),
             'ext_dark_mode':					$( '#ext_dark_mode' ).is( ':checked' ),
-            'ext_hide_help':                    $( '#ext_hide_help' ).val(),
+            'ext_hide_help':                    $( '#ext_hide_help' ).val() === 'true',
             'ext_backend_path':                 $( '#ext_backend_path' ).val(),
             'env_repo':                         $( '#env_repo' ).is( ':checked' ),
             'env_repo_url':                     $( '#env_repo_url' ).val(),
@@ -156,6 +156,14 @@ const ExtOptions = {
         };
 
 
+        // basic check / data control
+        if (options.ext_backend_path === '')  {
+            // force restore backend path to default, if empty is coming to be saved
+            options.ext_backend_path = 'typo3';
+            $( '#ext_backend_path' ).val(options.ext_backend_path);
+        }
+
+
         chrome.storage.sync.set( options, function() {
 
             // in case of problems show info and end operation
@@ -164,8 +172,14 @@ const ExtOptions = {
             }
             // if options saved ok, now save projects
             else    {
+                ExtOptions.DEV = options.ext_dev;
+                ExtOptions.DEBUG = options.ext_debug;
                 ExtOptions.options = options;
+
                 ExtOptions.handleDarkMode();
+                ExtOptions.handleDevMode();
+                ExtOptions.handleHideHelpMode();
+
 
                 chrome.storage.sync.set(
 
@@ -292,6 +306,8 @@ const ExtOptions = {
 
             ExtOptions.initFoldableSections();
             ExtOptions.handleDarkMode();
+            ExtOptions.handleDevMode();
+            ExtOptions.handleHideHelpMode();
 
             ExtOptions.setFaviconPreview();
             ExtOptions.setBadgePreview(options.env_badge);
@@ -333,16 +349,9 @@ const ExtOptions = {
                 ExtOptions.fillExportData();
             }
 
-            if ( options.ext_hide_help )   {
-                $( 'body' ).addClass('hide-help');
-                $( '#toggle_ext_hide_help' ).addClass('toggle_pressed');
-            }
 
             ExtOptions.initCheckboxes();
             ExtOptions.debugStorageData();
-            if ( ExtOptions.DEV )   {
-                $( 'body' ).addClass('dev-mode');
-            }
         });
     },
 
@@ -2274,6 +2283,25 @@ const ExtOptions = {
     	}
     },
 
+    handleDevMode: function() {
+    	if ( ExtOptions.options.ext_dev === true ) {
+    		$('body').addClass( 'dev-mode' );
+        } else {
+            $('body').removeClass('dev-mode');
+    	}
+    },
+
+    handleHideHelpMode: function() {
+    	if ( ExtOptions.options.ext_hide_help === true )  {
+            $( 'body' ).addClass('hide-help');
+            $( '#toggle_ext_hide_help' ).addClass('toggle_pressed');
+        }
+        else  {
+            $( 'body' ).removeClass('hide-help');
+            $( '#toggle_ext_hide_help' ).removeClass('toggle_pressed');
+        }
+    },
+
     /**
      * Build nice checkboxes instead of real ones
      */
@@ -2395,16 +2423,11 @@ $( 'button.save' ).click( function (e) {
 $( 'button#toggle_ext_hide_help' ).click( function (e) {
     // get current value, swap, handle action, store in storage (don't trigger full save)
     let extHideHelp_updated = !ExtOptions.options.ext_hide_help
-    if ( extHideHelp_updated )  {
-        $( 'body' ).addClass('hide-help');
-        $( '#toggle_ext_hide_help' ).addClass('toggle_pressed');
-    }
-    else  {
-        $( 'body' ).removeClass('hide-help');
-        $( '#toggle_ext_hide_help' ).removeClass('toggle_pressed');
-    }
+    $( '#ext_hide_help' ).val(extHideHelp_updated);
     ExtOptions.setStorageKey( 'ext_hide_help', extHideHelp_updated);
     ExtOptions.options.ext_hide_help = extHideHelp_updated;
+
+    ExtOptions.handleHideHelpMode();
 });
 
 $( 'button.env_projectAdd' ).click( function () {
