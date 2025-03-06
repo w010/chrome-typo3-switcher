@@ -1,6 +1,8 @@
 .idea
+.run
 crx and keys
 media
+_RES
 projects_repository/config/repo_config.php
 projects_repository/.htaccess
 projects_repository/data/*
