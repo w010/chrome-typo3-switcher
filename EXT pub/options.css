@@ -14,6 +14,18 @@ body:not([class^=loading])  {
 	margin: 0 auto;
     position: relative;
 }
+
+
+@media only screen and (min-width : 1500px) {
+    body {
+        font-size: 100%;
+    }
+	.main {
+		width: 1400px;
+	}
+}
+
+
 h1  {
 	font-weight: 601;
 	font-size: 2em;
@@ -936,6 +948,12 @@ label.primary   {
 label.primary input,
 label.primary span  {
 	font-weight: revert;
+}
+label.primary input {
+	display: inline-block;
+}
+label.primary > span {
+	margin-bottom: 7px;
 }
 
 

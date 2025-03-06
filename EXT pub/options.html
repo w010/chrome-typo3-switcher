@@ -15,7 +15,7 @@
     <div class="settings-block __saveblock heading">
         <header>
             <h1>Handy Switcher BE/FE/Env</h1>
-            <h2>Magic server teleporter for TYPO3 & other webprojects</h2>
+            <h2>Magic server teleporter for TYPO3 & other CMS</h2>
             <span class="ext-version"></span>
             <span class="brand" title="Binary Owl sees you. Binary Owl Forever!">wolo '.' studio</span>
             <a href="http://wolostudio.free.nf/handyswitcher/" target="_blank" class="link-block"></a>
@@ -312,19 +312,22 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                     <br>
 
                     
-                    <p>
+                    <label class="primary text">
                         <button class="btn  connect" id="env_repo_handshake"><span class="icon"></span> <span class="text">Handshake repo</span></button>
-                        <i>Test connection and <abbr title="This will set repo gui controls according to permissions level (like: show push buttons, if access = WRITE)">access</abbr></i>
-                    </p>
+                        <span>
+                            Test connection and <abbr title="This will set repo gui controls according to permissions level (like: show push buttons, if access = WRITE)">access</abbr>
+                        </span>
+                        <i>If it throws Ajax error, try to visit the URL above first</i>
+                    </label>
 
-                    <p>
+                    <label class="primary text">
                         <button class="btn  repository" id="env_repo_fetch"><span class="icon"></span> <span class="text">Fetch
                             <abbr title="It's a good idea to host your own repo to share projects with your team/company. It's a 15-minut-work, so don't forget to check details.">Projects list</abbr></span>
                         </button>
                         <!--<button class="btn  repository  tour-mark" id="env_repo_fetch"><span class="icon"></span> <span class="text">Fetch Projects list</span>
                             <span class="tour-point">➨</span></button>-->
-                        <i>Check repo for available projects to import</i>
-                    </p>
+                        <span>Check repo for available projects to import</span>
+                    </label>
 
                     <br>
                 </div>
@@ -508,6 +511,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
 
                     <label class="primary text">
                         <span>Flush storage item (THINK TWICE):</span>
+                        <br>
                         <input type="text" id="flush-storage-key" class="no-autosave level-error" placeholder="key to REMOVE">
                         <button class="btn confirm-warn" id="flush-storage"><span class="text">Remove item!</span></button>
                         <br>
