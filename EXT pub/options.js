@@ -1823,7 +1823,7 @@ const ExtOptions = {
             .append(
                 $( '<div class="dialog-inner">' )
                     .append( $( '<h2 class="dialog-head">' ).html( title ) )
-                    .append( $( '<span class="dialog-close" title="Close">' ).html( 'X' ).on('click', function(){ ExtOptions.closeDialog( dialog ); }) )
+                    .append( $( '<button class="btn close dialog-close" title="Close">' ).html( '<span class="icon">' ).on('click', function(){ ExtOptions.closeDialog( dialog ); }) )
                     .append( $( '<div class="dialog-body">' ).html( content ) )
         );
         let $dialog_group = $( '#dialog-group' );

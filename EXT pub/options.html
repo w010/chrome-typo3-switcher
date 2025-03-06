@@ -508,7 +508,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
 
                     <label class="primary text">
                         <span>Flush storage item (THINK TWICE):</span>
-                        <input type="text" id="flush-storage-key" class="no-autosave" placeholder="key">
+                        <input type="text" id="flush-storage-key" class="no-autosave level-error" placeholder="key to REMOVE">
                         <button class="btn confirm-warn" id="flush-storage"><span class="text">Remove item!</span></button>
                         <br>
                         <i>(write _ALL! to wipe whole storage for this ext - in case of problems or to make a fresh start)</i>
@@ -519,6 +519,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                     <label class="primary text">
                         <span>Add storage item:</span><br>
                         <input type="text" id="set-storage-key" class="no-autosave" placeholder="key">
+                        <br><br>
                         <input type="text" id="set-storage-value" class="no-autosave" placeholder="value">
                         <button class="btn add" id="set-storage-item"><span class="text">Set item!</span></button>
                         <br>
@@ -613,9 +614,9 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
 
             <div class="contexts-container"></div>
 
-            <button class="btn add env_contextAdd"><span class="icon"></span> <span class="text">Add new Context</span></button>
+            <button class="btn add env_contextAdd"><span class="icon"></span> <span class="text">Add Context</span></button>
             <span class="between-buttons">or</span>
-            <button class="btn add env_contextAddDefaultSet"><span class="icon"></span> <span class="text">Generate standard <abbr title="Adds some default predefined environments">Contexts set</abbr></span></button>
+            <button class="btn add env_contextAddDefaultSet"><span class="icon"></span> <span class="text">Insert typical <abbr title="Adds some default predefined environments">Contexts set</abbr></span></button>
         </div>
 
         <div class="links">

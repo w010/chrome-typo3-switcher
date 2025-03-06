@@ -249,6 +249,7 @@ input[type="color"] {
 select{
 	transition: color .25s, border-color .25s, background-color .25s;
 	outline: none;
+	padding: 8px;
 }
 	:enabled:focus:-webkit-any(select)  {
 		border-color: rgba(0, 0, 0, 0.25);
@@ -451,7 +452,7 @@ body .btn {     /* define as child of body, to allow override default color whil
 	background-color: #dedede;
 	border: 1px solid #c4c4c4;
 	white-space: nowrap;
-	padding: 7px 16px;
+	padding: 7px 9px;
 	line-height: 0.9;
 	border-radius: 6px;
 	user-select: none;
@@ -475,6 +476,7 @@ body .btn {     /* define as child of body, to allow override default color whil
 		display: inline-block;
 		line-height: 1.60em;
 		vertical-align: top;
+		margin: 0 4px;
 	}
 	.btn .icon + .text  {
 		margin-left: 10px;
