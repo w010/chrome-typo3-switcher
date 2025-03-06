@@ -39,7 +39,7 @@
                 <br>
                 <label class="primary check">
                     <input type="checkbox" id="switch_be_useBaseHref">
-                    <span>Try to get &lt;base href&gt; <abbr title="IMPORTANT!
+                    <span class="label-txt">Try to get &lt;base href&gt; <abbr title="IMPORTANT!
 Base tag MUST be there, if you run Typo3 in subdirectory, instead of subdomain. Without it we can't estimate that missing segment and build valid Backend path,
 so BE switching using toolbar icon won't work in such projects and there's no other way to workaround that.
 (we need to know the exact webroot url to make that work, otherwise it just opens [domain]/typo3/)
@@ -47,17 +47,38 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                         <i>(disabled = simply use current domain, like if no &lt;base&gt; tag set)</i></span>
                 </label>
                 
-                
-                <label class="primary text short">
-                    <span>Default Backend <abbr title="it's the main indicator to tell you are in BE or FE.">slug</abbr>:</span>
-                    <input type="text" id="ext_backend_path">
-                    <i>(default: "typo3")
-                        <br>That segment in page URL will be used to detect Backend, and jump out/to it.
-                        <br>Change, if you mostly work with other CMS.
-                        <br>Try: "wp-admin" for WORDPRESS or "panel" for KIRBY) <br> (can be also set per project)</i>
+
+                <label class="primary check">
+                    <input type="checkbox" id="switch_be_useDeepLinking">
+                    <span class="label-txt">Deep linking (find current page)<br>
+                        <i>
+                            That tries to get current Page UID from Frontend HTML source
+                            and directly open Backend Page edit
+                            <br>
+                            <br>
+                            Needs &lt;body&gt;/&lt;html&gt; class/id like: "page_NN", "pid-NN" or similar.  
+                            <br>
+                            (works only for slug = "typo3". may cause problems with TYPO3 < 11.x)
+                            <br>
+                            (disabled = just opens domain + /backend_path/)
+                        </i></span>
                 </label>
 
+
+                <label class="primary text short">
+                    <span class="label-txt">Default Backend <abbr title="it's the main indicator to tell you are in BE or FE.">slug</abbr>:</span>
+                    <input type="text" id="ext_backend_path">
+                    <i>(default: "typo3")
+                        <br>This segment in page URL will be used to detect Backend, and jump out/to it.
+                        <br>
+                        <br>
+                        Change, if you mostly work with other CMS.
+                        <br>Try: "wp-admin" for WORDPRESS or "panel" for KIRBY) <br> (can be also set per project)</i>
+                </label>
             </div>
+
+
+
             <div class="col-6">
 
                 <h3>to Frontend:</h3>
@@ -65,8 +86,10 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                 <br>
                 <label class="primary check">
                     <input type="checkbox" id="switch_fe_openSelectedPageUid">
-                    <span>Open active page (selected in page tree)<br>
-                        <i>(disabled = open siteroot)</i></span>
+                    <span class="label-txt">Open active page (selected in page tree)<br>
+                        <i>(disabled = open siteroot)
+                            <br>(That won't handle multi-domain projects, it just opens <br>Backend's domain + page uid)
+                        </i></span>
                 </label>
 
             </div>
@@ -108,7 +131,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                 <br>
                 <label class="primary check">
                     <input type="checkbox" id="env_enable">
-                    <span>Use this whole Contexts / Environments functionality <br>
+                    <span class="label-txt">Use this whole Contexts / Environments functionality <br>
                         <i>(disabled = no env menu, no badges, no favicon. <br>only FE/BE switching)</i></span>
                 </label>
 
@@ -117,7 +140,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                     <br>
                     <label class="primary check">
                         <input type="checkbox" id="env_ignore_www">
-                        <span>Ignore WWW, when matching project url<br>
+                        <span class="label-txt">Ignore WWW, when matching project url<br>
                             <i>(don't mind if it's there or not, or someone forgot)<br>
                                 (disabled = strict compare, treats www and non-www <br>as different things)</i></span>
                     </label>
@@ -132,18 +155,18 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                 <br>
                 <label class="primary check">
                     <input type="checkbox" id="env_menu_show_allprojects">
-                    <span>Show <abbr title="There will always be a submenu with all Projects and their Contexts">All projects</abbr> submenu (icon / action menu only)</span>
+                    <span class="label-txt">Show <abbr title="There will always be a submenu with all Projects and their Contexts">All projects</abbr> submenu (icon / action menu only)</span>
                 </label>
 
                 <label class="primary text short">
-                    <span>Custom <abbr title="If value starts with / it will be treated as path segment and glued to base url/domain.
+                    <span class="label-txt">Custom <abbr title="If value starts with / it will be treated as path segment and glued to base url/domain.
                             Otherwise will open like full url.">path / url</abbr> 1:</span>
                     <input type="text" id="env_menu_short_custom1">
                     <i><abbr title="Use pipe to set custom label">(default: /typo3/install.php | Install Tool)</abbr></i>
                 </label>
 
                 <label class="primary text short">
-                    <span>Custom path / url 2:</span>
+                    <span class="label-txt">Custom path / url 2:</span>
                     <input type="text" id="env_menu_short_custom2">
                 </label>
 

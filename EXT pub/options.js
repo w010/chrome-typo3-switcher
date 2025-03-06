@@ -225,6 +225,7 @@ const ExtOptions = {
             // Set default values on read if not found
             'switch_fe_openSelectedPageUid':    true,
             'switch_be_useBaseHref':            true,
+            'switch_be_useDeepLinking':         true,
             'env_projects':                     [],     // leave for compatibility - must try to read old projects array to migrate
             'env_projects_storing_version':     3,      // version 1 is original all-projects-one-key method. version 2 means projects stored in separated items, with index and counter. version 3 is items with unique id
             'env_projects_autosorting':         false,
@@ -268,6 +269,7 @@ const ExtOptions = {
 
             $( '#switch_fe_openSelectedPageUid' ).attr( 'checked',  options.switch_fe_openSelectedPageUid );
             $( '#switch_be_useBaseHref' ).attr( 'checked',          options.switch_be_useBaseHref );
+            $( '#switch_be_useDeepLinking' ).attr( 'checked',       options.switch_be_useDeepLinking );
             $( '#env_enable' ).attr( 'checked',                     options.env_enable );
             $( '#env_ignore_www' ).attr( 'checked',                 options.env_ignore_www );
             $( '#env_menu_show_allprojects' ).attr( 'checked',      options.env_menu_show_allprojects );

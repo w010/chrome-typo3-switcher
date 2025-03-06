@@ -947,6 +947,11 @@ label.primary input {
 label.primary > span {
 	margin-bottom: 7px;
 }
+label.check span.label-txt {
+	margin-bottom: 7px;
+	/* row minus nice checkbox */
+	width: calc(100% - 40px);
+}
 
 
 /* status & notifications */

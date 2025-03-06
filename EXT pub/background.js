@@ -169,8 +169,9 @@ let Switcher = {
         let newTabUrl = siteUrl.replace( /\/$/, '' )
             + '/'+(backendPath ?? Switcher.backendPath)+'/';
 
-        // for typo3 try to build deep links. todo: must be possible to switch this off, because it will cause problems in older than 10/11
-        if ((backendPath ?? Switcher.backendPath) === 'typo3')   {
+        // for typo3 try to build deep links
+        if (((backendPath ?? Switcher.backendPath) === 'typo3')  &&  Switcher.options.switch_be_useDeepLinking)   {
+            // TODO: that should build the url params better way
             if ( params?.pageUid )  {
                 newTabUrl += 'module/web/layout?id='+params.pageUid
             }
