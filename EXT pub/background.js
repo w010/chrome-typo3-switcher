@@ -131,8 +131,10 @@ let Switcher = {
                 +'/.*'), '/' )
             + ( pageUid > 0  ?  '?id=' + pageUid  :  '' );
 
-        // note, that this logs only to the extension dev console, not to page devtools.
-        console.info('newTabUrl: ' + newTabUrl);
+        if ( Switcher.options.ext_debug > 1 ) {
+            // note, that this logs only to the extension dev console, not to page devtools.
+            console.info('-> newTabUrl: ' + newTabUrl);
+        }
 
         // open TYPO3 Frontend
         chrome.tabs.create({
@@ -148,6 +150,11 @@ let Switcher = {
      * @param backendPath
      */
     openBackend: function(siteUrl, params, backendPath) {
+
+        if ( Switcher.options.ext_debug > 1 )   {
+            console.log('-> openBackend - params: ', params);
+            console.log('-> openBackend - backendPath: ', backendPath);
+        }
 
         siteUrl = params?.baseHref ?? siteUrl;
 
@@ -168,19 +175,28 @@ let Switcher = {
         // strip trailing slash, if present
         let newTabUrl = siteUrl.replace( /\/$/, '' )
             + '/'+(backendPath ?? Switcher.backendPath)+'/';
+        let newTabUrlVars = {};
 
         // for typo3 try to build deep links
+        // the keys in newTabUrlVars must match what param names typo3 expects in url
         if (((backendPath ?? Switcher.backendPath) === 'typo3')  &&  Switcher.options.switch_be_useDeepLinking)   {
-            // TODO: that should build the url params better way
             if ( params?.pageUid )  {
-                newTabUrl += 'module/web/layout?id='+params.pageUid
+                newTabUrlVars.id = params.pageUid;
             }
             if ( params?.languageUid )  {
-                newTabUrl += '&language='+params.languageUid
+                newTabUrlVars.language = params.languageUid;
+            }
+
+            // build url with var=val pairs, if any
+            if ( newTabUrl.length ) {
+                const params = new URLSearchParams(newTabUrlVars).toString();
+                newTabUrl += `module/web/layout?${params}`;
             }
         }
 
-        console.info('newTabUrl: ' + newTabUrl);
+        if ( Switcher.options.ext_debug > 1 )   {
+            console.info('-> newTabUrl: ' + newTabUrl);
+        }
 
         // finally open TYPO3 Backend tab next to current page:
         chrome.tabs.create({
@@ -271,13 +287,14 @@ chrome.action.onClicked.addListener((tab) => {
     chrome.storage.sync.get({
             switch_fe_openSelectedPageUid:  true,
             switch_be_useBaseHref:          true,
+            switch_be_useDeepLinking:       false,
             ext_dev:                        false,
             ext_debug:                      0,
             env_enable:                     true,
             ext_backend_path:               'typo3',
         },
         (options) => {
-            if ( options.ext_dev  &&  options.ext_debug > 0 )
+            if ( options.ext_dev  &&  options.ext_debug > 1 )
                 console.log('action clicked - inject the script into document');
 
             Switcher.main( options );
@@ -343,7 +360,7 @@ chrome.runtime.onMessage.addListener((request, sender) => {
 
         //Switcher.openBackend( Switcher.options.switch_be_useBaseHref ? baseUrl : '', Switcher.options.switch_be_openCurrentPageUid ? selectedPageUid : 0);
         // todo: add such option, make it default true
-        Switcher.openBackend(baseUrl, {pageUid: request?.data?.pageUid, language: request?.data?.languageUid}, finalBackendPath);
+        Switcher.openBackend(baseUrl, {pageUid: request?.data?.pageUid, languageUid: request?.data?.languageUid}, finalBackendPath);
     }
 
 });

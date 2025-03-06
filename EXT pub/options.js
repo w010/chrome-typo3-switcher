@@ -127,6 +127,7 @@ const ExtOptions = {
         let options = {
             'switch_fe_openSelectedPageUid':    $( '#switch_fe_openSelectedPageUid' ).is( ':checked' ),
             'switch_be_useBaseHref':            $( '#switch_be_useBaseHref' ).is( ':checked' ),
+            'switch_be_useDeepLinking':         $( '#switch_be_useDeepLinking' ).is( ':checked' ),
             'env_enable':                       $( '#env_enable' ).is( ':checked' ),
             'env_ignore_www':                   $( '#env_ignore_www' ).is( ':checked' ),
             'env_menu_show_allprojects':        $( '#env_menu_show_allprojects' ).is( ':checked' ),
