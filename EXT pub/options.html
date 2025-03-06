@@ -17,7 +17,7 @@
             <h1>Handy Switcher BE/FE/Env</h1>
             <h2>Magic server teleporter for TYPO3 & other CMS</h2>
             <span class="ext-version"></span>
-            <span class="brand" title="Binary Owl sees you. Binary Owl Forever!">wolo '.' studio</span>
+            <span class="brand" title="Binary Owls are not what they seem. Binary Owl Forever!">wolo '.' studio</span>
             <a href="http://wolostudio.free.nf/handyswitcher/" target="_blank" class="link-block"></a>
         </header>
 
@@ -34,29 +34,39 @@
         <div class="row">
             <div class="col-6">
 
-                <h3>to Frontend:</h3>
-                
-                <br>
-                <label class="primary check">
-                    <input type="checkbox" id="switch_fe_openSelectedPageUid">
-                    <span>Open current pagetree selected page uid <br>
-                        <i>(disabled = open siteroot)</i></span>
-                </label>
-
-            </div>
-            <div class="col-6">
-
                 <h3>to Backend:</h3>
                 
                 <br>
                 <label class="primary check">
                     <input type="checkbox" id="switch_be_useBaseHref">
-                    <span>Try to use &lt;base href&gt; <abbr title="IMPORTANT!
+                    <span>Try to get &lt;base href&gt; <abbr title="IMPORTANT!
 Base tag MUST be there, if you run Typo3 in subdirectory, instead of subdomain. Without it we can't estimate that missing segment and build valid Backend path,
 so BE switching using toolbar icon won't work in such projects and there's no other way to workaround that.
 (we need to know the exact webroot url to make that work, otherwise it just opens [domain]/typo3/)
-The BEST SOLUTION for that problem (and highly probable many others) is to just AVOID RUNNING TYPO3 IN SUBDIR when possible, if you care of your nerves.">to recognize backend url [ i ]</abbr> <br>
-                        <i>(disabled = use current domain, same as when base tag <br>not found)</i></span>
+The BEST SOLUTION for that problem (and highly probable many others) is to just AVOID RUNNING TYPO3 IN SUBDIR when possible, if you care of your nerves.">to detect Backend URL</abbr> <br>
+                        <i>(disabled = simply use current domain, like if no &lt;base&gt; tag set)</i></span>
+                </label>
+                
+                
+                <label class="primary text short">
+                    <span>Default Backend <abbr title="it's the main indicator to tell you are in BE or FE.">slug</abbr>:</span>
+                    <input type="text" id="ext_backend_path">
+                    <i>(default: "typo3")
+                        <br>That segment in page URL will be used to detect Backend, and jump out/to it.
+                        <br>Change, if you mostly work with other CMS.
+                        <br>Try: "wp-admin" for WORDPRESS or "panel" for KIRBY) <br> (can be also set per project)</i>
+                </label>
+
+            </div>
+            <div class="col-6">
+
+                <h3>to Frontend:</h3>
+                
+                <br>
+                <label class="primary check">
+                    <input type="checkbox" id="switch_fe_openSelectedPageUid">
+                    <span>Open active page (selected in page tree)<br>
+                        <i>(disabled = open siteroot)</i></span>
                 </label>
 
             </div>
@@ -112,14 +122,6 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                                 (disabled = strict compare, treats www and non-www <br>as different things)</i></span>
                     </label>
                 </div>
-
-                <label class="primary text short">
-                    <span>Default backend <abbr title="it's the main indicator to tell you are in BE or FE.">slug</abbr>:</span>
-                    <input type="text" id="ext_backend_path">
-                    <i>(default: "typo3". it will be used when switching any unknown url.
-                        <br>change if you work with other cms.
-                        <br>try "wp-admin" for WordPress or "panel" for Kirby) <br> [can be also set per project? confirm]</i>
-                </label>
 
             </div>
             <div class="col-6 settings-block-section __contextmenu section-foldable" data-visibility-trigger="#env_enable">
@@ -218,7 +220,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                         <span>Fill ratio:</span>
                         <input type="text" id="env_favicon_fill" class="range-text">
                         <input type="range" id="env_favicon_fill__range" min="0" max="1" step="0.05">
-                        <span><i>(how much of favicon is covered)</i></span>
+                        <span><i>(How much of favicon is covered)</i></span>
                     </label>
     
                     <label class="primary select">
@@ -248,7 +250,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                             <option value="destination-over">destination-over</option>
                             <option value="xor">xor</option>
                         </select>
-                        <span><i>(the way it blends into icon / transparency)</i></span>
+                        <span><i>(The way it blends into icon / transparency)</i></span>
                     </label>
 
                 </div>
@@ -317,7 +319,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                         <span>
                             Test connection and <abbr title="This will set repo gui controls according to permissions level (like: show push buttons, if access = WRITE)">access</abbr>
                         </span>
-                        <i>If it throws Ajax error, try to visit the URL above first</i>
+                        <i>(If it throws Ajax error, try to visit the URL above first)</i>
                     </label>
 
                     <label class="primary text">
@@ -473,6 +475,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
             <div class="col-6">
                 <h3>Interface</h3>
                 
+                <!-- TODO: Move to page header as button. First put something in this left column instead. -->
                 <label class="primary check">
                     <input type="checkbox" id="ext_dark_mode" class="no-flash">
                     <span>Dark<br>
@@ -501,7 +504,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                             <option value="2">[2] See more</option>
                             <option value="3">[3] Debug flood!</option>
                         </select>
-                        <span><i>(show more or less console diagnostic info)</i></span>
+                        <span><i>(Show more or less console diagnostic info)</i></span>
                     </label>
                     <br>
 
@@ -515,7 +518,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                         <input type="text" id="flush-storage-key" class="no-autosave level-error" placeholder="key to REMOVE">
                         <button class="btn confirm-warn" id="flush-storage"><span class="text">Remove item!</span></button>
                         <br>
-                        <i>(write _ALL! to wipe whole storage for this ext - in case of problems or to make a fresh start)</i>
+                        <i>(Write _ALL! to wipe whole storage for this ext - in case of problems or to make a fresh start)</i>
                     </label>
                     <br>
 
@@ -527,8 +530,8 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                         <input type="text" id="set-storage-value" class="no-autosave" placeholder="value">
                         <button class="btn add" id="set-storage-item"><span class="text">Set item!</span></button>
                         <br>
-                        <i>(if key exists, it will overwrite it without asking!)</i><br>
-                        <i>(it wont self-update its state in form, if writing some of existing options!)</i>
+                        <i>(If key exists, it will overwrite it without asking!)</i><br>
+                        <i>(It wont self-update its state in form, if writing some of existing options!)</i>
                     </label>
                 </div>
             </div>
@@ -567,7 +570,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
         <label class="primary check">
             <input type="checkbox" id="expand_origins" class="no-autosave">
             <span>Expand list of permitted origins<br>
-                <i>(domains/hosts with granted permission. (list doesn't autorefresh after manipulation!)</i></span>
+                <i>(Domains/hosts with granted permission. (list doesn't autorefresh after manipulation!)</i></span>
         </label>
 
         <div class="section-foldable container-permitted-origins" data-visibility-trigger="#expand_origins">

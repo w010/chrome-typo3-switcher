@@ -16,16 +16,6 @@ body:not([class^=loading])  {
 }
 
 
-@media only screen and (min-width : 1500px) {
-    body {
-        font-size: 100%;
-    }
-	.main {
-		width: 1400px;
-	}
-}
-
-
 h1  {
 	font-weight: 601;
 	font-size: 2em;
@@ -944,6 +934,8 @@ label.primary   {
 	}
 	label.primary i   {
 		opacity: .6;
+		display: inline-block;
+		margin-top: 7px;
 	}
 label.primary input,
 label.primary span  {
@@ -1588,3 +1580,25 @@ body.loading {
 body.loading .heading {
 	background-color: #353535;
 }
+
+
+
+
+
+@media only screen and (min-width : 1500px) {
+    body {
+        font-size: 100%;
+    }
+	.main {
+		width: 1400px;
+	}
+	label.text.short span {
+	    width: calc(100% - 320px);
+	}
+	
+	.settings-block .nice-checkbox  {
+		top: .1em;
+	}
+}
+
+
