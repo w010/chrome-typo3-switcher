@@ -175,22 +175,39 @@ let Switcher = {
         // strip trailing slash, if present
         let newTabUrl = siteUrl.replace( /\/$/, '' )
             + '/'+(backendPath ?? Switcher.backendPath)+'/';
+        // collect vars to build url
         let newTabUrlVars = {};
+        // backend module optional path
+        let newTabUrlModPath = '';
 
         // for typo3 try to build deep links
         // the keys in newTabUrlVars must match what param names typo3 expects in url
         if (((backendPath ?? Switcher.backendPath) === 'typo3')  &&  Switcher.options.switch_be_useDeepLinking)   {
+
+            // PAGE
             if ( params?.pageUid )  {
                 newTabUrlVars.id = params.pageUid;
+                newTabUrlModPath = 'module/web/layout';
             }
+
+            // LANGUAGE
             if ( params?.languageUid )  {
                 newTabUrlVars.language = params.languageUid;
             }
 
-            // build url with var=val pairs, if any
+            // NEWS
+            if ( params?.newsUid )  {
+                let newsUid = Number(params.newsUid);
+                newTabUrlVars[`edit[tx_news_domain_model_news][${newsUid}]`] = 'edit';
+                // override module path if news uid comes
+                newTabUrlModPath = 'record/edit';
+            }
+
+
+            // build url with subpath + var=val pairs, if any
             if ( newTabUrl.length ) {
                 const params = new URLSearchParams(newTabUrlVars).toString();
-                newTabUrl += `module/web/layout?${params}`;
+                newTabUrl += newTabUrlModPath + `?${params}`;
             }
         }
 
@@ -358,9 +375,12 @@ chrome.runtime.onMessage.addListener((request, sender) => {
         }
         console.log('request.data from response: ', request.data);
 
-        //Switcher.openBackend( Switcher.options.switch_be_useBaseHref ? baseUrl : '', Switcher.options.switch_be_openCurrentPageUid ? selectedPageUid : 0);
-        // todo: add such option, make it default true
-        Switcher.openBackend(baseUrl, {pageUid: request?.data?.pageUid, languageUid: request?.data?.languageUid}, finalBackendPath);
+
+        Switcher.openBackend(baseUrl, {
+            pageUid: request?.data?.pageUid ?? 0,
+            languageUid: request?.data?.languageUid ?? 0,
+            newsUid: request?.data?.newsUid ?? 0,
+        }, finalBackendPath);
     }
 
 });

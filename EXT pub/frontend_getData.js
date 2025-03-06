@@ -67,11 +67,11 @@
      * Can also be used to try to find a language, or some record being edited, like news
      *
      * @return {string}
-     * @param {string} match - may be: page, language, news, record
+     * @param {string} lookingFor - may be: page, language, news, record
      * @param {*} selectors - array/object of tag:[attributes] to perform check, example: {body:[id, class]}
      * @param {boolean} tryUrl
      */
-    function findUid(match, selectors, tryUrl)    {
+    function findUid(lookingFor, selectors, tryUrl)    {
         let value = 0;
         let testValuesCollection = [];
 
@@ -103,15 +103,18 @@
             if (!testValue) return;
             let resTestA; 
  
-            if (match === 'page')   {
+            if (lookingFor === 'page')   {
                 // test each for "pid-", "page_" etc. 
                 resTestA = testValue.match(/(?:page|pid)(?:-|_)(\d+(\.\d)*)/i);
             }
-            if (match === 'language')   {
+            if (lookingFor === 'language')   {
                 // test each for "lang-", "language_" etc. 
                 resTestA = testValue.match(/(?:language|lang)(?:-|_)(\d+(\.\d)*)/i);
             }
-            // todo: news (assume class will be like: detail-news-n) 
+            if (lookingFor === 'news')   {
+                // test each for "news-" etc. 
+                resTestA = testValue.match(/(?:news|article|aktuelle)(?:-|_)(\d+(\.\d)*)/i);
+            }
             // todo: any records (assume class will be like: detail-record__tx_domain_model_xxxx-n) 
 
             if ( Array.isArray(resTestA)  &&  typeof resTestA[1] !== 'undefined' )    {
@@ -140,8 +143,14 @@
                 true),
             languageUid: findUid('language',
                 {
-                    'html': ['id', 'class'],
-                    'body': ['id', 'class']
+                    'html': ['class'],
+                    'body': ['class']
+                },  
+                true),
+            newsUid: findUid('news',
+                {
+                    'html': ['class'],
+                    'body': ['class']
                 },  
                 true),
         }
