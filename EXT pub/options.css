@@ -691,7 +691,7 @@ pre.section-foldable.expand   {
 ._template  {
 	display: none;
 }
-.toggle {
+.projectItem > .toggle {
 	position: absolute;
 	top: 0;
     right: 190px;
@@ -699,7 +699,7 @@ pre.section-foldable.expand   {
 	height: 49px;
 	cursor: pointer;
 }
-	.toggle .icon   {
+	.projectItem > .toggle .icon   {
 		display: block;
 		width: 18px;    height: 18px;
 		position: absolute;
@@ -1603,6 +1603,19 @@ body.loading .heading {
 	
 	.settings-block .nice-checkbox  {
 		top: .1em;
+	}
+	
+	.projectItem > .toggle {
+		width: 700px;
+	}
+	.projectItem input[name="project[name]"]    {
+		width: 400px;
+	}
+	input[name="context[name]"], input[name="link[name]"] {
+	    width: 260px;
+	}
+	input[name="context[url]"] {
+	    width: 450px;
 	}
 }
 
