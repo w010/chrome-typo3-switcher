@@ -573,7 +573,7 @@ pre.section-foldable.expand   {
 .projectItem    {
 	position: relative;
 	border: 1px solid transparent;
-	background: #ddd;
+	background: #ccc;
 	border-radius: 3px;
 	padding: 10px 10px 22px;
 	margin-bottom: 10px;
@@ -756,8 +756,8 @@ pre.section-foldable.expand   {
 }
 
 .projectItem .btn    {
-	background-color: transparent;
-	/*background-color: #efefef;*/
+	/*background-color: transparent;*/
+	background-color: #efefef;
 }
 .projectItem .btn:hover   {
 	background-color: rgba(140, 218, 233, 0.4);
@@ -792,12 +792,12 @@ pre.section-foldable.expand   {
 	/*border: 1px solid red;*/
 }
 	.projectItem .projectSettings:hover    {
-		background: #85858538;
+		background: #8585851a;
 		border-color: #B9B9B938;
 	}
 	.projectItem.show_projectSettings .projectSettings    {
-		border-color: #8f8f8f;
-		background-color: #6f6f6f;
+		border-color: #a8a6a6;
+		background-color: #bebebe;
 		border-radius: 3px;
 	}
 
@@ -808,7 +808,7 @@ pre.section-foldable.expand   {
 	padding: 8px 9px;
 }
 	.projectItem .projectSettings:hover .btn.settings    {
-		border-color: rgba(129, 200, 214, 0.4);
+		border-color: #a6a6a6;
 	}
 	.projectItem .projectSettings:hover label.settings-input {
 		color: inherit;
@@ -845,7 +845,7 @@ pre.section-foldable.expand   {
 .projectItem .projectSettings input[name="project[backendPathSegment]"]    {
 	width: 140px;
 	font-style: italic;
-	color: #cbc6c6;
+	color: #535353;
 }
 
 

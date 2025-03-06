@@ -349,6 +349,26 @@ body.dark .btn {
 	background-color: rgba(73, 153, 169, .4);
 }
 
+.dark .projectItem .projectSettings {
+	
+}
+	.dark .projectItem .projectSettings:hover    {
+		background: #85858538;
+		border-color: #B9B9B938;
+	}
+	.dark .projectItem.show_projectSettings .projectSettings    {
+		border-color: #8f8f8f;
+		background-color: #6f6f6f;
+	}
+
+	.dark .projectItem .projectSettings:hover .btn.settings    {
+		border-color: rgba(129, 200, 214, 0.4);
+	}
+
+.dark .projectItem .projectSettings input[name="project[backendPathSegment]"]    {
+	color: #cbc6c6;
+}
+
 
 .dark .projects-filter.active input    {
 	background-color: rgb(42, 75, 81);
