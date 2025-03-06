@@ -310,7 +310,7 @@ const ExtOptions = {
             ExtOptions.handleHideHelpMode();
 
             ExtOptions.setFaviconPreview();
-            ExtOptions.setBadgePreview(options.env_badge);
+            ExtOptions.setBadgePreview();
 
             // new project store way is 3, so it means it's after migration
             if (options.env_projects_storing_version === 3) {
@@ -1981,10 +1981,13 @@ const ExtOptions = {
     /**
      * Badge preview - show badge like on normal page to see how it looks
      */
-    setBadgePreview: (enabled) => {
+    setBadgePreview: () => {
 
-        if ( !enabled )  {
+        //if ( !ExtOptions.options.env_badge )  {
+        // at this stage we can not have the options updated yet
+        if ( !$('#env_badge').prop('checked') )  {
             $('.chrome-typo3switcher-badge').remove();
+            console.log('- BADGE DISABLED');
             return;
         }
 
