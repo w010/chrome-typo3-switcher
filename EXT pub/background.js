@@ -203,6 +203,28 @@ let Switcher = {
                 newTabUrlModPath = 'record/edit';
             }
 
+            // CUSTOM
+            if ( params?.customDeeplink )  {
+
+                for (const [key, deeplinkConf] of Object.entries(params?.customDeeplink)) {
+                    //console.log(deeplinkConf);
+
+                    let recordUid = Number(deeplinkConf.uid);
+
+                    switch (deeplinkConf?.module)   {
+                        case 'page':
+                            newTabUrlVars.id = recordUid;
+                            newTabUrlModPath = 'module/web/layout';
+                            break;
+                        case 'edit':
+                        default:
+                            newTabUrlVars[`edit[${deeplinkConf.table}][${recordUid}]`] = 'edit';
+                            newTabUrlModPath = 'record/edit';
+                    }
+                }
+            }
+
+
 
             // build url with subpath + var=val pairs, if any
             if ( newTabUrl.length ) {
@@ -213,6 +235,11 @@ let Switcher = {
 
         if ( Switcher.options.ext_debug > 1 )   {
             console.info('-> newTabUrl: ' + newTabUrl);
+        }
+        if ( Switcher.options.ext_debug > 2 )   {
+            console.log('customDeeplink: ', params?.customDeeplink);
+            console.log('newTabUrlModPath: ', newTabUrlModPath);
+            console.log('newTabUrlVars: ', newTabUrlVars);
         }
 
         // finally open TYPO3 Backend tab next to current page:
@@ -376,11 +403,13 @@ chrome.runtime.onMessage.addListener((request, sender) => {
         console.log('request.data from response: ', request.data);
 
 
-        Switcher.openBackend(baseUrl, {
+        /*Switcher.openBackend(baseUrl, {
             pageUid: request?.data?.pageUid ?? 0,
             languageUid: request?.data?.languageUid ?? 0,
             newsUid: request?.data?.newsUid ?? 0,
-        }, finalBackendPath);
+        }, finalBackendPath);*/
+
+        Switcher.openBackend(baseUrl, request?.data, finalBackendPath);
     }
 
 });
