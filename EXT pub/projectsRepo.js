@@ -72,7 +72,7 @@ let RepoHelper = {
         let content = 
             $('<div class="help-inner">' +
                 '<h3>What\'s that and what for?</h3>' +
-                '<p>Remote Repository can keep Projects to help keep them up to date, exchange setups with your team, sync your browsers (Chrome - Firefox), or just backup. ' +
+                '<p>Remote Repository can store your Projects to help keep them up to date, exchange setups with your team, sync between browsers (Chrome - Firefox), or just backup. ' +
                     'It comes especially helpful, when you work with dozens of projects, multiple stages and a number of teammates. But you can take advantages of this feature also when working alone.</p>' +
                 '<br>' +
 
@@ -84,7 +84,8 @@ let RepoHelper = {
                 '<h3>Host own Repo:</h3>' +
                 '<p>There are two roads to go:</p>' +
                 '<p>1. Use featured Projects Repository micro app, it\'s a 5 minute job, unpack, set keys, add optional htpassword. Optionally add some projects. ' +
-                    '<a class="external" href="http://wolostudio.free.nf/handyswitcher/projectrepo/" target="_blank">See details</a>.</p>' +
+                    '<s><a class="external" href="http://wolostudio.free.nf/handyswitcher/projectrepo/" target="_blank">See details</a></s>. <i>[not yet documented]</i></p>' +
+                    '<p><a class="external" href="http://github.com/w010/handy-switcher-project-repo/" target="_blank">Get code on Github</a>.</p>' +
                 '<p>or 2. Go pro and ie. write a TYPO3 extension for that. I didn\'t do this yet, but it\'s somewhere on a todo-list.</p>' +
             '</div>'
         );
@@ -96,7 +97,8 @@ let RepoHelper = {
             // bind test link
             content.find('#repo_example').on('click', function() {
                 $('#env_repo_url')
-                    .val('http://wolostudio.free.nf/handyswitcher/repoexample/');
+                    .val('http://wolostudio.free.nf/handyswitcher/repoexample/')
+                    .trigger('change');
                 $('#env_repo_key')
                     .val('fakeWriteKeyForDemo');
                 ExtOptions.optionsSave();

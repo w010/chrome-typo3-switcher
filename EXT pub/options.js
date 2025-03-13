@@ -2487,8 +2487,11 @@ $( 'button#origin-decline' ).click( function() {
 $( '#jump-to-top' ).click( function () {
     $('html,body').animate({scrollTop: 0}, 300);
 });
-$( '#jump-to-projects' ).click( function () {
+$( '#jump-to-repo' ).click( function () {
     $('html,body').animate({scrollTop: $("#settings_block_projects").offset().top - 100}, 300);  // offset correction by heading padding-top
+});
+$( '#jump-to-projects' ).click( function () {
+    $('html,body').animate({scrollTop: $("#projects_list").offset().top - 100}, 300);  // offset correction by heading padding-top
 });
 $( '#jump-to-importexport' ).click( function () {
     $('html,body').animate({scrollTop: $("#settings_block_importexport").offset().top - 100}, 300);
@@ -2592,8 +2595,20 @@ let controlButtons_env_repo = function (){
         $('#env_repo_handshake').attr('disabled', true);
         $('#repo_link_external').addClass('hide').attr('href', '');
     }
+    
+    if ($( '#env_repo' ).is( ':checked' ))  {
+        $( '#jump-to-repo' ).removeClass('hide');
+    }
+    else {
+        $( '#jump-to-repo' ).addClass('hide');
+    }
 };
 controlButtons_env_repo();
+$('#env_repo')
+    .on('change load', function(){
+        controlButtons_env_repo();
+    });
+
 $('#env_repo_url')
     .on('change paste keyup', function(){
         controlButtons_env_repo()

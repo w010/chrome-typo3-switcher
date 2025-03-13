@@ -1621,6 +1621,9 @@ body.loading .heading {
 	input[name="context[url]"] {
 	    width: 450px;
 	}
+	input[name="context[color]"] {
+	    width: 100px;
+	}
 }
 
 

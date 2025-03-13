@@ -307,15 +307,15 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
 
 
             <div class="col-6 settings-block-section __projects-remote">
-              <span class="dev-mode-restricted">
+              <span class="dev-mode-restricted__">
 
-                <h3>REMOTE REPOSITORY:</h3>
+                <h3>Remote sync:</h3>
 
                 
                 <br>
                 <label class="primary check">
-                    <input type="checkbox" id="env_repo"><span>Project repo<br>
-                        <i>(Test feature)</i></span>
+                    <input type="checkbox" id="env_repo"><span>Project Repository<br>
+                        <i>(Beta feature)</i></span>
 
                     <button class="btn  help transparent to-right" id="env_repo_help" title="Info / Help"><span class="icon"></span><!-- <span class="text">Info / Help</span>--></button>
                 </label>
@@ -324,7 +324,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
                 <div class="section-foldable" data-visibility-trigger="#env_repo">
 
                     <label class="primary help-hidable__">
-                        <p class="level-info"><em>You've found a hidden test feature! The repository functionality is not yet finished / tested well enough (works in basics though, so you can give it a try)</em></p>
+                        <p class="level-info"><em>The Project Repository functionality may not be tested well enough (but it works, so you can give it a try). <br> Press the help button for details</em></p>
                     </label>
 
                     <p class="row config-repo">
@@ -362,6 +362,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
         </div>
 
 
+        <a id="projects_list"></a>
         <br>
         <br>
         <div class="projects-list-toolbar">
@@ -604,6 +605,7 @@ The BEST SOLUTION for that problem (and highly probable many others) is to just 
     <div class="jump-toolbar">
         <span>Jump to:</span>
         <div id="jump-to-top">&Uparrow; Top</div>
+        <div id="jump-to-repo">Repo</div>
         <div id="jump-to-projects">Projects</div>
         <div id="jump-to-importexport">Imp/Exp</div>
         <div id="jump-to-misc">Misc</div>
