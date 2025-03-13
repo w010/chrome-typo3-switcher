@@ -2146,6 +2146,10 @@ const ExtOptions = {
             .on( 'change', 'input[type=color]:not(.no-autosave)', (e) => {
                 ExtOptions.optionsSave( e );
             })
+            // password: change
+            .on( 'change', 'input[type=password]:not(.no-autosave)', (e) => {
+                ExtOptions.optionsSave( e );
+            })
             ;
     },
     
