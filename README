@@ -12,12 +12,18 @@ https://chrome.google.com/webstore/detail/typo3-backend-frontend-ha/ohemimdlihjd
 https://github.com/w010/chrome-typo3-switcher
 
 
+**
+NEW FEATURES:
+- Now it works with ANY CMS using CUSTOM BACKEND PATH option
+- BACKEND DEEP LINKING works with Page, Language, News, Custom records 
+- Project Repository
+
 
 **
 What's that (and for who)?
 
-It's a productivity everyday time saver / navigation helper for (mainly) TYPO3 web projects, originally dedicated to TYPO3
-CMS integrators / devs / editors / project managers.
+It's a productivity everyday time saver / navigation helper for CMS web projects, originally dedicated to TYPO3
+integrators / devs / editors / project managers.
 Especially recommended for those who works with a large number of projects that runs multiple instances / continuous integrated etc.
 - But it's a great work improvement for everyone who works with TYPO3 on everyday basis.
 (I've got feedback that non-TYPO3 people also finds some of its elements very usable - so in future the "/typo3" segment will be 
@@ -50,28 +56,91 @@ You can also add some project-related links (like issue tracker, wiki, repo etc)
 
 
 - Projects can be easy exported/imported in json format (all or separately) to share with your team / post to wiki / etc.
-More advanced functions wip, comes in next big release!  
+There's also more advanced PROJECT REPO FUNCTIONALITY, where you can synchronize/share your projects with
+remote hosted repository.  
 
 
-- Switching to Frontend tries to use current pagetree-selected page id and open it instead of just base url (similar to
+- SWITCHING TO BACKEND TRIES TO FIND CURRENT PAGE UID IN THE PAGE SOURCE AND GO DIRECTLY TO THAT PAGE EDITION. It also
+supports language, News and CUSTOM RECORDS.
+(it just needs typical html/body classes for that, - and metatag for custom records) 
+(tested in versions 11.5 - 12.4)
+(See section below for details)
+
+
+- Switching to Frontend tries to use current pagetree-selected Page UID and open it instead of just base url (similar to
 "View webpage" button in backend, but works even if you're in a module without page tree or such button).
 (you can turn off this behaviour) [note, it doesn't respect multidomains - probably impossible to implement easy]
-(tested in versions 6.2 - 10.4)
 
 
 - If you rather go simply, you may turn off all that fancy environment-related functions, and use only BE/FE switch button to keep lightweight.
 (but why give up all these great features?)
-Note, that this ext doesn't load any js libs in its background instance (only some in options panel) so it doesn't eat too much memory.
 
-
-- Also, I'd like to make it expand the pagetree and select current page, best will be based on url, when switching  to backend.
-It would be a huge productivity boost.
-This will probably work in TYPO3 11 once it lands, which will introduce backend direct links. But current TYPO3 architecture doesn't allow such trick.
-(I'm experimenting with some js hacks & workarounds to make it work in <= 10.x, but no success yet)
+> Note, that THIS EXT DOESN'T LOAD ANY BIG VENDOR JS LIBS IN ITS BACKGROUND INSTANCE (only some in options panel) so it doesn't eat too much memory.
 
 
 
-Security Trust:
+
+**
+BACKEND DEEP LINKING
+
+1. Out of the box it works with PAGE ID, LANGUAGE AND NEWS - it can open Backend linking directly to the edit form.
+
+	It needs typical class or id of <html> or <body>:
+		Example: <body class="page-123 language-2 news-456"> will allow to fetch these uids.
+	(many projects has this already anyway)
+
+2. CUSTOM RECORDS can be configured by adding similar way, for example <body class="product-789">  
+	and then adding simple meta tag config into <head> this way:
+	  (for example, using Typoscript:)
+	  page.headerData.7700 = TEXT
+	  page.headerData.7700 = TEXT.value (
+	
+	<meta name="handyswitcher" content='{
+					"deeplink": {
+						"products": {
+							"table": "tx_myext_domain_model_product",
+							"module": "edit",
+							"pattern": "(?:product)(?:-|_)(\\d+(\\.\\d)*)",
+							"selector": "body",
+							"attr": "class"
+					}}}'>
+	
+	- that will make possible the Switcher will open backend edit form for the specified record,
+	when switching to Backend from product detail page Frontend.
+	
+	Configuration ref:
+	    'table' - record db table name, used to build backend url
+	    'module' - 'edit' (default) or 'page'
+	    'pattern' - ready pattern to match string
+	    'selector' - it will search for that keyword/pattern in that tag
+	    'attr' - in that attribute of that tag
+
+
+
+**
+PROJECT REPOSITORY
+
+This ext now has a functionality to synchronize Projects with external Project Repo, where you can store, manage and
+exchange projects with your team - to always keep all urls sets up to date and ready to use.
+You can push, fetch and compare Project configurations, also managing simple user roles (read, write, admin access)
+
+For that to be possible I wrote a tiny web app for easy hosting of the repository on your server:
+http://wolostudio.free.nf/handyswitcher/repoexample/
+Code:
+https://github.com/w010/handy-switcher-project-repo/
+
+It's almost zero-config and easy to run, just clone it somewhere on your server and open web gui for details. 
+
+That app was originally meant for my private use, so it's rather simple and doesn't provide much of
+security - it was made rather for presenting the concept. But it works well, if you don't forget to set htaccess password.
+If you need it to be more pro for your purposes, use it as a base for writing something better, ie. TYPO3 extension...
+
+
+
+
+**
+SECURITY TRUST:
+
 See FAQ
 
 
@@ -144,6 +213,12 @@ A: No, this extension doesn't do anything with the urls it reads. All it does it
 
 **
 Changelog:
+
+v2.5.670
+13.03.2025
+- CUSTOM BACKEND PATH - NOW IT SUPPORTS OTHER CMS!
+- backend deep link - LANGUAGE, NEWS, CUSTOM RECORDS
+- Project Repository is now beta and unhidden by default
 
 v2.5.666
 28.02.2025
