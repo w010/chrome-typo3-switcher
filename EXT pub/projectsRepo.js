@@ -549,7 +549,7 @@ let RepoHelper = {
 
         if ( typeof projectItem.contexts !== 'undefined' )  {
             $.each( projectItem.contexts, function (i, contextItem) {
-                let context = $( '<div class="context-item">' +
+                let context = $( '<div class="context-item '+(contextItem.hidden ? 'hidden' : '')+'">' +
                     '<span class="color"></span>' +
                     '<h4 class="name">'+ contextItem.name +'</h4>' +
                     '<div class="url"><a target="_blank" href="'+ contextItem.url +'">'+ contextItem.url +'</a></div>' +
@@ -561,7 +561,7 @@ let RepoHelper = {
 
         if ( typeof projectItem.links !== 'undefined' )  {
             $.each( projectItem.links, function (i, linkItem) {
-                let link = $( '<div class="link-item">' +
+                let link = $( '<div class="link-item '+(linkItem.hidden ? 'hidden' : '')+'">' +
                     '<h4 class="name">'+ linkItem.name +'</h4>' +
                     '<div class="url"><a target="_blank" href="'+ linkItem.url +'">'+ linkItem.url +'</a></div>' +
                 '</div>' );

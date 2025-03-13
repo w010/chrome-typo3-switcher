@@ -1339,6 +1339,10 @@ input#env_repo_key  {
 	border-radius: 4px;
     position: absolute;
 }
+.project-item-preview .context-item.hidden,
+.project-item-preview .link-item.hidden {
+	opacity: .4;
+}
 
 .project-item-preview .buttons  {
 	position: absolute;
